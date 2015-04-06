@@ -1,0 +1,77 @@
+{
+  "name": "align-bwa-pe",
+  "title": "Alignment by bwa",
+  "summary": "Alignment by bwa of paired-end fastqs for the ENCODE DNase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "read1_fq",
+      "label": "Read1 of paired-end fastq file(s) (gzipped)",
+      "class": "array:file",
+      "optional": false,
+      "patterns": ["*.fq.gz","*.fastq.gz"]
+    },
+    {
+      "name": "read2_fq",
+      "label": "Read2 of paired-end fastq files (gzipped)",
+      "class": "array:file",
+      "optional": false,
+      "patterns": ["*_bwaIndex.fq.gz","*_bwaIndex.fastq.gz"]
+    },
+    {
+      "name": "bwa_index",
+      "label": "BWA generated index of a genome reference file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*.fa.gz","*.fasta.gz"]
+    },
+    {
+      "name": "nthreads",
+      "label": "Number of threads to use",
+      "class": "int",
+      "optional": true,
+      "default": 8
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "bam_bwa",
+      "label": "Alignment bam file",
+      "class": "file",
+      "patterns": ["*_bwa.bam"]
+    },
+    {
+      "name": "bam_bwa_qc",
+      "label": "Text file with some bam stats",
+      "class": "file",
+      "patterns": ["*_bwa_bam.txt"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/align-bwa-pe.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}

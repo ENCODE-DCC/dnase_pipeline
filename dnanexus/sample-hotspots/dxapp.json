@@ -1,0 +1,78 @@
+{
+  "name": "sample-hotspots",
+  "title": "Call sample of hotspots",
+  "summary": "Call a sample of peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "bam_file",
+      "label": "Filtered bam file without chrM",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*.bam"]
+    },
+    {
+      "name": "chrom_sizes",
+      "label": "chomosome/name length file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*chrom.sizes","*.txt"]
+    },
+    {
+      "name": "read_length",
+      "label": "Length of reads in bam file",
+      "class": "int",
+      "optional": true,
+      "default": 100
+    },
+    {
+      "name": "genome",
+      "label": "Genome this is for",
+      "class": "string",
+      "optional": true,
+      "choices": ["hg19","hg38","mm10"],
+      "default": "hg19"
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "bam_5M_sample",
+      "label": "Sample of 5 million reads bam",
+      "class": "file",
+      "patterns": ["*_5M_sample.bam"]
+    },
+    {
+      "name": "hotspot_5M_sample_qc",
+      "label": "Sample of 5 million reads hotspot output",
+      "class": "file",
+      "patterns": ["*_5M_sample_hotspot_qc.txt"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/sample-hotspots.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}

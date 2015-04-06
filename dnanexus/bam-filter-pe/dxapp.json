@@ -1,0 +1,106 @@
+{
+  "name": "bam-filter-pe",
+  "title": "Filter bam",
+  "summary": "Filter bam (paired-end) for the ENCODE DNase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "bam_bwa",
+      "label": "Raw bam (paired-end) to be filtered",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_bwa.bam"]
+    },
+    {
+      "name": "map_thresh",
+      "label": "Map threshold",
+      "class": "int",
+      "optional": true,
+      "default": 3
+    },
+    {
+      "name": "sample_size",
+      "label": "Number of bam reads to sample",
+      "class": "int",
+      "optional": true,
+      "default": 15000000
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "bam_filtered",
+      "label": "Filtered bam file",
+      "class": "file",
+      "patterns": ["*_filtered.bam"]
+    },
+    {
+      "name": "bam_no_chrM",
+      "label": "Filtered bam file without chrM",
+      "class": "file",
+      "patterns": ["*_no_chrM.bam"]
+    },
+    {
+      "name": "bam_sample",
+      "label": "Sample of bam filtered and without chrM",
+      "class": "file",
+      "patterns": ["*_sample.bam"]
+    },
+    {
+      "name": "bam_filtered_qc",
+      "label": "Filtered bam 'samtools flagstats' output",
+      "class": "file",
+      "patterns": ["*_filtered_qc.txt"]
+    },
+    {
+      "name": "bam_filtered_qc_full",
+      "label": "Filtered bam 'samtools stats' output",
+      "class": "file",
+      "patterns": ["*_filtered_qc_full.txt"]
+    },
+    {
+      "name": "bam_sample_stats",
+      "label": "Sample bam 'edwBamStats' output",
+      "class": "file",
+      "patterns": ["*_sample_stats.txt"]
+    },
+    {
+      "name": "bam_sample_spp",
+      "label": "Sample bam 'Rscript run_spp.R' output",
+      "class": "file",
+      "patterns": ["*_sample_spp.txt"]
+    },
+    {
+      "name": "bam_sample_pbc",
+      "label": "Sample bam 'PBC' output",
+      "class": "file",
+      "patterns": ["*_sample_pbc.txt"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/bam-filter-pe.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}

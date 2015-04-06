@@ -1,0 +1,116 @@
+{
+  "name": "merge-replicates",
+  "title": "Merge replicates",
+  "summary": "Merge two replicates for the ENCODE DNase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "bam_repA",
+      "label": "A replicate filtered bam file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_filtered.bam"]
+    },
+    {
+      "name": "bam_repB",
+      "label": "B replicate filtered bam file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_filtered.bam"]
+    },
+    {
+      "name": "peaks_A",
+      "label": "A replicate hotspot narrowPeaks bigBed",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_narrowPeak_hotspot.bb"]
+    },
+    {
+      "name": "peaks_B",
+      "label": "B replicate hotspot narrowPeaks bigBed",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_narrowPeak_hotspot.bb"]
+    },
+    {
+      "name": "signal_A",
+      "label": "A replicate hotspot signal",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_signal_hotspot.bw"]
+    },
+    {
+      "name": "signal_B",
+      "label": "B replicate hotspot signal",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_signal_hotspot.bw"]
+    },
+    {
+      "name": "chrom_sizes",
+      "label": "chomosome/name length file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*chrom.sizes","*.txt"]
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "bam_pooled",
+      "label": " Bam file of pooled replicates",
+      "class": "file",
+      "patterns": ["*_pooled.bam"]
+    },
+    {
+      "name": "bed_merged",
+      "label": "Merged hotspot narrowPeaks",
+      "class": "file",
+      "patterns": ["*_narrowPeak_merged.bed"]
+    },
+    {
+      "name": "bb_merged",
+      "label": "Merged hotspot narrowPeaks bigBed",
+      "class": "file",
+      "patterns": ["*_narrowPeak_merged.bb"]
+    },
+    {
+      "name": "signal_corr_qc",
+      "label": "Hotspot Signals correlation",
+      "class": "file",
+      "patterns": ["*_signal_corr_qc.txt"]
+    },
+    {
+      "name": "peaks_overlap_qc",
+      "label": "Hotspot peaks overlap",
+      "class": "file",
+      "patterns": ["*_narrowPeaks_overlap_qc.txt"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/merge-replicates.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}
