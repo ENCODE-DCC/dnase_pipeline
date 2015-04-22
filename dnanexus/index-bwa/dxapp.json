@@ -1,0 +1,59 @@
+{
+  "name": "index-bwa",
+  "title": "DNase-seq-bwa-genome-index",
+  "summary": "Prepare reference genome index for BWA used in the ENCODE dnase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.1.0",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "class": "file",
+      "optional": false,
+      "name": "reference",
+      "label": "Reference genome (.fa.gz)",
+      "patterns": ["*.fasta.gz", "*.fa.gz"]
+    },
+    {
+      "class": "string",
+      "optional": false,
+      "name": "genome",
+      "label": "Genome assembly",
+      "patterns": ["hg19", "hg38", "mm10"]
+    },
+    {
+      "class": "string",
+      "optional": false,
+      "name": "gender",
+      "label": "Gender",
+      "patterns": ["female", "male"]
+    }
+  ],
+  "outputSpec": [
+    {
+      "class": "file",
+      "name": "bwa_index",
+      "label": "Reference index index for BWA",
+      "patterns": ["*.tgz"]
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/index-bwa.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x4"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x4"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}
