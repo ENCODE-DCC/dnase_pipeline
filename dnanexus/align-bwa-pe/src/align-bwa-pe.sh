@@ -1,11 +1,11 @@
 #!/bin/bash
-# align-bwa-pe 0.0.1
+# align-bwa-pe 0.1.0
 
 main() {
     # Executable in resources/usr/bin
     
     echo "*****"
-    echo "* Running: align-bwa-pe.sh v0.0.1"
+    echo "* Running: align-bwa-pe.sh v0.1.0"
     echo "* bwa: "`bwa 2>&1 | grep Version | awk '{print $2}'`
     echo "* samtools: "`samtools 2>&1 | grep Version | awk '{print $2}'`
     echo "*****"
@@ -70,19 +70,20 @@ main() {
     bam_root="${read1_root}_${read2_root}_bwa"
 
     bwa_ix_root=`dx describe "$bwa_index" --name`
-    bwa_ix_root=${bwa_ix_root%.fasta.gz}
-    bwa_ix_root=${bwa_ix_root.fa.gz}
-    echo "* Downloading and unzipping ${bwa_ix_root}.fa.gz file..."
-    dx download "$bwa_index" -o bwa_index.fa.gz
-    gunzip bwa_index.fa.gz
-    echo "* bwa index file: 'bwa_index.fa'"
+    bwa_ix_root=${bwa_ix_root%.tar.gz}
+    bwa_ix_root=${bwa_ix_root%.tgz}
+    ref_id=${bwa_ix_root%_bwa_index}
+    echo "* Downloading and extracting ${bwa_ix_root}.tgz file..."
+    dx download "$bwa_index" -o ${bwa_ix_root}.tgz
+    tar zxvf ${bwa_ix_root}.tgz
+    echo "* Reference fasta: ${ref_id}.fa"
 
     echo "* Aligning with bwa..."
     set -x
-    bwa aln -q 5 -l 32 -k 2 -t $nthreads bwa_index.fa ${read1_root}.fq.gz > tmp_1.sai
-    bwa aln -q 5 -l 32 -k 2 -t $nthreads bwa_index.fa ${read2_root}.fq.gz > tmp_2.sai
-    #bwa sampe bwa_index.fa tmp_1.sai tmp_2.sai ${read1_root}.fq.gz ${read2_root}.fq.gz | samtools view -Shu - | samtools sort -m 5000000000 - ${prefix}
-    bwa sampe bwa_index.fa tmp_1.sai tmp_2.sai ${read1_root}.fq.gz ${read2_root}.fq.gz | samtools view -S -b /dev/stdin > tmp.bam
+    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${read1_root}.fq.gz > tmp_1.sai
+    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${read2_root}.fq.gz > tmp_2.sai
+    #bwa sampe ${ref_id} tmp_1.sai tmp_2.sai ${read1_root}.fq.gz ${read2_root}.fq.gz | samtools view -Shu - | samtools sort -m 5000000000 - ${prefix}
+    bwa sampe ${ref_id} tmp_1.sai tmp_2.sai ${read1_root}.fq.gz ${read2_root}.fq.gz | samtools view -S -b /dev/stdin > tmp.bam
     set +x
     
     echo "* Sort bam..."
@@ -105,9 +106,9 @@ main() {
     var=`grep -w duplicates ${bam_root}_bam_qc.txt | awk '{printf "\"duplicates\": %d, \"duplicates_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
     # 204621 + 0 mapped (95.48%:-nan%)
-    var=`grep -w mapped ${bam_root}_bam_qc.txt | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
+    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
-    var=`grep -w mapped ${bam_root}_bam_qc.txt | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
+    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
     meta=`echo $meta, \"mapped_pct\": \"$var\"`
     # 2142 + 0 paired in sequencing
     var=`grep "paired in sequencing" ${bam_root}_bam_qc.txt | awk '{printf "\"paired\": %d, \"paired_qc_failed\": %d", $1,$3}'`
@@ -131,7 +132,7 @@ main() {
     var=`grep "with mate mapped to a different chr" ${bam_root}_bam_qc.txt | grep -v "(mapQ>=5)" | awk '{printf "\"diff_chroms\": %d, \"diff_chroms_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
     # 0 + 0    with mate mapped to a different chr (mapQ>=5)
-    var=`grep "with mate mapped to a different chr (mapQ>=5)" ${bam_root}_bam_qc.txt | grep -v "(mapQ>=5)" | awk '{printf "\"diff_chroms_gt5\": %d, \"diff_chroms_gt5_qc_failed\": %d", $1,$3}'`
+    var=`grep "with mate mapped to a different chr (mapQ>=5)" ${bam_root}_bam_qc.txt | awk '{printf "\"diff_chroms_gt5\": %d, \"diff_chroms_gt5_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
     meta=`echo $meta }`
 

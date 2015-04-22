@@ -1,11 +1,11 @@
 #!/bin/bash
-# align-bwa-se 0.0.1
+# align-bwa-se 0.1.0
 
 main() {
     # Executable in resources/usr/bin
     
     echo "*****"
-    echo "* Running: align-bwa-se.sh v0.0.1"
+    echo "* Running: align-bwa-se.sh v0.1.0"
     echo "* bwa: "`bwa 2>&1 | grep Version | awk '{print $2}'`
     echo "* samtools: "`samtools 2>&1 | grep Version | awk '{print $2}'`
     echo "*****"
@@ -43,18 +43,19 @@ main() {
     bam_root="${reads_root}_bwa"
 
     bwa_ix_root=`dx describe "$bwa_index" --name`
-    bwa_ix_root=${bwa_ix_root%.fasta.gz}
-    bwa_ix_root=${bwa_ix_root.fa.gz}
-    echo "* Downloading and unzipping ${bwa_ix_root}.fa.gz file..."
-    dx download "$bwa_index" -o bwa_index.fa.gz
-    gunzip bwa_index.fa.gz
-    echo "* bwa index file: 'bwa_index.fa'"
+    bwa_ix_root=${bwa_ix_root%.tar.gz}
+    bwa_ix_root=${bwa_ix_root%.tgz}
+    ref_id=${bwa_ix_root%_bwa_index}
+    echo "* Downloading and extracting ${bwa_ix_root}.tgz file..."
+    dx download "$bwa_index" -o ${bwa_ix_root}.tgz
+    tar zxvf ${bwa_ix_root}.tgz
+    echo "* Reference fasta: ${ref_id}.fa"
 
     echo "* Aligning with bwa..."
     set -x
-    bwa aln -q 5 -l 32 -k 2 -t $nthreads bwa_index.fa ${reads_root}.fq.gz > tmp.sai
-    #bwa samse bwa_index.fa tmp.sai ${reads_root}.fq.gz | samtools view -Shu - | samtools sort -m 5000000000 - ${reads_root}
-    bwa samse bwa_index.fa.gz tmp.sai ${reads_root}.fq.gz | samtools view -S -b /dev/stdin > tmp.bam
+    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${reads_root}.fq.gz > tmp.sai
+    #bwa samse ${ref_id} tmp.sai ${reads_root}.fq.gz | samtools view -Shu - | samtools sort -m 5000000000 - ${reads_root}
+    bwa samse ${ref_id} tmp.sai ${reads_root}.fq.gz | samtools view -S -b /dev/stdin > tmp.bam
     set +x
 
     echo "* Sort bam..."
@@ -70,16 +71,16 @@ main() {
 
     echo "* Prepare metadata json..."
     meta=`echo \"samtools_flagstats\": { `
-    # 2142994 + 0 in total (QC-passed reads + QC-failed reads)
+    # 5008100 + 0 in total (QC-passed reads + QC-failed reads)
     var=`grep "QC-passed reads" ${bam_root}_bam_qc.txt | awk '{printf "\"total\": %d, \"total_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta $var`
     # 0 + 0 duplicates
     var=`grep -w duplicates ${bam_root}_bam_qc.txt | awk '{printf "\"duplicates\": %d, \"duplicates_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
-    # 2046212 + 0 mapped (95.48%:-nan%)
-    var=`grep -w mapped ${bam_root}_bam_qc.txt | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
+    # 3421023 + 0 mapped (68.31%:-nan%)
+    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
-    var=`grep -w mapped ${bam_root}_bam_qc.txt | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
+    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
     meta=`echo $meta, \"mapped_pct\": \"$var\"`
     meta=`echo $meta }`
 

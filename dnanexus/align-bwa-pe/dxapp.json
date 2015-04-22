@@ -1,9 +1,9 @@
 {
   "name": "align-bwa-pe",
-  "title": "Alignment by bwa",
+  "title": "DNase align bwa pe",
   "summary": "Alignment by bwa of paired-end fastqs for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -18,14 +18,14 @@
       "label": "Read2 of paired-end fastq files (gzipped)",
       "class": "array:file",
       "optional": false,
-      "patterns": ["*_bwaIndex.fq.gz","*_bwaIndex.fastq.gz"]
+      "patterns": ["*.fq.gz","*.fastq.gz"]
     },
     {
       "name": "bwa_index",
       "label": "BWA generated index of a genome reference file",
       "class": "file",
       "optional": false,
-      "patterns": ["*.fa.gz","*.fasta.gz"]
+      "patterns": ["*_bwa_index.tar.gz","*_bwa_index.tgz"]
     },
     {
       "name": "nthreads",
