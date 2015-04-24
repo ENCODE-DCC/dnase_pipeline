@@ -1,9 +1,9 @@
 {
   "name": "bam-filter-se",
-  "title": "Filter bam",
+  "title": "Filter bam se",
   "summary": "Filter bam (single-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -26,6 +26,13 @@
       "class": "int",
       "optional": true,
       "default": 15000000
+    },
+    {
+      "name": "nthreads",
+      "label": "Number of threads to use",
+      "class": "int",
+      "optional": true,
+      "default": 8
     }
   ],
   "outputSpec": [
@@ -93,7 +100,10 @@
       "myEntryPoint": {
         "instanceType": "mem3_hdd2_x8"
       }
-    }
+    },
+    "execDepends": [
+        { "name": "gawk" }
+    ]
   },
   "access": {
     "network": [
