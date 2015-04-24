@@ -6,8 +6,8 @@ main() {
     
     echo "*****"
     echo "* Running: align-bwa-se.sh v0.1.0"
-    echo "* bwa: "`bwa 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
+    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
     echo "*****"
 
     echo "* Value of reads_fq: '$reads_fq'"
@@ -15,8 +15,8 @@ main() {
     echo "* Value of nthreads: '$nthreads'"
 
     #echo "* Download files..."
-    if [ ${#reads_fq} gt 1 ]; then
-        outfile_name="_concat"
+    if [ "${#reads_fq}" -gt "1" ]; then
+        outfile_name="concat"
         rm -f concat.fq
         for ix in ${!reads_fq[@]}
         do

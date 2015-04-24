@@ -6,14 +6,14 @@ main() {
     
     echo "*****"
     echo "* Running: fastq-stats.sh v0.0.1"
-    echo "* fastqStatsAndSubsample: "`fastqStatsAndSubsample 2>&1 | grep "fastqStatsAndSubsample v" | awk '{print $2}'`
+    echo "* fastqStatsAndSubsample version: "`fastqStatsAndSubsample 2>&1 | grep "fastqStatsAndSubsample v" | awk '{print $2}'`
     echo "*****"
 
     echo "* Value of fastq_file: '$fastq_file'"
 
     #echo "* Download files..."
-    if [ ${#fastq_file} gt 1 ]; then
-        outfile_name="_concat"
+    if [ ${#fastq_file} -gt 1 ]; then
+        outfile_name="concat"
         rm -f concat.fq
         for ix in ${!fastq_file[@]}
         do

@@ -7,12 +7,12 @@ main() {
     
     echo "*****"
     echo "* Running: merge-replicates.sh v0.0.1"
-    echo "* samtools: "`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "* bedtools: "`bedtools --version 2>&1 | awk '{print $2}'`
-    echo "* bigBedToBed: "`bigBedToBed 2>&1 | grep "bigBedToBed v" | awk '{print $2}'`
-    echo "* bedToBigBed: "`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
-    echo "* bigWigCorrelate: (unversioned) "`bigWigCorrelate 2>&1 | grep "bigWigCorrelate -" | awk '{print $3,$4,$5}'`
-    echo "* edwComparePeaks: (unversioned) "`edwComparePeaks 2>&1 | grep "edwComparePeaks -" | awk '{print $3,$4,$5,$6}'`
+    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* bedtools version: "`bedtools --version 2>&1 | awk '{print $2}'`
+    echo "* bigBedToBed version: "`bigBedToBed 2>&1 | grep "bigBedToBed v" | awk '{print $2}'`
+    echo "* bedToBigBed version: "`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
+    echo "* bigWigCorrelate version: (unversioned) "`bigWigCorrelate 2>&1 | grep "bigWigCorrelate -" | awk '{print $3,$4,$5}'`
+    echo "* edwComparePeaks version: (unversioned) "`edwComparePeaks 2>&1 | grep "edwComparePeaks -" | awk '{print $3,$4,$5,$6}'`
     echo "*****"
 
     echo "* Value of bam_A: '$bam_A'"

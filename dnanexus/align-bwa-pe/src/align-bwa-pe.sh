@@ -6,8 +6,8 @@ main() {
     
     echo "*****"
     echo "* Running: align-bwa-pe.sh v0.1.0"
-    echo "* bwa: "`bwa 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
+    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
     echo "*****"
 
     echo "* Value of read1_fq: '$read1_fq'"
@@ -16,8 +16,8 @@ main() {
     echo "* Value of nthreads: '$nthreads'"
 
     #echo "* Download files..."
-    if [ ${#read1_fq} gt 1 ]; then
-        outfile_name="_concat"
+    if [ "${#read1_fq}" -gt "1" ]; then
+        outfile_name="concat"
         rm -f concat.fq
         for ix in ${!read1_fq[@]}
         do
@@ -42,8 +42,8 @@ main() {
         echo "* Fastq file: '${read1_root}.fq.gz'"
     fi
 
-    if [ ${#read2_fq} gt 1 ]; then
-        outfile_name="_concat"
+    if [ "${#read2_fq}" -gt "1" ]; then
+        outfile_name="concat"
         rm -f concat.fq
         for ix in ${!read2_fq[@]}
         do

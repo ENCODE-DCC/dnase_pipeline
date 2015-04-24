@@ -45,20 +45,20 @@ main() {
     echo "*****"
     echo "* Running: call-hotspots.sh v0.0.1"
     #overkill: echo "* gsl: "`gsl/configure --version 2> /dev/null | grep gsl | awk '{print $3}'` | tee -a install.log
-    echo "* hotspot: "`hotspot 2>&1 | grep HotSpot | awk '{print $1}'`
-    echo "* bedops: "`bedops --version 2>&1 | grep version | awk '{print $2}'`
-    #echo "* bedmap (bedops): "`bedmap --version 2>&1 | grep version | awk '{print $2}'`
-    #echo "* sort-bed (bedops): "`sort-bed --version 2>&1 | grep version | awk '{print $2}'`
-    #echo "* starch (bedops): "`starch --version 2>&1 | grep version | awk '{print $3}'`
-    #echo "* starchcat (bedops): "`starchcat --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* unstarch (bedops): "`unstarch --version 2>&1 | grep version | awk '{print $3}'`
+    echo "* hotspot version: "`hotspot 2>&1 | grep HotSpot | awk '{print $1}'`
+    echo "* bedops version: "`bedops --version 2>&1 | grep version | awk '{print $2}'`
+    #echo "* bedmap (bedops) version: "`bedmap --version 2>&1 | grep version | awk '{print $2}'`
+    #echo "* sort-bed (bedops) version: "`sort-bed --version 2>&1 | grep version | awk '{print $2}'`
+    #echo "* starch (bedops) version: "`starch --version 2>&1 | grep version | awk '{print $3}'`
+    #echo "* starchcat (bedops) version: "`starchcat --version 2>&1 | grep version | awk '{print $3}'`
+    echo "* unstarch (bedops) version: "`unstarch --version 2>&1 | grep version | awk '{print $3}'`
     #not installed echo "* GCAP: (unversioned) "`GCAP/gcap/GCAP -h 2> /dev/null | grep Global`
-    echo "* hotspot.py (GCAP): "`python2.7 hotspot.py -h | grep Version | awk '{print $8}'`
-    echo "* bedToBigBed: "`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
-    echo "* bedGraphToWig: "`bedGraphToBigWig 2>&1 | grep "bedGraphToBigWig v" | awk '{print $2$3}'`
-    echo "* bedGraphPack: "`./bedGraphPack 2>&1 | grep "bedGraphPack v" | awk '{print $2}'`
-    echo "* intersectBed (bedtools): "`intersectBed 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* hotspot.py (GCAP) version: "`python2.7 hotspot.py -h | grep Version | awk '{print $8}'`
+    echo "* bedToBigBed version: "`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
+    echo "* bedGraphToWig version: "`bedGraphToBigWig 2>&1 | grep "bedGraphToBigWig v" | awk '{print $2$3}'`
+    echo "* bedGraphPack version: "`./bedGraphPack 2>&1 | grep "bedGraphPack v" | awk '{print $2}'`
+    echo "* intersectBed (bedtools) version: "`intersectBed 2>&1 | grep Version | awk '{print $2}'`
+    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
     echo "*****"
 
     echo "* Value of bam_input    '$bam_input'"
