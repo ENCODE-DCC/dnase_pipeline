@@ -1,75 +1,82 @@
 #!/bin/bash
-# call-hotspots 0.0.1
+# call-hotspots 0.1.0
+
+script_name="call-hotspots.sh"
+script_ver="0.1.0"
+#script_name=`head -2 $0 | tail -1 | awk '{ print $2 }'`
+#script_ver=`head -2 $0 | tail -1 | awk '{ print $3 }'`
 
 main() {
     echo "* Installing hotspot and dependencies (gsl)..." 2>&1 | tee -a install.log
     exe_dir="`pwd`"
-    echo "> ls -l /usr/local/lib" 2>&1 | tee -a install.log
     set -x
-    ls -l /usr/local/lib 2>&1 | tee -a install.log
-    wget ftp://ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz -O gsl.tgz 2>&1 | tee -a install.log
+    wget ftp://ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz -O gsl.tgz >> install.log 2>&1
     mkdir gsl
     tar -xzf gsl.tgz -C gsl --strip-components=1
     cd gsl
-    ./configure 2>&1 | tee -a install.log
-    make 2>&1 | tee -a install.log
-    sudo make install 2>&1 | tee -a install.log
-    set +x; echo "> ls -l /usr/local/lib" 2>&1 | tee -a install.log; set -x
-    ls -l /usr/local/lib 2>&1 | tee -a install.log
-    set +x; echo "gsl-config --libs" 2>&1 | tee -a install.log; set -x
-    gsl-config --libs 2>&1 | tee -a install.log
-    set +x; echo "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}" 2>&1 | tee -a install.log; set -x
+    ./configure >> install.log 2>&1
+    make > install.log 2>&1
+    sudo make install >> install.log 2>&1
+    gsl-config --libs > install.log 2>&1
     export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
-    set +x; echo "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}" 2>&1 | tee -a install.log; set -x
     cd ..
-    wget https://github.com/rthurman/hotspot/archive/v4.1.0.tar.gz -O hotspot.tgz 2>&1 | tee -a install.log
+    wget https://github.com/rthurman/hotspot/archive/v4.1.0.tar.gz -O hotspot.tgz >> install.log 2>&1
     mkdir hotspot
     tar -xzf hotspot.tgz -C hotspot --strip-components=1
     cd hotspot/hotspot-distr/hotspot-deploy
-    make 2>&1 | tee -a install.log
-    set +x; echo "> ls -l bin" 2>&1 | tee -a install.log; set -x
-    ls -l bin 2>&1 | tee -a install.log
+    make >> install.log 2>&1
     # Can either put bin in path or copy contents of bin to /usr/bin
     export PATH=${exe_dir}/hotspot/hotspot-distr/hotspot-deploy/bin:${PATH}
-    #cp bin/* /usr/bin
-    set +x; echo "PATH: $PATH" 2>&1 | tee -a install.log
-            echo "* === hotspot ===" 2>&1 | tee -a install.log; set -x
-    bin/hotspot 2>&1 | tee -a install.log
-    set +x; echo "* ===============" 2>&1 | tee -a install.log; set -x
-    hotspot 2>&1 | tee -a install.log
-    set +x; echo "* ===============" 2>&1 | tee -a install.log; set -x
     cd ../../../
+    set +x; 
     # additional executables in resources/usr/bin
-    set +x
     
     echo "*****"
-    echo "* Running: call-hotspots.sh v0.0.1"
-    #overkill: echo "* gsl: "`gsl/configure --version 2> /dev/null | grep gsl | awk '{print $3}'` | tee -a install.log
-    echo "* hotspot version: "`hotspot 2>&1 | grep HotSpot | awk '{print $1}'`
-    echo "* bedops version: "`bedops --version 2>&1 | grep version | awk '{print $2}'`
-    #echo "* bedmap (bedops) version: "`bedmap --version 2>&1 | grep version | awk '{print $2}'`
-    #echo "* sort-bed (bedops) version: "`sort-bed --version 2>&1 | grep version | awk '{print $2}'`
-    #echo "* starch (bedops) version: "`starch --version 2>&1 | grep version | awk '{print $3}'`
-    #echo "* starchcat (bedops) version: "`starchcat --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* unstarch (bedops) version: "`unstarch --version 2>&1 | grep version | awk '{print $3}'`
-    #not installed echo "* GCAP: (unversioned) "`GCAP/gcap/GCAP -h 2> /dev/null | grep Global`
-    echo "* hotspot.py (GCAP) version: "`python2.7 hotspot.py -h | grep Version | awk '{print $8}'`
-    echo "* bedToBigBed version: "`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
-    echo "* bedGraphToWig version: "`bedGraphToBigWig 2>&1 | grep "bedGraphToBigWig v" | awk '{print $2$3}'`
-    echo "* bedGraphPack version: "`./bedGraphPack 2>&1 | grep "bedGraphPack v" | awk '{print $2}'`
-    echo "* intersectBed (bedtools) version: "`intersectBed 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* Running: $script_name: $script_ver"; versions=`echo "\"sw_versions\": { \"$script_name\": \"$script_ver\""`
+    var=`hotspot 2>&1 | grep HotSpot | awk '{print $1}'`
+    echo "* hotspot version: $var"; versions=`echo "$versions, \"hotspot\": \"$var\""`
+    var=`python2.7 /usr/bin/hotspot.py -h | grep Version | awk '{print $8}'`
+    echo "* hotspot.py (GCAP) version: $var"; versions=`echo "$versions, \"hotspot.py (GCAP)\": \"$var\""`
+    var=`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* samtools version: $var"; versions=`echo "$versions, \"samtools\": \"$var\""`
+    var=`bedops --version 2>&1 | grep version | awk '{print $2}'`
+    echo "* bedops version: $var"; versions=`echo "$versions, \"bedops\": \"$var\""`
+    var=`bedmap --version 2>&1 | grep version | awk '{print $2}'`
+    echo "* bedmap (bedops) version: $var"; versions=`echo "$versions, \"bedmap (bedops)\": \"$var\""`
+    var=`sort-bed --version 2>&1 | grep version | awk '{print $2}'`
+    echo "* sort-bed (bedops version: $var"; versions=`echo "$versions, \"sort-bed (bedops\": \"$var\""`
+    var=`starch --version 2>&1 | grep version | awk '{print $3}'`
+    echo "* starch (bedops) version: $var"; versions=`echo "$versions, \"starch (bedops)\": \"$var\""`
+    var=`starchcat --version 2>&1 | grep version | awk '{print $3}'`
+    echo "* starchcat (bedops) version: $var"; versions=`echo "$versions, \"starchcat (bedops)\": \"$var\""`
+    var=`unstarch --version 2>&1 | grep version | awk '{print $3}'`
+    echo "* unstarch (bedops) version: $var"; versions=`echo "$versions, \"unstarch (bedops)\": \"$var\""`
+    var=`bedtools --version 2>&1 | awk '{print $2}'`
+    echo "* bedtools version: $var"; versions=`echo "$versions, \"bedtools\": \"$var\""`
+    var=`bamToBed -h 2>&1 | grep Version | awk '{print $2}'`
+    echo "* bamToBed (bedtools) version: $var"; versions=`echo "$versions, \"bamToBed (bedtools)\": \"$var\""`
+    var=`intersectBed 2>&1 | grep Version | awk '{print $2}'`
+    echo "* intersectBed (bedtools) version: $var"; versions=`echo "$versions, \"intersectBed (bedtools)\": \"$var\""`
+    var=`shuffleBed -h 2>&1 | grep Version | awk '{print $2}'`
+    echo "* shuffleBed (bedtools) version: $var"; versions=`echo "$versions, \"shuffleBed (bedtools)\": \"$var\""`
+    var=`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
+    echo "* bedToBigBed version: $var"; versions=`echo "$versions, \"bedToBigBed\": \"$var\""`
+    var=`bedGraphToBigWig 2>&1 | grep "bedGraphToBigWig v" | awk '{print $2$3}'`
+    echo "* bedGraphToBigWig version: $var"; versions=`echo "$versions, \"bedGraphToBigWig\": \"$var\""`    
+    var=`bedGraphPack 2>&1 | grep "bedGraphPack v" | awk '{print $2}'`
+    echo "* bedGraphPack version: $var"; versions=`echo "$versions, \"bedGraphPack\": \"$var\""`
+    versions=`echo $versions }`
     echo "*****"
 
-    echo "* Value of bam_input    '$bam_input'"
+    echo "* Value of bam_no_chrM: '$bam_no_chrM'"
     echo "* Value of chrom_sizes: '$chrom_sizes'"
     echo "* Value of read_length: '$read_length'"
     echo "* Value of genome:      '$genome'"
 
     echo "* Download files..."
-    bam_root=`dx describe "$bam_input" --name`
+    bam_root=`dx describe "$bam_no_chrM" --name`
     bam_root=${bam_root%.bam}
-    dx download "$bam_input" -o ${bam_root}.bam
+    dx download "$bam_no_chrM" -o ${bam_root}.bam
     echo "* bam file: '${bam_root}.bam'"
 
     narrowPeak_root="${bam_root}_narrowPeak_hotspot"
@@ -80,7 +87,14 @@ main() {
     echo "* out: signal file: '${signal_root_root}.bw'"
 
     dx download "$chrom_sizes" -o chromSizes.txt
-    grep -v chrM chromSizes.txt | sort | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' > ${genome}.chromInfo.bed
+    # sort-bed is important!
+    grep -v chrM chromSizes.txt | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' | sort-bed - > ${genome}.chromInfo.bed
+
+    read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"average length:\"" | awk '{print $3}' | tr -d ,`
+    echo "* Found read size: '$read_size'"
+    if [ "$read_size" != "" ] && [ "$read_length" -ne "$read_size" ]; then
+        echo "* WARNING Read length ($read_length) does not match discovered read size ($read_size)."
+    fi
 
     # TODO: Need to make bam.bai?
     echo "* Indexing bam..."
@@ -93,10 +107,11 @@ main() {
     mkdir tmp
     mkdir out
     cp ${genome}.chromInfo.bed hotspot/hotspot-distr/data/
-    cp /usr/bin/${genome}.K${read_length}.mappable_only.bed hotspot/hotspot-distr/data
-    cp /usr/bin/${genome}.K${read_length}.mappable_only.starch hotspot/hotspot-distr/data
+    # May also need to do something about "Satellite.${genome}.bed"
     #cp /usr/bin/Satellite.${genome}.bed hotspot/hotspot-distr/data   # hg19 version already there!
-    python2.7 hotspot.py hotspot/hotspot-distr/ ${bam_root}.bam $genome DNase-seq $read_length tmp out
+    mappable=${genome}.K${read_length}.mappable_only
+    wget http://www.uwencode.org/proj/hotspot/${mappable}.bed -O hotspot/hotspot-distr/data/${mappable}.bed >> install.log 2>&1
+    python2.7 /usr/bin/hotspot.py hotspot/hotspot-distr/ ${bam_root}.bam $genome DNase-seq $read_length tmp out
     cp tmp/${bam_root}.spot.out ${bam_root}_hotspot_qc.txt
     set +x
 
@@ -130,37 +145,33 @@ main() {
     bedGraphToBigWig ${signal_root_root}.bedGraph chromSizes.txt ${signal_root_root}.bw
     set +x
 
-
-
-    # TODO: Collect QC from: ?
-    
     echo "* Prepare metadata..."
-    meta=`echo \"hotspot_out\": { `
-    ## # 2142994 + 0 in total (QC-passed reads + QC-failed reads)
-    ## var=`grep "QC-passed reads" ${bam_filtered_root}_qc.txt | awk '{printf "\"total\": %d, \"total_qc_failed\": %d", $1,$3}'`
-    ## meta=`echo $meta $var`
-    ## # 0 + 0 duplicates
-    ## var=`grep -w duplicates ${bam_filtered_root}_qc.txt | awk '{printf "\"duplicates\": %d, \"duplicates_qc_failed\": %d", $1,$3}'`
-    ## meta=`echo $meta, $var`
-    ## # 2046212 + 0 mapped (95.48%:-nan%)
-    ## var=`grep -w mapped ${bam_filtered_root}_qc.txt | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
-    ## meta=`echo $meta, $var`
-    ## var=`grep -w mapped ${bam_filtered_root}_qc.txt | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
-    ## meta=`echo $meta, \"mapped_pct\": \"$var\"`
+    meta=`echo \"hotspot\": { `
+    #total tags  hotspot tags    SPOT
+    # 2255195       1083552  0.4804
+    var=`tail -1 ${bam_root}_hotspot_qc.txt | awk '{printf "\"total tags\": %d, \"hotspot tags\": %d, \"SPOT\": %d", $1,$2,$3}'`
+    meta=`echo $meta $var`
     meta=`echo $meta }`
-
-
-
+    qc_hotspot=$meta
+    
+    meta=`echo \"peak_counts\": { `
+    var=`cat ${narrowPeak_root}_qc.txt | awk '{printf "\"hotspot count\": %d", $1}'`
+    qc_spots=`echo $qc_hotspot, $var`
+    meta=`echo $meta $var`
+    var=`cat ${broadPeak_root}_qc.txt | awk '{printf "\"regions count\": %d", $1}'`
+    qc_regions=`echo $qc_hotspot, $var`
+    meta=`echo $meta, $var`
+    meta=`echo $meta }`
+    qc_hotspot=`echo $qc_hotspot, $meta`
+    
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    #details=`echo { $meta }`
-    #bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "$details" --property QC="$meta" --brief)
-    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --brief)
-    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed --brief)
-    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb --brief)
-    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb --brief)
-    bw_hotspot_signal=$(dx upload ${signal_root}.bw --brief)
-    bam_hotspot_qc=$(dx upload ${bam_root}_hotspot_qc.txt --brief)
+    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --details "{ $qc_spots }"   --property QC="$qc_spots"   --property SW="$versions" --brief)
+    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed   --details "{ $qc_regions }" --property QC="$qc_regions" --property SW="$versions" --brief)
+    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb   --details "{ $qc_spots }"   --property QC="$qc_spots"   --property SW="$versions" --brief)
+    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb     --details "{ $qc_regions }" --property QC="$qc_regions" --property SW="$versions" --brief)
+    bw_hotspot_signal=$(dx upload ${signal_root}.bw           --details "{ $qc_hotspot }" --property QC="$qc_hotspot" --property SW="$versions" --brief)
+    bam_hotspot_qc=$(dx upload ${bam_root}_hotspot_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bed_hotspot_narrowPeak "$bed_hotspot_narrowPeak" --class=file
     dx-jobutil-add-output bed_hotspot_broadPeak "$bed_hotspot_broadPeak" --class=file
@@ -168,7 +179,7 @@ main() {
     dx-jobutil-add-output bb_hotspot_broadPeak "$bb_hotspot_broadPeak" --class=file
     dx-jobutil-add-output bw_hotspot_signal "$bw_hotspot_signal" --class=file
     dx-jobutil-add-output bam_hotspot_qc "$bam_hotspot_qc" --class=file
-    dx-jobutil-add-output metadata "$meta" --class=string
+    dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."
 }

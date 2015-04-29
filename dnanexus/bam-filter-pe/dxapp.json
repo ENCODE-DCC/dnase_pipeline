@@ -3,7 +3,7 @@
   "title": "Filter bam pe",
   "summary": "Filter bam (paired-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {

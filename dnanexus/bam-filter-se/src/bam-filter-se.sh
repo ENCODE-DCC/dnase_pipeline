@@ -1,5 +1,8 @@
 #!/bin/bash
-# bam-filter-se 0.1.0
+# bam-filter-se.sh 0.1.0
+
+script_name="bam-filter-se.sh"
+script_ver="0.1.0"
 
 main() {
     echo "* Installing phantompeakqualtools, caTools, snow and spp..." 2>&1 | tee -a install.log
@@ -19,21 +22,30 @@ main() {
     set +x
     
     echo "*****"
-    echo "* Running: bam-filter-se.sh v0.1.0"
-    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "* edwBamFilter version: "`edwBamFilter 2>&1 | grep "edwBamFilter v" | awk '{print $2}'`
-    echo "* edwBamStats version: "`edwBamStats 2>&1 | grep "edwBamStats v" | awk '{print $2}'`
-    #echo "* R version: "`R --version | grep "R version" | awk '{print $3,$4}'`
-    echo "* Rscript version: "`Rscript --version 2>&1 | awk '{print $5,$6}'`
-    echo "* phantompeakqualtools version: "`grep Version phantompeakqualtools/README.txt | awk '{print $2}'`
-    VER=`grep caTools_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`
-    echo "* caTools version: ${VER%.tar*}"
-    VER=`grep snow_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`
-    echo "* snow version: ${VER%.tar*}"
-    VER=`grep spp_ phantompeakqualtools/installPkgs.R | tr \_ " " | awk '{print $2}'`
-    echo "* spp version: ${VER%.tar*}"
-    echo "* gawk version: "`gawk --version | grep Awk | awk '{print $3}'`
-    echo "* bedtools version: "`bedtools --version 2>&1 | awk '{print $2}'`
+    echo "* Running: $script_name: $script_ver"; versions=`echo "\"sw_versions\": { \"$script_name\": \"$script_ver\""`
+    var=`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* samtools version: $var"; versions=`echo "$versions, \"samtools\": \"$var\""`
+    var=`edwBamFilter 2>&1 | grep "edwBamFilter v" | awk '{print $2}'`
+    echo "* edwBamFilter version: $var"; versions=`echo "$versions, \"edwBamFilter\": \"$var\""`
+    var=`edwBamStats 2>&1 | grep "edwBamStats v" | awk '{print $2}'`
+    echo "* edwBamStats version: $var"; versions=`echo "$versions, \"edwBamStats\": \"$var\""`
+    #var=`R --version | grep "R version" | awk '{print $3,$4}'`
+    #echo "* R version: $var"; versions=`echo "$versions, \"R\": \"$var\""`
+    var=`Rscript --version 2>&1 | awk '{print $5,$6}'`
+    echo "* Rscript version: $var"; versions=`echo "$versions, \"Rscript\": \"$var\""`
+    var=`grep Version phantompeakqualtools/README.txt | awk '{print $2}'`
+    echo "* phantompeakqualtools version: $var"; versions=`echo "$versions, \"phantompeakqualtools\": \"$var\""`
+    var=`grep caTools_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`; var=`echo "${var%.tar*}"
+    echo "* caTools version: $var"; versions=`echo "$versions, \"caTools\": \"$var\""`
+    var=`grep snow_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`; var=`echo "${var%.tar*}"
+    echo "* snow version: $var"; versions=`echo "$versions, \"snow\": \"$var\""`
+    var=`grep spp_ phantompeakqualtools/installPkgs.R | tr \_ " " | awk '{print $2}'`; var=`echo "*${var%.tar*}"
+    echo "* spp version: $var"; versions=`echo "$versions, \"spp\": \"$var\""`
+    var=`gawk --version | grep Awk | awk '{print $3}'`
+    echo "* gawk version: $var"; versions=`echo "$versions, \"gawk\": \"$var\""`
+    var=`bedtools --version 2>&1 | awk '{print $2}'`
+    echo "* bedtools version: $var"; versions=`echo "$versions, \"bedtools\": \"$var\""``
+    versions=`echo $versions }`
     echo "*****"
 
     echo "* Value of bam_bwa: '$bam_bwa'"
@@ -49,7 +61,7 @@ main() {
     bam_filtered_root="${bam_bwa_root}_filtered"
     bam_no_chrM_root="${bam_bwa_root}_no_chrM"
     bam_sample_root="${bam_no_chrM_root}_${sample_size}_sample"
-
+    
     echo "* Filter on threashold..."
     set -x
     samtools view -F 1804 -q ${map_thresh} -u ${bam_bwa_root}.bam | \
@@ -160,6 +172,7 @@ main() {
     # average quality:	36.5
     var=`grep "^average quality\:" ${bam_filtered_root}_qc_summary.txt | awk '{printf "\"average quality\": %s", $3}'`
     meta=`echo $meta, $var`
+    read_len=$var
     # insert size average:	0.0
     var=`grep "^insert size average\:" ${bam_filtered_root}_qc_summary.txt | awk '{printf "\"insert size average\": %s", $4}'`
     meta=`echo $meta, $var`
@@ -345,14 +358,14 @@ main() {
     
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property QC="$qc_filtered" --brief)
-    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --brief)
-    bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property QC="$qc_sampled" --brief)
-    bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --brief)
-    bam_filtered_qc_full=$(dx upload ${bam_filtered_root}_qc_full.txt --brief)
-    bam_sample_stats=$(dx upload ${bam_sample_root}_stats.txt --brief)
-    bam_sample_spp=$(dx upload ${bam_sample_root}_spp.txt --brief)
-    bam_sample_pbc=$(dx upload ${bam_sample_root}_pbc.txt --brief)
+    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property QC="$qc_filtered" --property SW="$versions" --brief)
+    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --details "{ $read_len }" --property SW="$versions" --brief)
+    bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property QC="$qc_sampled" --property SW="$versions" --brief)
+    bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --property SW="$versions" --brief)
+    bam_filtered_qc_full=$(dx upload ${bam_filtered_root}_qc_full.txt --property SW="$versions" --brief)
+    bam_sample_stats=$(dx upload ${bam_sample_root}_stats.txt --property SW="$versions" --brief)
+    bam_sample_spp=$(dx upload ${bam_sample_root}_spp.txt --property SW="$versions" --brief)
+    bam_sample_pbc=$(dx upload ${bam_sample_root}_pbc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file
     dx-jobutil-add-output bam_no_chrM "$bam_no_chrM" --class=file
@@ -363,7 +376,7 @@ main() {
     dx-jobutil-add-output bam_sample_spp "$bam_sample_spp" --class=file
     dx-jobutil-add-output bam_sample_pbc "$bam_sample_pbc" --class=file
 
-    dx-jobutil-add-output metadata "$meta" --class=string
+    dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."
 }

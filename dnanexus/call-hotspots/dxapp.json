@@ -3,28 +3,29 @@
   "title": "Call hotspots",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "bam_input",
+      "name": "bam_no_chrM",
       "label": "Filtered bam file without chrM",
       "class": "file",
       "optional": false,
-      "patterns": ["*.bam"]
+      "patterns": ["*_no_chrM.bam"]
     },
     {
       "name": "chrom_sizes",
       "label": "chomosome/name length file",
       "class": "file",
       "optional": false,
-      "patterns": ["*chrom.sizes","*.txt"]
+      "patterns": ["*chrom.sizes"]
     },
     {
       "name": "read_length",
       "label": "Length of reads in bam file",
       "class": "int",
       "optional": true,
+      "choices": [32, 36, 40, 50, 58, 72, 76, 100],
       "default": 100
     },
     {

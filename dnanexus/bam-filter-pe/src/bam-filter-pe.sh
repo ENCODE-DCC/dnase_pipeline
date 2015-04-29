@@ -1,5 +1,8 @@
 #!/bin/bash
-# bam-filter-pe 0.0.1
+# bam-filter-pe.sh 0.1.0
+
+script_name="bam-filter-pe.sh"
+script_ver="0.1.0"
 
 main() {
     echo "* Installing phantompeakqualtools, caTools, snow and spp..." 2>&1 | tee -a install.log
@@ -19,23 +22,32 @@ main() {
     set +x
     
     echo "*****"
-    echo "* Running: bam-filter-pe.sh v0.0.1"
-    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "* edwBamFilter version: "`edwBamFilter 2>&1 | grep "edwBamFilter v" | awk '{print $2}'`
-    echo "* edwBamStats version: "`edwBamStats 2>&1 | grep "edwBamStats v" | awk '{print $2}'`
-    #echo "* R version: "`R --version | grep "R version" | awk '{print $3,$4}'`
-    echo "* Rscript version: "`Rscript --version 2>&1 | awk '{print $5,$6}'`
-    echo "* phantompeakqualtools version: "`grep Version phantompeakqualtools/README.txt | awk '{print $2}'`
-    VER=`grep caTools_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`
-    echo "* caTools version: ${VER%.tar*}"
-    VER=`grep snow_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`
-    echo "* snow version: ${VER%.tar*}"
-    VER=`grep spp_ phantompeakqualtools/installPkgs.R | tr \_ " " | awk '{print $2}'`
-    echo "* spp version: ${VER%.tar*}"
-    echo "* gawk version: "`gawk --version | grep Awk | awk '{print $3}'`
-    echo "* bedtools version: "`bedtools --version 2>&1 | awk '{print $2}'`
+    echo "* Running: $script_name: $script_ver"; versions=`echo "\"sw_versions\": { \"$script_name\": \"$script_ver\""`
+    var=`samtools 2>&1 | grep Version | awk '{print $2}'`
+    echo "* samtools version: $var"; versions=`echo "$versions, \"samtools\": \"$var\""`
+    var=`edwBamFilter 2>&1 | grep "edwBamFilter v" | awk '{print $2}'`
+    echo "* edwBamFilter version: $var"; versions=`echo "$versions, \"edwBamFilter\": \"$var\""`
+    var=`edwBamStats 2>&1 | grep "edwBamStats v" | awk '{print $2}'`
+    echo "* edwBamStats version: $var"; versions=`echo "$versions, \"edwBamStats\": \"$var\""`
+    #var=`R --version | grep "R version" | awk '{print $3,$4}'`
+    #echo "* R version: $var"; versions=`echo "$versions, \"R\": \"$var\""`
+    var=`Rscript --version 2>&1 | awk '{print $5,$6}'`
+    echo "* Rscript version: $var"; versions=`echo "$versions, \"Rscript\": \"$var\""`
+    var=`grep Version phantompeakqualtools/README.txt | awk '{print $2}'`
+    echo "* phantompeakqualtools version: $var"; versions=`echo "$versions, \"phantompeakqualtools\": \"$var\""`
+    var=`grep caTools_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`; var=`echo "${var%.tar*}"
+    echo "* caTools version: $var"; versions=`echo "$versions, \"caTools\": \"$var\""`
+    var=`grep snow_ phantompeakqualtools/install.log | head -1 | tr \_ " " | awk '{print $4}'`; var=`echo "${var%.tar*}"
+    echo "* snow version: $var"; versions=`echo "$versions, \"snow\": \"$var\""`
+    var=`grep spp_ phantompeakqualtools/installPkgs.R | tr \_ " " | awk '{print $2}'`; var=`echo "*${var%.tar*}"
+    echo "* spp version: $var"; versions=`echo "$versions, \"spp\": \"$var\""`
+    var=`gawk --version | grep Awk | awk '{print $3}'`
+    echo "* gawk version: $var"; versions=`echo "$versions, \"gawk\": \"$var\""`
+    var=`bedtools --version 2>&1 | awk '{print $2}'`
+    echo "* bedtools version: $var"; versions=`echo "$versions, \"bedtools\": \"$var\""``
+    versions=`echo $versions }`
     echo "*****"
-
+ 
     echo "* Value of bam_bwa: '$bam_bwa'"
     echo "* Value of map_thresh: '$map_thresh'"
     echo "* Value of sample_size: '$sample_size'"
@@ -103,11 +115,8 @@ main() {
     # 0 + 0      singletons (0.00%:-nan%)
     var=`grep -w singletons ${bam_filtered_root}_qc.txt | awk '{printf "\"singletons\": %d, \"singletons_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
-    # 0 + 0    with mate mapped to a different chr
+    # 0 + 0 with mate mapped to a different chr (mapQ>=5)
     var=`grep "with mate mapped to a different chr" ${bam_filtered_root}_qc.txt | grep -v "(mapQ>=5)" | awk '{printf "\"diff_chroms\": %d, \"diff_chroms_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 0 + 0    with mate mapped to a different chr (mapQ>=5)
-    var=`grep "with mate mapped to a different chr (mapQ>=5)" ${bam_filtered_root}_qc.txt | grep -v "(mapQ>=5)" | awk '{printf "\"diff_chroms_gt5\": %d, \"diff_chroms_gt5_qc_failed\": %d", $1,$3}'`
     meta=`echo $meta, $var`
     meta=`echo $meta }`
     qc_filtered=$meta
@@ -182,6 +191,7 @@ main() {
     # average length:	36
     var=`grep "^average length\:" ${bam_filtered_root}_qc_summary.txt | awk '{printf "\"average length\": %s", $3}'`
     meta=`echo $meta, $var`
+    read_len=$var
     # maximum length:	36
     var=`grep "^maximum length\:" ${bam_filtered_root}_qc_summary.txt | awk '{printf "\"maximum length\": %d", $3}'`
     meta=`echo $meta, $var`
@@ -208,13 +218,13 @@ main() {
     meta=`echo $meta, $var`
     meta=`echo $meta }`
     qc_filtered=`echo $qc_filtered, $meta`
-
+    
     echo "* Filter out chrM..."
     # Note the sort by name which is needed for proper sampling
     set -x
     edwBamFilter -sponge -chrom=chrM ${bam_filtered_root}.bam ${bam_no_chrM_root}.bam  ## qc based on bam without chrm
     samtools sort -m 50G -n -f ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_byname.sam ## for pbc usage
-    samtools view -b ${bam_filtered_root}_byname.sam > ${bam_filtered_root}_byname.bam
+    samtools view -b ${bam_no_chrM_root}_byname.sam > ${bam_no_chrM_root}_byname.bam
     samtools index ${bam_no_chrM_root}_byname.bam
     rm *.sam
     set +x
@@ -225,7 +235,6 @@ main() {
     set -x
     edwBamStats -sampleBamSize=${sample_size} -u4mSize=${sample_size} -sampleBam=${bam_sample_root}.bam \
                                                         ${bam_no_chrM_root}_byname.bam ${bam_sample_root}_stats.txt
-    cat ${bam_sample_root}_stats.txt
     samtools index ${bam_sample_root}.bam
     cat ${bam_sample_root}_stats.txt
     set +x
@@ -373,17 +382,19 @@ main() {
     meta=`echo $meta $var`
     meta=`echo $meta }`
     qc_sampled=`echo $qc_sampled, $meta`
-    
+        
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property QC="$qc_filtered" --brief)
-    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --brief)
-    bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property QC="$qc_sampled" --brief)
-    bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --brief)
-    bam_filtered_qc_full=$(dx upload ${bam_filtered_root}_qc_full.txt --brief)
-    bam_sample_stats=$(dx upload ${bam_sample_root}_stats.txt --brief)
-    bam_sample_spp=$(dx upload ${bam_sample_root}_spp.txt --brief)
-    bam_sample_pbc=$(dx upload ${bam_sample_root}_pbc.txt --brief)
+    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property QC="$qc_filtered" --property SW="$versions" --brief)
+    #bam_filtered=$(dx upload ${bam_filtered_root}.bam --property QC="$qc_filtered" --property SW="$versions" --brief)
+    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --details "{ $read_len }" --property SW="$versions" --brief)
+    bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property QC="$qc_sampled" --property SW="$versions" --brief)
+    #bam_sample=$(dx upload ${bam_sample_root}.bam --property QC="$qc_sampled" --property SW="$versions" --brief)
+    bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --property SW="$versions" --brief)
+    bam_filtered_qc_full=$(dx upload ${bam_filtered_root}_qc_full.txt --property SW="$versions" --brief)
+    bam_sample_stats=$(dx upload ${bam_sample_root}_stats.txt --property SW="$versions" --brief)
+    bam_sample_spp=$(dx upload ${bam_sample_root}_spp.txt --property SW="$versions" --brief)
+    bam_sample_pbc=$(dx upload ${bam_sample_root}_pbc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file
     dx-jobutil-add-output bam_no_chrM "$bam_no_chrM" --class=file
@@ -394,7 +405,7 @@ main() {
     dx-jobutil-add-output bam_sample_spp "$bam_sample_spp" --class=file
     dx-jobutil-add-output bam_sample_pbc "$bam_sample_pbc" --class=file
 
-    dx-jobutil-add-output metadata "$meta" --class=string
+    dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."
 }
