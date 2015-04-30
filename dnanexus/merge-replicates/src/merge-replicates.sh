@@ -1,19 +1,26 @@
 #!/bin/bash
-# merge-replicates 0.0.1
+# merge-replicates.sh
+
+script_name="merge-replicates.sh"
+script_ver="0.0.1"
 
 main() {
     # Executables in resources/usr/bin
     set +x
     
-    echo "*****"
-    echo "* Running: merge-replicates.sh v0.0.1"
-    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "* bedtools version: "`bedtools --version 2>&1 | awk '{print $2}'`
-    echo "* bigBedToBed version: "`bigBedToBed 2>&1 | grep "bigBedToBed v" | awk '{print $2}'`
-    echo "* bedToBigBed version: "`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
-    echo "* bigWigCorrelate version: (unversioned) "`bigWigCorrelate 2>&1 | grep "bigWigCorrelate -" | awk '{print $3,$4,$5}'`
-    echo "* edwComparePeaks version: (unversioned) "`edwComparePeaks 2>&1 | grep "edwComparePeaks -" | awk '{print $3,$4,$5,$6}'`
-    echo "*****"
+    # If available, will print tool versions to stderr and json string to stdout
+    if [ -f /usr/bin/versions.py ]; then 
+        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+    fi
+    #echo "*****"
+    #echo "* Running: merge-replicates.sh v0.0.1"
+    #echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    #echo "* bedtools version: "`bedtools --version 2>&1 | awk '{print $2}'`
+    #echo "* bigBedToBed version: "`bigBedToBed 2>&1 | grep "bigBedToBed v" | awk '{print $2}'`
+    #echo "* bedToBigBed version: "`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
+    #echo "* bigWigCorrelate version: (unversioned) "`bigWigCorrelate 2>&1 | grep "bigWigCorrelate -" | awk '{print $3,$4,$5}'`
+    #echo "* edwComparePeaks version: (unversioned) "`edwComparePeaks 2>&1 | grep "edwComparePeaks -" | awk '{print $3,$4,$5,$6}'`
+    #echo "*****"
 
     echo "* Value of bam_A: '$bam_A'"
     echo "* Value of bam_B: '$bam_B'"

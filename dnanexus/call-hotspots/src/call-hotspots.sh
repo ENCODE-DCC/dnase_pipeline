@@ -31,42 +31,10 @@ main() {
     set +x; 
     # additional executables in resources/usr/bin
     
-    echo "*****"
-    echo "* Running: $script_name: $script_ver"; versions=`echo "\"sw_versions\": { \"$script_name\": \"$script_ver\""`
-    var=`hotspot 2>&1 | grep HotSpot | awk '{print $1}'`
-    echo "* hotspot version: $var"; versions=`echo "$versions, \"hotspot\": \"$var\""`
-    var=`python2.7 /usr/bin/hotspot.py -h | grep Version | awk '{print $8}'`
-    echo "* hotspot.py (GCAP) version: $var"; versions=`echo "$versions, \"hotspot.py (GCAP)\": \"$var\""`
-    var=`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools version: $var"; versions=`echo "$versions, \"samtools\": \"$var\""`
-    var=`bedops --version 2>&1 | grep version | awk '{print $2}'`
-    echo "* bedops version: $var"; versions=`echo "$versions, \"bedops\": \"$var\""`
-    var=`bedmap --version 2>&1 | grep version | awk '{print $2}'`
-    echo "* bedmap (bedops) version: $var"; versions=`echo "$versions, \"bedmap (bedops)\": \"$var\""`
-    var=`sort-bed --version 2>&1 | grep version | awk '{print $2}'`
-    echo "* sort-bed (bedops version: $var"; versions=`echo "$versions, \"sort-bed (bedops\": \"$var\""`
-    var=`starch --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* starch (bedops) version: $var"; versions=`echo "$versions, \"starch (bedops)\": \"$var\""`
-    var=`starchcat --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* starchcat (bedops) version: $var"; versions=`echo "$versions, \"starchcat (bedops)\": \"$var\""`
-    var=`unstarch --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* unstarch (bedops) version: $var"; versions=`echo "$versions, \"unstarch (bedops)\": \"$var\""`
-    var=`bedtools --version 2>&1 | awk '{print $2}'`
-    echo "* bedtools version: $var"; versions=`echo "$versions, \"bedtools\": \"$var\""`
-    var=`bamToBed -h 2>&1 | grep Version | awk '{print $2}'`
-    echo "* bamToBed (bedtools) version: $var"; versions=`echo "$versions, \"bamToBed (bedtools)\": \"$var\""`
-    var=`intersectBed 2>&1 | grep Version | awk '{print $2}'`
-    echo "* intersectBed (bedtools) version: $var"; versions=`echo "$versions, \"intersectBed (bedtools)\": \"$var\""`
-    var=`shuffleBed -h 2>&1 | grep Version | awk '{print $2}'`
-    echo "* shuffleBed (bedtools) version: $var"; versions=`echo "$versions, \"shuffleBed (bedtools)\": \"$var\""`
-    var=`bedToBigBed 2>&1 | grep "bedToBigBed v" | awk '{print $2$3}'`
-    echo "* bedToBigBed version: $var"; versions=`echo "$versions, \"bedToBigBed\": \"$var\""`
-    var=`bedGraphToBigWig 2>&1 | grep "bedGraphToBigWig v" | awk '{print $2$3}'`
-    echo "* bedGraphToBigWig version: $var"; versions=`echo "$versions, \"bedGraphToBigWig\": \"$var\""`    
-    var=`bedGraphPack 2>&1 | grep "bedGraphPack v" | awk '{print $2}'`
-    echo "* bedGraphPack version: $var"; versions=`echo "$versions, \"bedGraphPack\": \"$var\""`
-    versions=`echo $versions }`
-    echo "*****"
+    # If available, will print tool versions to stderr and json string to stdout
+    if [ -f /usr/bin/versions.py ]; then 
+        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+    fi
 
     echo "* Value of bam_no_chrM: '$bam_no_chrM'"
     echo "* Value of chrom_sizes: '$chrom_sizes'"
@@ -84,7 +52,7 @@ main() {
     signal_root="${bam_root}_signal_hotspot"
     echo "* out: narrowPeak files: '${narrowPeak_root}.bed' and '${narrowPeak_root}.bb'"
     echo "* out: broadPeak files: '${broadPeak_root}.bed' and '${broadPeak_root}.bb'"
-    echo "* out: signal file: '${signal_root_root}.bw'"
+    echo "* out: signal file: '${signal_root}.bw'"
 
     dx download "$chrom_sizes" -o chromSizes.txt
     # sort-bed is important!
@@ -140,29 +108,38 @@ main() {
     set -x
     # Convert starched bedGraph to mappable-only bigWig in $6
     unstarch out/density.bed.starch > tmp/tmp.bed
-    intersectBed -a tmp/tmp.bed -b hotspot/hotspot-distr/data/{$genome}.K${read_length}.mappable_only.bed -f 1.00 | \
-        cut -f 1,2,3,5 | bedGraphPack stdin ${signal_root_root}.bedGraph
-    bedGraphToBigWig ${signal_root_root}.bedGraph chromSizes.txt ${signal_root_root}.bw
+    intersectBed -a tmp/tmp.bed -b hotspot/hotspot-distr/data/${genome}.K${read_length}.mappable_only.bed -f 1.00 | \
+        cut -f 1,2,3,5 | bedGraphPack stdin ${signal_root}.bedGraph
+    bedGraphToBigWig ${signal_root}.bedGraph chromSizes.txt ${signal_root}.bw
     set +x
 
     echo "* Prepare metadata..."
-    meta=`echo \"hotspot\": { `
-    #total tags  hotspot tags    SPOT
-    # 2255195       1083552  0.4804
-    var=`tail -1 ${bam_root}_hotspot_qc.txt | awk '{printf "\"total tags\": %d, \"hotspot tags\": %d, \"SPOT\": %d", $1,$2,$3}'`
-    meta=`echo $meta $var`
-    meta=`echo $meta }`
-    qc_hotspot=$meta
+    qc_hotspot=''
+    if [ -f /usr/bin/qc_metrics.py ]; then
+        qc_hotspot=`qc_metrics.py -n hotspot -f ${bam_root}_hotspot_qc.txt`
+    fi
+    #meta=`echo \"hotspot\": { `
+    ##total tags  hotspot tags    SPOT
+    ## 2255195       1083552  0.4804
+    #var=`tail -1 ${bam_root}_hotspot_qc.txt | awk '{printf "\"total tags\": %s, \"hotspot tags\": %s, \"SPOT\": %s", $1,$2,$3}'`
+    #meta=`echo $meta $var`
+    #meta=`echo $meta }`
+    #qc_hotspot=$meta
     
-    meta=`echo \"peak_counts\": { `
-    var=`cat ${narrowPeak_root}_qc.txt | awk '{printf "\"hotspot count\": %d", $1}'`
-    qc_spots=`echo $qc_hotspot, $var`
-    meta=`echo $meta $var`
-    var=`cat ${broadPeak_root}_qc.txt | awk '{printf "\"regions count\": %d", $1}'`
-    qc_regions=`echo $qc_hotspot, $var`
-    meta=`echo $meta, $var`
-    meta=`echo $meta }`
-    qc_hotspot=`echo $qc_hotspot, $meta`
+    if [ -f /usr/bin/qc_metrics.py ]; then
+        qc_spots=`qc_metrics.py -n singleton -f ${narrowPeak_root}_qc.txt -k "hotspot count" --keypair "hotspot count"`
+        qc_regions=`qc_metrics.py -n singleton -f ${broadPeak_root}_qc.txt -k "regions count" --keypair "regions count"`
+        qc_hotspot=`echo $qc_hotspot, \"peak_counts\": { $qc_spots, $qc_regions }`
+    fi
+    #meta=`echo \"peak_counts\": { `
+    #var=`cat ${narrowPeak_root}_qc.txt | awk '{printf "\"hotspot count\": %d", $1}'`
+    #qc_spots=`echo $qc_hotspot, $var`
+    #meta=`echo $meta $var`
+    #var=`cat ${broadPeak_root}_qc.txt | awk '{printf "\"regions count\": %d", $1}'`
+    #qc_regions=`echo $qc_hotspot, $var`
+    #meta=`echo $meta, $var`
+    #meta=`echo $meta }`
+    #qc_hotspot=`echo $qc_hotspot, $meta`
     
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property

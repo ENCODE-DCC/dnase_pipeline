@@ -29,36 +29,40 @@ main() {
     set +x; 
     # additional executables in resources/usr/bin
     
-    echo "*****"
-    echo "* Running: $script_name: $script_ver"; versions=`echo "\"sw_versions\": { \"$script_name\": \"$script_ver\""`
-    var=`edwBamStats 2>&1 | grep "edwBamStats v" | awk '{print $2}'`
-    echo "* edwBamStats version: $var"; versions=`echo "$versions, \"edwBamStats\": \"$var\""`
-    var=`hotspot 2>&1 | grep HotSpot | awk '{print $1}'`
-    echo "* hotspot version: $var"; versions=`echo "$versions, \"hotspot\": \"$var\""`
-    var=`python2.7 /usr/bin/hotspot.py -h | grep Version | awk '{print $8}'`
-    echo "* hotspot.py (GCAP) version: $var"; versions=`echo "$versions, \"hotspot.py (GCAP)\": \"$var\""`
-    var=`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools version: $var"; versions=`echo "$versions, \"samtools\": \"$var\""`
-    var=`bedops --version 2>&1 | grep version | awk '{print $2}'`
-    echo "* bedops version: $var"; versions=`echo "$versions, \"bedops\": \"$var\""`
-    var=`bedmap --version 2>&1 | grep version | awk '{print $2}'`
-    echo "* bedmap (bedops) version: $var"; versions=`echo "$versions, \"bedmap (bedops)\": \"$var\""`
-    var=`sort-bed --version 2>&1 | grep version | awk '{print $2}'`
-    echo "* sort-bed (bedops version: $var"; versions=`echo "$versions, \"sort-bed (bedops\": \"$var\""`
-    var=`starch --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* starch (bedops) version: $var"; versions=`echo "$versions, \"starch (bedops)\": \"$var\""`
-    var=`starchcat --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* starchcat (bedops) version: $var"; versions=`echo "$versions, \"starchcat (bedops)\": \"$var\""`
-    var=`unstarch --version 2>&1 | grep version | awk '{print $3}'`
-    echo "* unstarch (bedops) version: $var"; versions=`echo "$versions, \"unstarch (bedops)\": \"$var\""`
-    var=`bedtools --version 2>&1 | awk '{print $2}'`
-    echo "* bedtools version: $var"; versions=`echo "$versions, \"bedtools\": \"$var\""`
-    var=`bamToBed -h 2>&1 | grep Version | awk '{print $2}'`
-    echo "* bamToBed (bedtools) version: $var"; versions=`echo "$versions, \"bamToBed (bedtools)\": \"$var\""`
-    var=`shuffleBed -h 2>&1 | grep Version | awk '{print $2}'`
-    echo "* shuffleBed (bedtools) version: $var"; versions=`echo "$versions, \"shuffleBed (bedtools)\": \"$var\""`
-    versions=`echo $versions }`
-    echo "*****"
+    # If available, will print tool versions to stderr and json string to stdout
+    if [ -f /usr/bin/versions.py ]; then 
+        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+    fi
+    #echo "*****"
+    #echo "* Running: $script_name: $script_ver"; versions=`echo "\"sw_versions\": { \"$script_name\": \"$script_ver\""`
+    #var=`edwBamStats 2>&1 | grep "edwBamStats v" | awk '{print $2}'`
+    #echo "* edwBamStats version: $var"; versions=`echo "$versions, \"edwBamStats\": \"$var\""`
+    #var=`hotspot 2>&1 | grep HotSpot | awk '{print $1}'`
+    #echo "* hotspot version: $var"; versions=`echo "$versions, \"hotspot\": \"$var\""`
+    #var=`python2.7 /usr/bin/hotspot.py -h | grep Version | awk '{print $8}'`
+    #echo "* hotspot.py (GCAP) version: $var"; versions=`echo "$versions, \"hotspot.py (GCAP)\": \"$var\""`
+    #var=`samtools 2>&1 | grep Version | awk '{print $2}'`
+    #echo "* samtools version: $var"; versions=`echo "$versions, \"samtools\": \"$var\""`
+    #var=`bedops --version 2>&1 | grep version | awk '{print $2}'`
+    #echo "* bedops version: $var"; versions=`echo "$versions, \"bedops\": \"$var\""`
+    #var=`bedmap --version 2>&1 | grep version | awk '{print $2}'`
+    #echo "* bedmap (bedops) version: $var"; versions=`echo "$versions, \"bedmap (bedops)\": \"$var\""`
+    #var=`sort-bed --version 2>&1 | grep version | awk '{print $2}'`
+    #echo "* sort-bed (bedops version: $var"; versions=`echo "$versions, \"sort-bed (bedops\": \"$var\""`
+    #var=`starch --version 2>&1 | grep version | awk '{print $3}'`
+    #echo "* starch (bedops) version: $var"; versions=`echo "$versions, \"starch (bedops)\": \"$var\""`
+    #var=`starchcat --version 2>&1 | grep version | awk '{print $3}'`
+    #echo "* starchcat (bedops) version: $var"; versions=`echo "$versions, \"starchcat (bedops)\": \"$var\""`
+    #var=`unstarch --version 2>&1 | grep version | awk '{print $3}'`
+    #echo "* unstarch (bedops) version: $var"; versions=`echo "$versions, \"unstarch (bedops)\": \"$var\""`
+    #var=`bedtools --version 2>&1 | awk '{print $2}'`
+    #echo "* bedtools version: $var"; versions=`echo "$versions, \"bedtools\": \"$var\""`
+    #var=`bamToBed -h 2>&1 | grep Version | awk '{print $2}'`
+    #echo "* bamToBed (bedtools) version: $var"; versions=`echo "$versions, \"bamToBed (bedtools)\": \"$var\""`
+    #var=`shuffleBed -h 2>&1 | grep Version | awk '{print $2}'`
+    #echo "* shuffleBed (bedtools) version: $var"; versions=`echo "$versions, \"shuffleBed (bedtools)\": \"$var\""`
+    #versions=`echo $versions }`
+    #echo "*****"
 
     echo "* Value of bam_no_chrM:   '$bam_no_chrM'"
     echo "* Value of chrom_sizes: '$chrom_sizes'"
@@ -113,65 +117,73 @@ main() {
     set +x
 
     echo "* Prepare metadata..."
-    meta=`echo \"edwBamStats\": { `
-    # alignedBy bwa
-    var=`grep "^alignedBy" ${sample_root}_stats.txt | awk '{printf "\"alignedBy\": \"%s\"", $2}'`
-    meta=`echo $meta $var`
-    # isPaired 0
-    var=`grep "^isPaired" ${sample_root}_stats.txt | awk '{printf "\"isPaired\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # isSortedByTarget 1
-    var=`grep "^isSortedByTarget" ${sample_root}_stats.txt | awk '{printf "\"isSortedByTarget\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # readCount 2286836
-    var=`grep "^readCount" ${sample_root}_stats.txt | awk '{printf "\"readCount\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # readBaseCount 82326096
-    var=`grep "^readBaseCount" ${sample_root}_stats.txt | awk '{printf "\"readBaseCount\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # mappedCount 2286836
-    var=`grep "^mappedCount" ${sample_root}_stats.txt | awk '{printf "\"mappedCount\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # uniqueMappedCount 2285489
-    var=`grep "^uniqueMappedCount" ${sample_root}_stats.txt | awk '{printf "\"uniqueMappedCount\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # readSizeMean 36
-    var=`grep "^readSizeMean" ${sample_root}_stats.txt | awk '{printf "\"readSizeMean\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # readSizeStd 0
-    var=`grep "^readSizeStd" ${sample_root}_stats.txt | awk '{printf "\"readSizeStd\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # readSizeMin 36
-    var=`grep "^readSizeMin" ${sample_root}_stats.txt | awk '{printf "\"readSizeMin\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # readSizeMax 36
-    var=`grep "^readSizeMax" ${sample_root}_stats.txt | awk '{printf "\"readSizeMax\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # u4mReadCount 2285489
-    var=`grep "^u4mReadCount" ${sample_root}_stats.txt | awk '{printf "\"u4mReadCount\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # u4mUniquePos 2213397
-    var=`grep "^u4mUniquePos" ${sample_root}_stats.txt | awk '{printf "\"u4mUniquePos\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # u4mUniqueRatio 0.968457
-    var=`grep "^u4mUniqueRatio" ${sample_root}_stats.txt | awk '{printf "\"u4mUniqueRatio\": %s", $2}'`
-    meta=`echo $meta, $var`
-    # targetSeqCount 25
-    var=`grep "^targetSeqCount" ${sample_root}_stats.txt | awk '{printf "\"targetSeqCount\": %d", $2}'`
-    meta=`echo $meta, $var`
-    # targetBaseCount 3095693983
-    var=`grep "^targetBaseCount" ${sample_root}_stats.txt | awk '{printf "\"targetBaseCount\": %d", $2}'`
-    meta=`echo $meta, $var`
-    meta=`echo $meta }`
-    qc_sampled=$meta
+    qc_sampled=''
+    if [ -f /usr/bin/qc_metrics.py ]; then
+        qc_sampled=`qc_metrics.py -n edwBamStats -f ${sample_root}_stats.txt`
+    fi
+    #meta=`echo \"edwBamStats\": { `
+    ## alignedBy bwa
+    #var=`grep "^alignedBy" ${sample_root}_stats.txt | awk '{printf "\"alignedBy\": \"%s\"", $2}'`
+    #meta=`echo $meta $var`
+    ## isPaired 0
+    #var=`grep "^isPaired" ${sample_root}_stats.txt | awk '{printf "\"isPaired\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## isSortedByTarget 1
+    #var=`grep "^isSortedByTarget" ${sample_root}_stats.txt | awk '{printf "\"isSortedByTarget\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## readCount 2286836
+    #var=`grep "^readCount" ${sample_root}_stats.txt | awk '{printf "\"readCount\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## readBaseCount 82326096
+    #var=`grep "^readBaseCount" ${sample_root}_stats.txt | awk '{printf "\"readBaseCount\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## mappedCount 2286836
+    #var=`grep "^mappedCount" ${sample_root}_stats.txt | awk '{printf "\"mappedCount\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## uniqueMappedCount 2285489
+    #var=`grep "^uniqueMappedCount" ${sample_root}_stats.txt | awk '{printf "\"uniqueMappedCount\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## readSizeMean 36
+    #var=`grep "^readSizeMean" ${sample_root}_stats.txt | awk '{printf "\"readSizeMean\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## readSizeStd 0
+    #var=`grep "^readSizeStd" ${sample_root}_stats.txt | awk '{printf "\"readSizeStd\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## readSizeMin 36
+    #var=`grep "^readSizeMin" ${sample_root}_stats.txt | awk '{printf "\"readSizeMin\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## readSizeMax 36
+    #var=`grep "^readSizeMax" ${sample_root}_stats.txt | awk '{printf "\"readSizeMax\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## u4mReadCount 2285489
+    #var=`grep "^u4mReadCount" ${sample_root}_stats.txt | awk '{printf "\"u4mReadCount\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## u4mUniquePos 2213397
+    #var=`grep "^u4mUniquePos" ${sample_root}_stats.txt | awk '{printf "\"u4mUniquePos\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## u4mUniqueRatio 0.968457
+    #var=`grep "^u4mUniqueRatio" ${sample_root}_stats.txt | awk '{printf "\"u4mUniqueRatio\": %s", $2}'`
+    #meta=`echo $meta, $var`
+    ## targetSeqCount 25
+    #var=`grep "^targetSeqCount" ${sample_root}_stats.txt | awk '{printf "\"targetSeqCount\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    ## targetBaseCount 3095693983
+    #var=`grep "^targetBaseCount" ${sample_root}_stats.txt | awk '{printf "\"targetBaseCount\": %d", $2}'`
+    #meta=`echo $meta, $var`
+    #meta=`echo $meta }`
+    #qc_sampled=$meta
 
-    meta=`echo \"hotspot\": { `
-    #total tags  hotspot tags    SPOT
-    # 2255195       1083552  0.4804
-    var=`tail -1 ${sample_root}_hotspot_qc.txt | awk '{printf "\"total tags\": %d, \"hotspot tags\": %d, \"SPOT\": %d", $1,$2,$3}'`
-    meta=`echo $meta $var`
-    meta=`echo $meta }`
-    qc_sampled=`echo $qc_sampled, $meta`
+    if [ -f /usr/bin/qc_metrics.py ]; then
+        meta=`qc_metrics.py -n hotspot -f ${sample_root}_hotspot_qc.txt`
+        qc_sampled=`echo $qc_sampled, $meta`
+    fi
+    #meta=`echo \"hotspot\": { `
+    ##total tags  hotspot tags    SPOT
+    ## 2255195       1083552  0.4804
+    #var=`tail -1 ${sample_root}_hotspot_qc.txt | awk '{printf "\"total tags\": %s, \"hotspot tags\": %s, \"SPOT\": %s", $1,$2,$3}'`
+    #meta=`echo $meta $var`
+    #meta=`echo $meta }`
+    #qc_sampled=`echo $qc_sampled, $meta`
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property

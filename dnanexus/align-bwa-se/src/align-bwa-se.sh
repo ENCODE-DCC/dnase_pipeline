@@ -1,14 +1,21 @@
 #!/bin/bash
-# align-bwa-se 0.1.0
+# align-bwa-se.sh
+
+script_name="align-bwa-se.sh"
+script_ver="0.1.0"
 
 main() {
     # Executable in resources/usr/bin
     
-    echo "*****"
-    echo "* Running: align-bwa-se.sh v0.1.0"
-    echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "*****"
+    # If available, will print tool versions to stderr and json string to stdout
+    if [ -f /usr/bin/versions.py ]; then 
+        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+    fi
+    #echo "*****"
+    #echo "* Running: align-bwa-se.sh v0.1.0"
+    #echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
+    #echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    #echo "*****"
 
     echo "* Value of reads_fq: '$reads_fq'"
     echo "* Value of bwa_index: '$bwa_index'"
@@ -70,24 +77,26 @@ main() {
     #rm tmp.sai tmp.bam
 
     echo "* Prepare metadata json..."
-    meta=`echo \"samtools_flagstats\": { `
-    # 5008100 + 0 in total (QC-passed reads + QC-failed reads)
-    var=`grep "QC-passed reads" ${bam_root}_bam_qc.txt | awk '{printf "\"total\": %d, \"total_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta $var`
-    # 0 + 0 duplicates
-    var=`grep -w duplicates ${bam_root}_bam_qc.txt | awk '{printf "\"duplicates\": %d, \"duplicates_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 3421023 + 0 mapped (68.31%:-nan%)
-    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
-    meta=`echo $meta, \"mapped_pct\": \"$var\"`
-    meta=`echo $meta }`
+    if [ -f /usr/bin/qc_metrics.py ]; then
+        meta=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_bam_qc.txt`
+    fi
+    #meta=`echo \"samtools_flagstats\": { `
+    ## 5008100 + 0 in total (QC-passed reads + QC-failed reads)
+    #var=`grep "QC-passed reads" ${bam_root}_bam_qc.txt | awk '{printf "\"total\": %d, \"total_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta $var`
+    ## 0 + 0 duplicates
+    #var=`grep -w duplicates ${bam_root}_bam_qc.txt | awk '{printf "\"duplicates\": %d, \"duplicates_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    ## 3421023 + 0 mapped (68.31%:-nan%)
+    #var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    #var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
+    #meta=`echo $meta, \"mapped_pct\": \"$var\"`
+    #meta=`echo $meta }`
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    details=`echo { $meta }`
-    bam_bwa=$(dx upload ${bam_root}.bam --details "$details" --property QC="$meta" --brief)
+    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property QC="$meta" --brief)
     bam_bwa_qc=$(dx upload ${bam_root}_bam_qc.txt --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file

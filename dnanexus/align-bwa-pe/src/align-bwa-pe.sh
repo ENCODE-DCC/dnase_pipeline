@@ -1,14 +1,21 @@
 #!/bin/bash
-# align-bwa-pe 0.1.0
+# align-bwa-pe.sh
+
+script_name="align-bwa-pe.sh"
+script_ver="0.1.0"
 
 main() {
     # Executable in resources/usr/bin
     
-    echo "*****"
-    echo "* Running: align-bwa-pe.sh v0.1.0"
-    echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "*****"
+    # If available, will print tool versions to stderr and json string to stdout
+    if [ -f /usr/bin/versions.py ]; then 
+        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+    fi
+    #echo "*****"
+    #echo "* Running: align-bwa-pe.sh v0.1.0"
+    #echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
+    #echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    #echo "*****"
 
     echo "* Value of read1_fq: '$read1_fq'"
     echo "* Value of read2_fq: '$read2_fq'"
@@ -98,48 +105,50 @@ main() {
     #rm tmp.sai tmp.bam
 
     echo "* Prepare metadata json..."
-    meta=`echo \"samtools_flagstats\": { `
-    # 2142 + 0 in total (QC-passed reads + QC-failed reads)
-    var=`grep "in total" ${bam_root}_bam_qc.txt | awk '{printf "\"total\": %d, \"total_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta $var`
-    # 0 + 0      duplicates
-    var=`grep -w duplicates ${bam_root}_bam_qc.txt | awk '{printf "\"duplicates\": %d, \"duplicates_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 204621 + 0 mapped (95.48%:-nan%)
-    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
-    meta=`echo $meta, \"mapped_pct\": \"$var\"`
-    # 2142 + 0 paired in sequencing
-    var=`grep "paired in sequencing" ${bam_root}_bam_qc.txt | awk '{printf "\"paired\": %d, \"paired_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 107149 + 0 read1
-    var=`grep -w read1 ${bam_root}_bam_qc.txt | awk '{printf "\"read1\": %d, \"read1_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 107149 + 0 read2
-    var=`grep -w read2 ${bam_root}_bam_qc.txt | awk '{printf "\"read2\": %d, \"read2_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 2046 + 0 properly paired (95.48%:-nan%)
-    var=`grep "properly paired" ${bam_root}_bam_qc.txt | awk '{printf "\"paired\": %d, \"paired_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    var=`grep "properly paired" ${bam_root}_bam_qc.txt | awk '{print $6}' | tr ":" " " | awk '{print $1}' | tr -d "("`
-    meta=`echo $meta, \"paired_pct\": \"$var\"`
-    # 2046212 + 0 with itself and mate mapped
-    # 0 + 0      singletons (0.00%:-nan%)
-    var=`grep -w singletons ${bam_root}_bam_qc.txt | awk '{printf "\"singletons\": %d, \"singletons_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 0 + 0    with mate mapped to a different chr
-    var=`grep "with mate mapped to a different chr" ${bam_root}_bam_qc.txt | grep -v "(mapQ>=5)" | awk '{printf "\"diff_chroms\": %d, \"diff_chroms_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    # 0 + 0    with mate mapped to a different chr (mapQ>=5)
-    var=`grep "with mate mapped to a different chr (mapQ>=5)" ${bam_root}_bam_qc.txt | awk '{printf "\"diff_chroms_gt5\": %d, \"diff_chroms_gt5_qc_failed\": %d", $1,$3}'`
-    meta=`echo $meta, $var`
-    meta=`echo $meta }`
+    if [ -f /usr/bin/qc_metrics.py ]; then
+        meta=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_bam_qc.txt`
+    fi
+    #meta=`echo \"samtools_flagstats\": { `
+    ## 2142 + 0 in total (QC-passed reads + QC-failed reads)
+    #var=`grep "in total" ${bam_root}_bam_qc.txt | awk '{printf "\"total\": %d, \"total_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta $var`
+    ## 0 + 0      duplicates
+    #var=`grep -w duplicates ${bam_root}_bam_qc.txt | awk '{printf "\"duplicates\": %d, \"duplicates_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    ## 204621 + 0 mapped (95.48%:-nan%)
+    #var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{printf "\"mapped\": %d, \"mapped_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    #var=`grep -w "mapped" ${bam_root}_bam_qc.txt | head -1 | awk '{print $5}' | tr ":" " " | awk '{print $1}' | tr -d "("`
+    #meta=`echo $meta, \"mapped_pct\": \"$var\"`
+    ## 2142 + 0 paired in sequencing
+    #var=`grep "paired in sequencing" ${bam_root}_bam_qc.txt | awk '{printf "\"paired\": %d, \"paired_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    ## 107149 + 0 read1
+    #var=`grep -w read1 ${bam_root}_bam_qc.txt | awk '{printf "\"read1\": %d, \"read1_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    ## 107149 + 0 read2
+    #var=`grep -w read2 ${bam_root}_bam_qc.txt | awk '{printf "\"read2\": %d, \"read2_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    ## 2046 + 0 properly paired (95.48%:-nan%)
+    #var=`grep "properly paired" ${bam_root}_bam_qc.txt | awk '{printf "\"paired\": %d, \"paired_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    #var=`grep "properly paired" ${bam_root}_bam_qc.txt | awk '{print $6}' | tr ":" " " | awk '{print $1}' | tr -d "("`
+    #meta=`echo $meta, \"paired_pct\": \"$var\"`
+    ## 2046212 + 0 with itself and mate mapped
+    ## 0 + 0      singletons (0.00%:-nan%)
+    #var=`grep -w singletons ${bam_root}_bam_qc.txt | awk '{printf "\"singletons\": %d, \"singletons_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    ## 0 + 0    with mate mapped to a different chr
+    #var=`grep "with mate mapped to a different chr" ${bam_root}_bam_qc.txt | grep -v "(mapQ>=5)" | awk '{printf "\"diff_chroms\": %d, \"diff_chroms_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    ## 0 + 0    with mate mapped to a different chr (mapQ>=5)
+    #var=`grep "with mate mapped to a different chr (mapQ>=5)" ${bam_root}_bam_qc.txt | awk '{printf "\"diff_chroms_gt5\": %d, \"diff_chroms_gt5_qc_failed\": %d", $1,$3}'`
+    #meta=`echo $meta, $var`
+    #meta=`echo $meta }`
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    details=`echo { $meta }`
-    bam_bwa=$(dx upload ${bam_root}.bam --details "$details" --property QC="$meta" --brief)
+    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property QC="$meta" --brief)
     bam_bwa_qc=$(dx upload ${bam_root}_bam_qc.txt --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file
