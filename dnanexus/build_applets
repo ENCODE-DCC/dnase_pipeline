@@ -56,5 +56,7 @@ fi
 
 for applet in $applets; do
     echo "Building $applet in project $applet_dest..."
+    cp tools/tool_versions.py ${applet}/resources/usr/bin
+    cp tools/qc_metrics.py ${applet}/resources/usr/bin
     dx build "${applet}" --archive --destination "${applet_dest}:/"
 done
