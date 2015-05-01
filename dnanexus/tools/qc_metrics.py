@@ -12,26 +12,34 @@ EXPECTED_PARSING = {
     "edwBamStats":          {"type": "vertical",   "lines": "", "columns": "", "delimit": None},
     "hotspot":              {"type": "hotspot"},
     "samtools_flagstats":   {"type": "flagstats"},
-    "samtools_stats":       {"type": "vertical",   "lines": "", "columns": "", "delimit": ":"},
+    "samtools_stats":       {"type": "samstats"},
     "phantompeaktools_spp": {"type": "spp"},
     "pbc":                  {"type": "pbc"}
 }
 
-def strip_comments(line):
+def strip_comments(line,ws_too=False):
     """
-    Strips comments from a line
+    Strips comments from a line (and opptionally leading/trailing whitespace).
     """
     bam = -1
+    ix = 0
     while True:
-        bam = line.find('#',bam + 1)
+        bam = line[ix:].find('#',bam + 1)
         if bam == -1:
-            return line
+            break
+        bam = ix + bam
         if bam == 0:
             return ''
-        if line[ bam -1 ] != '\\':
-            return line[ 0:bam ]  
-        else: #if line[ bam -1 ] == '\\': # strip backslash and ignore '#'
-            line = line[ 0:bam - 1 ] + line[ bam: ] 
+        if line[ bam - 1 ] != '\\':
+            line = line[ 0:bam ]
+            break  
+        else: #if line[ bam - 1 ] == '\\': # ignore '#' and keep looking
+            ix = bam + 1
+            #line = line[ 0:bam - 1 ] + line[ bam: ]
+            
+    if ws_too:
+        line = line.strip()
+    return line 
 
 def string_or_number(a_string):
     try:
@@ -101,17 +109,31 @@ def parse_pair(line,columns='',delimit=None,verbose=False):
     if line == '':
         return None
 
+    key = ''
+    val = ''
+    # columns could be '1-3,4' meaning key:2-3 and val:4
     if columns != None and columns != '':
-        only_cols = expand_seq(lines,one_to_zero=True,verbose=verbose)
         parts = line.split(delimit)
-        key = parts[only_col[0]].strip()
-        val = parts[only_col[1]].strip()
-        for col in only_cols[2:]:
-            val = val + ' ' + parts[col].strip()
+        col_parts = columns.split(',')
+        if len(col_parts) > 0:
+            only_cols = expand_seq(col_parts[0],one_to_zero=True,verbose=verbose)
+            for col in only_cols:
+                if len(parts) > col:
+                    if len(key) > 0:
+                        key = key + ' '
+                    key = key + parts[col].strip()
+        if len(col_parts) > 1:
+            only_cols = expand_seq(col_parts[1],one_to_zero=True,verbose=verbose)
+            for col in only_cols:
+                if len(parts) > col:
+                    if len(val) > 0:
+                        val = val + ' '
+                    val = val + parts[col].strip()
     else:
         parts = line.split(delimit,1)
         key = parts[0].strip()
-        val = parts[1].strip()
+        if len(parts) > 1:
+            val = parts[1].strip()
     
     return (key, val)
     
@@ -159,10 +181,9 @@ def read_vertical(filePath,lines='',columns='',delimit=None,verbose=False):
             continue
         if verbose:
             print "["+line+"]"
-        line = strip_comments(line)
+        line = strip_comments(line,True)
         if line == '':
             continue
-        line = line.strip()
         if (line.startswith('#') or line == ''):
             continue
         key, val = parse_pair(line,columns,delimit,verbose)
@@ -195,10 +216,9 @@ def read_horizontal(filePath,lines='',columns='',delimit=None,verbose=False):
             continue
         if verbose:
             print "["+line+"]"
-        line = strip_comments(line)
+        line = strip_comments(line,True)
         if line == '':
             continue
-        line = line.strip()
         if (line.startswith('#') or line == ''):
             continue
         if keys == None:
@@ -233,7 +253,7 @@ def read_singleton(filePath,key,verbose=False):
     if line != None:
         if verbose:
             print "["+line+"]"
-        line = line.strip()
+        line = strip_comments(line,True)
         pairs[key] = string_or_number(line)
     fh.close()
     return pairs
@@ -253,7 +273,9 @@ def read_hotspot(filePath,verbose=False):
             break
         if verbose:
             print "["+line+"]"
-        line = line.strip()
+        line = strip_comments(line,True)
+        if line == '':
+            continue
         #  total tags  hotspot tags    SPOT
         #    2255195       1083552   0.4804
         if keys == None:
@@ -290,7 +312,9 @@ def read_flagstats(filePath,verbose=False):
             break
         if verbose:
             print "["+line+"]"
-        line = line.strip()
+        line = strip_comments(line,True)
+        if line == '':
+            continue
         # 2826233 + 0 in total (QC-passed reads + QC-failed reads)
         if line.find("QC-passed reads") > 0:
         # 2826233 + 0 in total (QC-passed reads + QC-failed reads)
@@ -355,6 +379,16 @@ def read_flagstats(filePath,verbose=False):
     fh.close()
     return pairs
     
+def read_samstats(filePath,verbose=False):
+    '''
+    SPECIAL CASE of samtools stats 
+    '''
+    pairs = read_vertical(filePath,delimit=':',verbose=verbose)
+    val = pairs['reads MQ0']
+    val = val.split('\t')
+    pairs['reads MQ0'] = string_or_number(val[0])
+    return pairs
+
 def read_spp(filePath,verbose=False):
     '''
     SPECIAL CASE for phantompeakqualtools spp. 
@@ -368,7 +402,9 @@ def read_spp(filePath,verbose=False):
             break
         if verbose:
             print "["+line+"]"
-        line = line.strip()
+        line = strip_comments(line,True)
+        if line == '':
+            continue
         
         # strandshift(min): -500 
         # strandshift(step): 5 
@@ -377,11 +413,11 @@ def read_spp(filePath,verbose=False):
         # exclusion(max): -1 
         # FDR threshold: 0.01 
         key, val = parse_pair(line,delimit=':',verbose=verbose)
-        if key in ["strandshift(min)","strandshift(step)","strandshift(max)","exclusion(min)","exclusion(max)","FDR threshold"]:
+        if key in ["strandshift(min)","strandshift(step)","exclusion(min)","exclusion(max)","FDR threshold"]:
             pairs[key] = string_or_number(val)
         # strandshift(max) 1500 
-        elif line.find("strandshift(max)") > 0: # no colon?
-            key, val = parse_pair(line,verbose)
+        elif line.find("strandshift(max)") == 0: # no colon?
+            key, val = parse_pair(line,verbose=verbose)
             pairs[key] = string_or_number(val)
         # done. read 2286836 fragments
         elif line.find("done. read") > 0:
@@ -389,9 +425,9 @@ def read_spp(filePath,verbose=False):
             pairs["read fragments"] = string_or_number(parts[2]) 
         # ChIP data read length 36 
         elif line.find("ChIP data read length") > -1:
-            parts = line.split()
-            pairs["ChIP data read length"] = string_or_number(parts[4]) 
-        # Minimum cross-correlation value 0.03001068 
+            key, val = parse_pair(line,columns='1:4,5',delimit=None,verbose=verbose)
+            pairs[key] = string_or_number(val)
+       # Minimum cross-correlation value 0.03001068 
         # Minimum cross-correlation shift 1500 
         # Window half size 265 
         # Phantom peak location 40 
@@ -402,21 +438,19 @@ def read_spp(filePath,verbose=False):
             key, val = parse_pair(line,columns='1:3,4',delimit=None,verbose=verbose)
             pairs[key] = string_or_number(val)
         # Top 3 cross-correlation values 0.086978740217396,0.0864436517524779 
-        elif line.find("Top 3 cross-correlation values") > -1:
-            parts = line.split()
-            values = parts[4].split(',')
+        elif line.find("Top 3 cross-correlation values") == 0:
+            key, val = parse_pair(line,columns='1:4,5',delimit=None,verbose=verbose)
             numbers = []
-            for val in values:
-                numbers.append(string_or_number(val))
-            pairs["Top 3 cross-correlation values"] = numbers 
+            for num in val.split(','):
+                numbers.append(string_or_number(num))
+            pairs[key] = numbers 
         # Top 3 estimates for fragment length 40,55 
-        elif line.find("Top 3 estimates for fragment length") > -1:
-            parts = line.split()
-            values = parts[6].split(',')
+        elif line.find("Top 3 estimates for fragment length") == 0:
+            key, val = parse_pair(line,columns='1:6,7',delimit=None,verbose=verbose)
             numbers = []
-            for val in values:
-                numbers.append(string_or_number(val))
-            pairs["Top 3 estimates for fragment length"] = numbers 
+            for num in val.split(','):
+                numbers.append(string_or_number(num))
+            pairs[key] = numbers 
         # Normalized Strand cross-correlation coefficient (NSC) 2.898259 
         # Relative Strand cross-correlation Coefficient (RSC) 1 
         elif line.find("Strand cross-correlation") > 0:
@@ -424,7 +458,7 @@ def read_spp(filePath,verbose=False):
             pairs[key] = string_or_number(val)
         # Phantom Peak Quality Tag 1 
         elif line.find("Phantom Peak Quality Tag") == 0:
-            key, val = parse_pair(line,columns='1:4,6',delimit=None,verbose=verbose)
+            key, val = parse_pair(line,columns='1:4,5',delimit=None,verbose=verbose)
             pairs[key] = string_or_number(val)
 
     fh.close()
@@ -437,27 +471,40 @@ def read_pbc(filePath,verbose=False):
     pairs = {}
 
     fh = open(filePath, 'r')
-    line = readline_may_continue( fh )
-    if line != None:
+    while True:
+        line = readline_may_continue( fh )
+        if line == None:
+            break
         if verbose:
             print "["+line+"]"
-        line = line.strip()
+        line = strip_comments(line,True)
+        if line == '':
+            continue
         
         # 2286836	2219898	2176268	37175	0.970729	0.980346	58.541170
         parts = line.split()
-        pairs["reads"] = string_or_number(parts[0])
-        pairs["locations"] = string_or_number(parts[1])
-        pairs["mapped by 1 read"] = string_or_number(parts[2])
-        pairs["mapped by 2 reads"] = string_or_number(parts[3])
-        pairs["locations per read"] = string_or_number(parts[4])
-        pairs["proportion of 1 read locations"] = string_or_number(parts[5])
-        pairs["ratio: 1 read over 2 read locations"] = string_or_number(parts[6])
+        if len(parts) > 0:
+            pairs["reads"] = string_or_number(parts[0])
+        if len(parts) > 1:
+            pairs["locations"] = string_or_number(parts[1])
+        if len(parts) > 2:
+            pairs["mapped by 1 read"] = string_or_number(parts[2])
+        if len(parts) > 3:
+            pairs["mapped by 2 reads"] = string_or_number(parts[3])
+        if len(parts) > 4:
+            pairs["locations per read"] = string_or_number(parts[4])
+        if len(parts) > 5:
+            pairs["proportion of 1 read locations"] = string_or_number(parts[5])
+        if len(parts) > 6:
+            pairs["ratio: 1 read over 2 read locations"] = string_or_number(parts[6])
+        break
     fh.close()
     return pairs
  
             
 def main():
-    parser = argparse.ArgumentParser(description =  "Creates a json string of qc_metrics for a given applet.")
+    parser = argparse.ArgumentParser(description =  "Creates a json string of qc_metrics for a given applet. " + \
+                                                    "Returns string to stdout and formatted json to stderr.")
     parser.add_argument('-n','--name', required=True,
                         help="Name of metrics in file.")
     parser.add_argument('-f', '--file',
@@ -522,6 +569,8 @@ def main():
         metrics = read_hotspot(args.file,args.verbose)
     elif parsing["type"] == 'flagstats':
         metrics = read_flagstats(args.file,args.verbose)
+    elif parsing["type"] == 'samstats':
+        metrics = read_samstats(args.file,args.verbose)
     elif parsing["type"] == 'spp':
         metrics = read_spp(args.file,args.verbose)
     elif parsing["type"] == 'pbc':
@@ -530,18 +579,21 @@ def main():
     # Print out the metrics
     if args.key != None and parsing["type"] != 'singleton':
         if args.key in metrics:
-            print metrics[args.key]
+            print json.dumps(metrics[args.key])
+            sys.stderr.write(json.dumps(metrics[args.key],indent=4) + '\n')
         else:
             print ''   
+            sys.stderr.write('(not found)\n')
     elif args.keypair != None:
         if args.keypair in metrics:
-            print '"' + args.keypair + '": ' + str(metrics[args.keypair])
+            print '"' + args.keypair + '": ' + json.dumps(metrics[args.keypair])
+            sys.stderr.write('"' + args.keypair + '": ' + json.dumps(metrics[args.keypair],indent=4) + '\n')
         else:
-            print '"' + args.keypair + '": '   
-    elif args.json:
-        print '"' + args.name + '": ' + json.dumps(metrics,indent=4)
-    else:
+            print '"' + args.keypair + '": '
+            sys.stderr.write('"' + args.keypair + '": \n')
+    else: 
         print '"' + args.name + '": ' + json.dumps(metrics)
+        sys.stderr.write('"' + args.name + '": ' + json.dumps(metrics,indent=4) + '\n')
     
 if __name__ == '__main__':
     main()
