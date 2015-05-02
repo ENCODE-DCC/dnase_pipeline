@@ -8,7 +8,7 @@ import os, sys, string, argparse, json
 EXPECTED_PARSING = {
     "vertical":   {"type": "vertical",   "lines": "", "columns": "", "delimit": None},
     "horizontal": {"type": "horizontal", "lines": "", "columns": "", "delimit": None},
-    "singleton":  {"type": "singleton"},
+    "singleton":  {"type": "singleton", "delimit": None},
     "edwBamStats":          {"type": "vertical",   "lines": "", "columns": "", "delimit": None},
     "hotspot":              {"type": "hotspot"},
     "samtools_flagstats":   {"type": "flagstats"},
@@ -242,10 +242,11 @@ def read_horizontal(filePath,lines='',columns='',delimit=None,verbose=False):
 
     return pairs
            
-def read_singleton(filePath,key,verbose=False):
+def read_singleton(filePath,key,delimit=None,verbose=False):
     '''
     Generic case of single vale file. 
     '''
+    # TODO support selecting by line and columns!
     pairs = {}
 
     fh = open(filePath, 'r')
@@ -254,7 +255,11 @@ def read_singleton(filePath,key,verbose=False):
         if verbose:
             print "["+line+"]"
         line = strip_comments(line,True)
-        pairs[key] = string_or_number(line)
+        if line != '':
+            values = parse_line(line,delimit=delimit,verbose=verbose)
+            pairs[key] = string_or_number(values[0])
+        else:
+            pairs[key] = ''
     fh.close()
     return pairs
                 
@@ -564,7 +569,7 @@ def main():
     elif parsing["type"] == 'horizontal':
         metrics = read_horizontal(args.file,parsing["lines"],parsing["columns"],parsing["delimit"],args.verbose)
     elif parsing["type"] == 'singleton':
-        metrics = read_singleton(args.file,args.key,args.verbose)
+        metrics = read_singleton(args.file,args.key,parsing["delimit"],args.verbose)
     elif parsing["type"] == 'hotspot':
         metrics = read_hotspot(args.file,args.verbose)
     elif parsing["type"] == 'flagstats':

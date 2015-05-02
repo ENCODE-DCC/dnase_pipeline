@@ -1,5 +1,5 @@
 #!/bin/bash
-# call-hotspots 0.1.0
+# call-hotspots 0.2.0
 
 script_name="call-hotspots.sh"
 script_ver="0.1.0"
@@ -32,7 +32,8 @@ main() {
     # additional executables in resources/usr/bin
     
     # If available, will print tool versions to stderr and json string to stdout
-    if [ -f /usr/bin/versions.py ]; then 
+    versions=''
+    if [ -f /usr/bin/tool_versions.py ]; then 
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
 
@@ -117,37 +118,18 @@ main() {
     qc_hotspot=''
     if [ -f /usr/bin/qc_metrics.py ]; then
         qc_hotspot=`qc_metrics.py -n hotspot -f ${bam_root}_hotspot_qc.txt`
-    fi
-    #meta=`echo \"hotspot\": { `
-    ##total tags  hotspot tags    SPOT
-    ## 2255195       1083552  0.4804
-    #var=`tail -1 ${bam_root}_hotspot_qc.txt | awk '{printf "\"total tags\": %s, \"hotspot tags\": %s, \"SPOT\": %s", $1,$2,$3}'`
-    #meta=`echo $meta $var`
-    #meta=`echo $meta }`
-    #qc_hotspot=$meta
-    
-    if [ -f /usr/bin/qc_metrics.py ]; then
         qc_spots=`qc_metrics.py -n singleton -f ${narrowPeak_root}_qc.txt -k "hotspot count" --keypair "hotspot count"`
         qc_regions=`qc_metrics.py -n singleton -f ${broadPeak_root}_qc.txt -k "regions count" --keypair "regions count"`
         qc_hotspot=`echo $qc_hotspot, \"peak_counts\": { $qc_spots, $qc_regions }`
     fi
-    #meta=`echo \"peak_counts\": { `
-    #var=`cat ${narrowPeak_root}_qc.txt | awk '{printf "\"hotspot count\": %d", $1}'`
-    #qc_spots=`echo $qc_hotspot, $var`
-    #meta=`echo $meta $var`
-    #var=`cat ${broadPeak_root}_qc.txt | awk '{printf "\"regions count\": %d", $1}'`
-    #qc_regions=`echo $qc_hotspot, $var`
-    #meta=`echo $meta, $var`
-    #meta=`echo $meta }`
-    #qc_hotspot=`echo $qc_hotspot, $meta`
     
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --details "{ $qc_spots }"   --property QC="$qc_spots"   --property SW="$versions" --brief)
-    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed   --details "{ $qc_regions }" --property QC="$qc_regions" --property SW="$versions" --brief)
-    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb   --details "{ $qc_spots }"   --property QC="$qc_spots"   --property SW="$versions" --brief)
-    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb     --details "{ $qc_regions }" --property QC="$qc_regions" --property SW="$versions" --brief)
-    bw_hotspot_signal=$(dx upload ${signal_root}.bw           --details "{ $qc_hotspot }" --property QC="$qc_hotspot" --property SW="$versions" --brief)
+    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --details "{ $qc_spots }"   --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
+    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed   --details "{ $qc_regions }" --property QC="{ $qc_regions }" --property SW="$versions" --brief)
+    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb   --details "{ $qc_spots }"   --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
+    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb     --details "{ $qc_regions }" --property QC="{ $qc_regions }" --property SW="$versions" --brief)
+    bw_hotspot_signal=$(dx upload ${signal_root}.bw           --details "{ $qc_hotspot }" --property QC="{ $qc_hotspot }" --property SW="$versions" --brief)
     bam_hotspot_qc=$(dx upload ${bam_root}_hotspot_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bed_hotspot_narrowPeak "$bed_hotspot_narrowPeak" --class=file

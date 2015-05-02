@@ -9,7 +9,7 @@ main() {
     set +x
     
     # If available, will print tool versions to stderr and json string to stdout
-    if [ -f /usr/bin/versions.py ]; then 
+    if [ -f /usr/bin/tool_versions.py ]; then 
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
     #echo "*****"
@@ -110,8 +110,7 @@ main() {
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    #details=`echo { $meta }`
-    #bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "$details" --property QC="$meta" --brief)
+    #bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $meta }" --property QC="{ $meta }" --brief)
     bam_pooled=$(dx upload ${bam_pooled_root}.bam --brief)
     bed_merged=$(dx upload ${peaks_root}_merged_narrowPeak.bed --brief)
     bb_merged=$(dx upload ${peaks_root}_merged_narrowPeak.bb --brief)
