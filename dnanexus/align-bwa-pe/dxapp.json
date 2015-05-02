@@ -3,7 +3,7 @@
   "title": "DNase align bwa pe",
   "summary": "Alignment by bwa of paired-end fastqs for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
