@@ -3,7 +3,7 @@
   "title": "Call sample of hotspots",
   "summary": "Call a sample of peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
