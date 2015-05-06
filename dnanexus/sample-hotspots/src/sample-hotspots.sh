@@ -53,8 +53,10 @@ main() {
     # sort-bed is important!
     grep -v chrM chromSizes.txt | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' | sort-bed - > ${genome}.chromInfo.bed
 
-    read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"average length:\"" | awk '{print $3}' | tr -d ,`
-    echo "* Found read size: '$read_size'"
+    read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
+    if [ "$read_size" == "" ]; then
+        read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
+    fi
     if [ "$read_size" != "" ] && [ "$read_length" -ne "$read_size" ]; then
         echo "* WARNING Read length ($read_length) does not match discovered read size ($read_size)."
     fi

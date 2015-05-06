@@ -9,12 +9,14 @@ EXPECTED_PARSING = {
     "vertical":   {"type": "vertical",   "lines": "", "columns": "", "delimit": None},
     "horizontal": {"type": "horizontal", "lines": "", "columns": "", "delimit": None},
     "singleton":  {"type": "singleton", "delimit": None},
-    "edwBamStats":          {"type": "vertical",   "lines": "", "columns": "", "delimit": None},
-    "hotspot":              {"type": "hotspot"},
-    "samtools_flagstats":   {"type": "flagstats"},
-    "samtools_stats":       {"type": "samstats"},
-    "phantompeaktools_spp": {"type": "spp"},
-    "pbc":                  {"type": "pbc"}
+    "edwBamStats":            {"type": "vertical",   "lines": "", "columns": "", "delimit": None},
+    "edwComparePeaks":        {"type": "edwComparePeaks"},
+    "fastqStatsAndSubsample": {"type": "fastqstats"},
+    "hotspot":                {"type": "hotspot"},
+    "samtools_flagstats":     {"type": "flagstats"},
+    "samtools_stats":         {"type": "samstats"},
+    "phantompeaktools_spp":   {"type": "spp"},
+    "pbc":                    {"type": "pbc"}
 }
 
 def strip_comments(line,ws_too=False):
@@ -262,46 +264,31 @@ def read_singleton(filePath,key,delimit=None,verbose=False):
             pairs[key] = ''
     fh.close()
     return pairs
-                
-def read_hotspot(filePath,verbose=False):
-    '''
-    SPECIAL CASE of read_horizontal that is customized for 'hotspot' output. 
-    '''
-    pairs = {}
-    keys = None
-    values = None
 
-    fh = open(filePath, 'r')
-    while True:
-        line = readline_may_continue( fh )
-        if line == None:
-            break
-        if verbose:
-            print "["+line+"]"
-        line = strip_comments(line,True)
-        if line == '':
-            continue
-        #  total tags  hotspot tags    SPOT
-        #    2255195       1083552   0.4804
-        if keys == None:
-            keys = parse_line(line,columns="1:2,3:4,5",delimit=None,verbose=verbose)
-            if verbose:
-                print keys
-            continue
-            
-        if values == None:
-            values = parse_line(line,columns='',delimit=None,verbose=verbose)
-            if verbose:
-                print values
-            break
-    fh.close()
+### Now special case routines                
+def read_edwComparePeaks(filePath,verbose=False):
+    '''
+    SPECIAL CASE for edwComparePeaks. 
+    '''  
+    pairs = read_vertical(filePath,verbose=verbose)
+    # Fix one value
+    values = pairs["unionSize"].split()
+    pairs["unionSize"] = string_or_number(values[1])
+    return pairs
     
-    for ix, key in enumerate(keys):
-        if len(values) > ix:
-            pairs[key] = string_or_number(values[ix])
-        else:
-            pairs[key] = ''
-
+def read_fastqstats(filePath,verbose=False):
+    '''
+    SPECIAL CASE for fastqStatsAndSubsample. 
+    '''  
+    pairs = read_vertical(filePath,verbose=verbose)
+    # Fix some values:
+    for key in ["aAtPos","cAtPos","gAtPos","tAtPos","nAtPos","qualPos"]:
+        values = pairs[key].split(',')
+        numbers = []
+        for val in values:
+            if val != "":
+                numbers.append(string_or_number(val))
+        pairs[key] = numbers
     return pairs
     
 def read_flagstats(filePath,verbose=False):
@@ -383,6 +370,48 @@ def read_flagstats(filePath,verbose=False):
 
     fh.close()
     return pairs
+    
+def read_hotspot(filePath,verbose=False):
+    '''
+    SPECIAL CASE of read_horizontal that is customized for 'hotspot' output. 
+    '''
+    pairs = {}
+    keys = None
+    values = None
+
+    fh = open(filePath, 'r')
+    while True:
+        line = readline_may_continue( fh )
+        if line == None:
+            break
+        if verbose:
+            print "["+line+"]"
+        line = strip_comments(line,True)
+        if line == '':
+            continue
+        #  total tags  hotspot tags    SPOT
+        #    2255195       1083552   0.4804
+        if keys == None:
+            keys = parse_line(line,columns="1:2,3:4,5",delimit=None,verbose=verbose)
+            if verbose:
+                print keys
+            continue
+            
+        if values == None:
+            values = parse_line(line,columns='',delimit=None,verbose=verbose)
+            if verbose:
+                print values
+            break
+    fh.close()
+    
+    for ix, key in enumerate(keys):
+        if len(values) > ix:
+            pairs[key] = string_or_number(values[ix])
+        else:
+            pairs[key] = ''
+
+    return pairs
+    
     
 def read_samstats(filePath,verbose=False):
     '''
@@ -570,10 +599,16 @@ def main():
         metrics = read_horizontal(args.file,parsing["lines"],parsing["columns"],parsing["delimit"],args.verbose)
     elif parsing["type"] == 'singleton':
         metrics = read_singleton(args.file,args.key,parsing["delimit"],args.verbose)
-    elif parsing["type"] == 'hotspot':
-        metrics = read_hotspot(args.file,args.verbose)
+    
+    # Now special case routines                
+    elif parsing["type"] == "edwComparePeaks":
+        metrics = read_edwComparePeaks(args.file,args.verbose)
+    elif parsing["type"] == "fastqstats":
+        metrics = read_fastqstats(args.file,args.verbose)
     elif parsing["type"] == 'flagstats':
         metrics = read_flagstats(args.file,args.verbose)
+    elif parsing["type"] == 'hotspot':
+        metrics = read_hotspot(args.file,args.verbose)
     elif parsing["type"] == 'samstats':
         metrics = read_samstats(args.file,args.verbose)
     elif parsing["type"] == 'spp':

@@ -8,10 +8,10 @@
   "inputSpec": [
     {
       "name": "bam_no_chrM",
-      "label": "Filtered bam file without chrM",
+      "label": "Filtered bam file",
       "class": "file",
       "optional": false,
-      "patterns": ["*_no_chrM.bam"]
+      "patterns": ["*_no_chrM.bam","*_pooled.bam"]
     },
     {
       "name": "chrom_sizes",

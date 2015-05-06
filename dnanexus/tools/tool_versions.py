@@ -7,6 +7,7 @@ import sys, os, argparse, json, commands
 
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
 APP_TOOLS = { 
+    "index-bwa.sh":     [ "bwa", "samtools" ],
     "align-bwa-pe.sh":  [ "bwa", "samtools" ],
     "align-bwa-se.sh":  [ "bwa", "samtools" ],
     "bam-filter-pe.sh": [
@@ -30,7 +31,8 @@ APP_TOOLS = {
                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
                             "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
                         ],
-    "merge-replicates.sh": [ "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate","edwComparePeaks" ]
+    "merge-replicates.sh": [ "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate","edwComparePeaks" ],
+    "fastq-stats.sh": [ "fastqStatsAndSubsample" ]
  }
 
 # ALL_TOOLS contains the printable tool name (key) and the command that is used to determine the version.
@@ -49,6 +51,7 @@ ALL_TOOLS = {
             "edwBamFilter":             "edwBamFilter 2>&1 | grep 'edwBamFilter v' | awk '{print $2}'",
             "edwBamStats":              "edwBamStats 2>&1 | grep 'edwBamStats v' | awk '{print $2}'",
             "edwComparePeaks":          "echo unversioned", #"edwComparePeaks 2>&1 | grep 'edwComparePeaks -' | awk '{print $3,$4,$5,$6}'",
+            "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
             "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
             "hotspot":                  "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
             "hotspot.py (GCAP)":        "python2.7 /usr/bin/hotspot.py -h | grep Version | awk '{print $8}'",

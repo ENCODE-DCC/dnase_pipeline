@@ -3,18 +3,18 @@
   "title": "Merge replicates",
   "summary": "Merge two replicates for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "bam_repA",
+      "name": "bam_A",
       "label": "A replicate filtered bam file",
       "class": "file",
       "optional": false,
       "patterns": ["*_filtered.bam"]
     },
     {
-      "name": "bam_repB",
+      "name": "bam_B",
       "label": "B replicate filtered bam file",
       "class": "file",
       "optional": false,

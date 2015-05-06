@@ -1,14 +1,22 @@
 #!/bin/bash
-# index-bwa 0.1.0
+# index-bwa.sh
+
+script_name="index-bwa.sh"
+script_ver="0.1.0"
 
 main() {
     # Executable in resources/usr/bin
 
-    echo "*****"
-    echo "* Running: index-bwa.sh [v0.1.0]"
-    echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
-    echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
-    echo "*****"
+    # If available, will print tool versions to stderr and json string to stdout
+    versions=''
+    if [ -f /usr/bin/tool_versions.py ]; then 
+        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+    fi
+    #echo "*****"
+    #echo "* Running: index-bwa.sh [v0.1.0]"
+    #echo "* bwa version: "`bwa 2>&1 | grep Version | awk '{print $2}'`
+    #echo "* samtools version: "`samtools 2>&1 | grep Version | awk '{print $2}'`
+    #echo "*****"
 
     echo "* Value of reference: '$reference'"
     echo "* Value of genome: '$genome'"
@@ -44,7 +52,7 @@ main() {
     
     echo "* Upload Results..."
     bwa_version=`bwa 2>&1 | grep Version | awk '{print $2}'`
-    bwa_index=$(dx upload $index_file --property genome="$genome" --property gender="$gender" --property bwa="$bwa_version" --brief)
+    bwa_index=$(dx upload $index_file --property genome="$genome" --property gender="$gender" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bwa_index $bwa_index --class=file
     echo "* Finished."

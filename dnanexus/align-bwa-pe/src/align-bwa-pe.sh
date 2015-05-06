@@ -8,6 +8,7 @@ main() {
     # Executable in resources/usr/bin
     
     # If available, will print tool versions to stderr and json string to stdout
+    versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
@@ -98,6 +99,7 @@ main() {
     #rm tmp.sai tmp.bam
 
     echo "* Prepare metadata json..."
+    meta=''
     if [ -f /usr/bin/qc_metrics.py ]; then
         meta=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_bam_qc.txt`
     fi
