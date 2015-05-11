@@ -7,7 +7,7 @@
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "reads_fq",
+      "name": "reads",
       "label": "Single-end fastq file(s) (gzipped)",
       "class": "array:file",
       "optional": false,
@@ -39,7 +39,7 @@
       "name": "bam_bwa_qc",
       "label": "Text file with some bam stats",
       "class": "file",
-      "patterns": ["*_bwa_bam.txt"]
+      "patterns": ["*_bam_qc.txt"]
     },
     {
       "name": "metadata",

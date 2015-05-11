@@ -7,8 +7,8 @@
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "bam_no_chrM",
-      "label": "Filtered bam file",
+      "name": "bam_to_call",
+      "label": "Bam to call hotspots from",
       "class": "file",
       "optional": false,
       "patterns": ["*_no_chrM.bam","*_pooled.bam"]

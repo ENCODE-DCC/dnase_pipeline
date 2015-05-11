@@ -37,15 +37,15 @@ main() {
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
 
-    echo "* Value of bam_no_chrM: '$bam_no_chrM'"
+    echo "* Value of bam_to_call: '$bam_to_call'"
     echo "* Value of chrom_sizes: '$chrom_sizes'"
     echo "* Value of read_length: '$read_length'"
     echo "* Value of genome:      '$genome'"
 
     echo "* Download files..."
-    bam_root=`dx describe "$bam_no_chrM" --name`
+    bam_root=`dx describe "$bam_to_call" --name`
     bam_root=${bam_root%.bam}
-    dx download "$bam_no_chrM" -o ${bam_root}.bam
+    dx download "$bam_to_call" -o ${bam_root}.bam
     echo "* bam file: '${bam_root}.bam'"
 
     narrowPeak_root="${bam_root}_narrowPeak_hotspot"
@@ -59,9 +59,9 @@ main() {
     # sort-bed is important!
     grep -v chrM chromSizes.txt | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' | sort-bed - > ${genome}.chromInfo.bed
 
-    read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
+    read_size=`dx describe "$bam_to_call" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
     if [ "$read_size" == "" ]; then
-        read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
+        read_size=`dx describe "$bam_to_call" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
     fi
     if [ "$read_size" != "" ] && [ "$read_length" -ne "$read_size" ]; then
         echo "* WARNING Read length ($read_length) does not match discovered read size ($read_size)."

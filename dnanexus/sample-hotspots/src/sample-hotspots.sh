@@ -46,7 +46,7 @@ main() {
     dx download "$bam_no_chrM" -o ${bam_root}.bam
     echo "* bam file: '${bam_root}.bam'"
 
-    sample_root="${bam_root}_5M_sample"
+    sample_root="${bam_root}_sample_5M"
     echo "* out: sample file: '${sample_root}.bam'"
 
     dx download "$chrom_sizes" -o chromSizes.txt
@@ -98,11 +98,11 @@ main() {
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_5M_sample=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property QC="{ $qc_sampled }" --property SW="$versions" --brief)
-    hotspot_5M_sample_qc=$(dx upload ${sample_root}_hotspot_qc.txt --property SW="$versions" --brief)
+    bam_sample_5M=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property QC="{ $qc_sampled }" --property SW="$versions" --brief)
+    hotspot_sample_5M_qc=$(dx upload ${sample_root}_hotspot_qc.txt --property SW="$versions" --brief)
 
-    dx-jobutil-add-output bam_5M_sample "$bam_5M_sample" --class=file
-    dx-jobutil-add-output hotspot_5M_sample_qc "$hotspot_5M_sample_qc" --class=file
+    dx-jobutil-add-output bam_sample_5M "$bam_sample_5M" --class=file
+    dx-jobutil-add-output hotspot_sample_5M_qc "$hotspot_sample_5M_qc" --class=file
     dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."

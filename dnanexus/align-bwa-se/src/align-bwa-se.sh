@@ -13,7 +13,7 @@ main() {
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
 
-    echo "* Value of reads_fq: '$reads_fq'"
+    echo "* Value of reads: '$reads'"
     echo "* Value of bwa_index: '$bwa_index'"
     echo "* Value of nthreads: '$nthreads'"
 
@@ -21,9 +21,9 @@ main() {
     outfile_name=""
     concat=""
     rm -f concat.fq
-    for ix in ${!reads_fq[@]}
+    for ix in ${!reads[@]}
     do
-        filename=`dx describe "${reads_fq[$ix]}" --name | cut -d'.' -f1`
+        filename=`dx describe "${reads[$ix]}" --name | cut -d'.' -f1`
         file_root=${filename%.fastq.gz}
         file_root=${filename%.fq.gz}
         if [ "${outfile_name}" == "" ]; then
@@ -36,7 +36,7 @@ main() {
             fi
         fi
         echo "* Downloading and concatenating ${file_root}.fq.gz file..."
-        dx download "${reads_fq[$ix]}" -o - | gunzip >> concat.fq
+        dx download "${reads[$ix]}" -o - | gunzip >> concat.fq
     done
     mv concat.fq ${outfile_name}.fq
     echo "* Gzipping file..."

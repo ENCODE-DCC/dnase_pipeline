@@ -7,14 +7,14 @@
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "read1_fq",
+      "name": "reads1",
       "label": "Read1 of paired-end fastq file(s) (gzipped)",
       "class": "array:file",
       "optional": false,
       "patterns": ["*.fq.gz","*.fastq.gz"]
     },
     {
-      "name": "read2_fq",
+      "name": "reads2",
       "label": "Read2 of paired-end fastq files (gzipped)",
       "class": "array:file",
       "optional": false,
@@ -46,7 +46,7 @@
       "name": "bam_bwa_qc",
       "label": "Text file with some bam stats",
       "class": "file",
-      "patterns": ["*_bwa_bam.txt"]
+      "patterns": ["*_bam_qc.txt"]
     },
     {
       "name": "metadata",

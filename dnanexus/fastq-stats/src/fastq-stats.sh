@@ -52,6 +52,17 @@ main() {
         meta=`qc_metrics.py -n fastqStatsAndSubsample -f ${fastq_root}_qc.txt`
     fi
 
+    if [ ${#fastq_file} -gt 1 ]; then
+        echo "* Set property in ${#fastq_file} source files..."
+        for ix in ${!fastq_file[@]}
+        do
+            dx set_properties "${fastq_file[$ix]}" QC="{ $meta }"
+        done
+    else
+        echo "* Set property in source file..."
+        dx set_properties "$fastq_file" QC="{ $meta }"
+    fi
+
     echo "* Upload results..."
     fastq_qc=$(dx upload ${fastq_root}_qc.txt --details "{ $meta }" --property QC="{ $meta }" --property SW="$versions" --brief)
     #gzip ${fastq_root}_sample.fq
@@ -60,10 +71,6 @@ main() {
     dx-jobutil-add-output fastq_qc "$fastq_qc" --class=file
     #dx-jobutil-add-output fastq_sample "$fastq_sample" --class=file
     dx-jobutil-add-output metadata "$meta" --class=string
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    if [ ${#fastq_file} eq 1 ]; then
-        dx set-properties "${fastq_file}" QC="$meta"
-    fi
 
     echo "* Finished."
 }

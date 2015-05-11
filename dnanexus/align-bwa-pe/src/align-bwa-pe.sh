@@ -13,8 +13,8 @@ main() {
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
 
-    echo "* Value of read1_fq: '$read1_fq'"
-    echo "* Value of read2_fq: '$read2_fq'"
+    echo "* Value of reads1: '$reads1'"
+    echo "* Value of reads2: '$reads2'"
     echo "* Value of bwa_index: '$bwa_index'"
     echo "* Value of nthreads: '$nthreads'"
 
@@ -22,9 +22,9 @@ main() {
     outfile_name=""
     concat=""
     rm -f concat.fq
-    for ix in ${!read1_fq[@]}
+    for ix in ${!reads1[@]}
     do
-        filename=`dx describe "${read1_fq[$ix]}" --name | cut -d'.' -f1`
+        filename=`dx describe "${reads1[$ix]}" --name | cut -d'.' -f1`
         file_root=${filename%.fastq.gz}
         file_root=${filename%.fq.gz}
         if [ "${outfile_name}" == "" ]; then
@@ -37,20 +37,20 @@ main() {
             fi
         fi
         echo "* Downloading ${file_root}.fq.gz file..."
-        dx download "${read1_fq[$ix]}" -o - | gunzip >> concat.fq
+        dx download "${reads1[$ix]}" -o - | gunzip >> concat.fq
     done
     mv concat.fq ${outfile_name}.fq
     echo "* Gzipping file..."
     gzip ${outfile_name}.fq
-    echo "* Read1 fastq${concat} file: '${outfile_name}.fq.gz'"
-    read1_root=${outfile_name}
+    echo "* Reads1 fastq${concat} file: '${outfile_name}.fq.gz'"
+    reads1_root=${outfile_name}
 
     outfile_name=""
     concat=""
     rm -f concat.fq
-    for ix in ${!read2_fq[@]}
+    for ix in ${!reads2[@]}
     do
-        filename=`dx describe "${read2_fq[$ix]}" --name | cut -d'.' -f1`
+        filename=`dx describe "${reads2[$ix]}" --name | cut -d'.' -f1`
         file_root=${filename%.fastq.gz}
         file_root=${filename%.fq.gz}
         if [ "${outfile_name}" == "" ]; then
@@ -63,14 +63,14 @@ main() {
             fi
         fi
         echo "* Downloading ${file_root}.fq.gz file..."
-        dx download "${read2_fq[$ix]}" -o - | gunzip >> concat.fq
+        dx download "${reads2[$ix]}" -o - | gunzip >> concat.fq
     done
     mv concat.fq ${outfile_name}.fq
     echo "* Gzipping file..."
     gzip ${outfile_name}.fq
-    echo "* Read2 fastq${concat} file: '${outfile_name}.fq.gz'"
-    read2_root=${outfile_name}
-    bam_root="${read1_root}_${read2_root}_bwa"
+    echo "* Reads2 fastq${concat} file: '${outfile_name}.fq.gz'"
+    reads2_root=${outfile_name}
+    bam_root="${reads1_root}_${reads2_root}_bwa"
 
     bwa_ix_root=`dx describe "$bwa_index" --name`
     bwa_ix_root=${bwa_ix_root%.tar.gz}
@@ -83,9 +83,9 @@ main() {
 
     echo "* Aligning with bwa..."
     set -x
-    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${read1_root}.fq.gz > tmp_1.sai
-    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${read2_root}.fq.gz > tmp_2.sai
-    bwa sampe ${ref_id} tmp_1.sai tmp_2.sai ${read1_root}.fq.gz ${read2_root}.fq.gz \
+    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${reads1_root}.fq.gz > tmp_1.sai
+    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${reads2_root}.fq.gz > tmp_2.sai
+    bwa sampe ${ref_id} tmp_1.sai tmp_2.sai ${reads1_root}.fq.gz ${reads2_root}.fq.gz \
                     | samtools view -Shu - | samtools sort -@ $nthreads -m 5G -f - tmp.sam
     samtools view -hb tmp.sam > ${bam_root}.bam
     samtools index ${bam_root}.bam

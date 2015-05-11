@@ -39,16 +39,16 @@
   ],
   "outputSpec": [
     {
-      "name": "bam_5M_sample",
+      "name": "bam_sample_5M",
       "label": "Sample of 5 million reads bam",
       "class": "file",
-      "patterns": ["*_5M_sample.bam"]
+      "patterns": ["*_sample_5M.bam"]
     },
     {
-      "name": "hotspot_5M_sample_qc",
+      "name": "hotspot_sample_5M_qc",
       "label": "Sample of 5 million reads hotspot output",
       "class": "file",
-      "patterns": ["*_5M_sample_hotspot_qc.txt"]
+      "patterns": ["*_sample_5M_hotspot_qc.txt"]
     },
     {
       "name": "metadata",
