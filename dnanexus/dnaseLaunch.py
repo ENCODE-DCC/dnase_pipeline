@@ -92,7 +92,7 @@ class DnaseLaunch(Launch):
             }
         }, 
         "sample-hotspots": {
-            "inputs": { "bam_no_chrM": "bam_no_chrM", "chrom_sizes": "chrom_sizes" }, 
+            "inputs": { "bam_no_chrM": "bam_to_sample", "chrom_sizes": "chrom_sizes" }, 
             "app": "sample-hotspots", 
             "params": { "read_length": "read_length", "genome": "genome"}, 
             "results": {
