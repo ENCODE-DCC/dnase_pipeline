@@ -35,15 +35,15 @@ main() {
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
 
-    echo "* Value of bam_no_chrM:   '$bam_no_chrM'"
+    echo "* Value of bam_to_sample: '$bam_to_sample'"
     echo "* Value of chrom_sizes: '$chrom_sizes'"
     echo "* Value of read_length: '$read_length'"
     echo "* Value of genome: '$genome'"
 
     echo "* Download files..."
-    bam_root=`dx describe "$bam_no_chrM" --name`
+    bam_root=`dx describe "$bam_to_sample" --name`
     bam_root=${bam_root%.bam}
-    dx download "$bam_no_chrM" -o ${bam_root}.bam
+    dx download "$bam_to_sample" -o ${bam_root}.bam
     echo "* bam file: '${bam_root}.bam'"
 
     sample_root="${bam_root}_sample_5M"
@@ -53,12 +53,24 @@ main() {
     # sort-bed is important!
     grep -v chrM chromSizes.txt | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' | sort-bed - > ${genome}.chromInfo.bed
 
-    read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
+    read_size=`dx describe "$bam_to_sample" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
     if [ "$read_size" == "" ]; then
-        read_size=`dx describe "$bam_no_chrM" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
+        read_size=`dx describe "$bam_to_sample" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
+        if [ "$read_size" == "" ] && [ -f /usr/bin/parse_property.py ]; then
+            read_size=`parse_property.py -f "$bam_to_sample" -k "average length" --quiet`
+            if [ "$read_size" == "" ]; then
+                read_size=`parse_property.py -f "$bam_to_sample" -s edwBamStats -k readSizeMean --quiet`
+            fi
+        fi
     fi
     if [ "$read_size" != "" ] && [ "$read_length" -ne "$read_size" ]; then
-        echo "* WARNING Read length ($read_length) does not match discovered read size ($read_size)."
+        if [ "$read_size" == "32" ] || [ "$read_size" == "36" ] || [ "$read_size" == "40" ] || [ "$read_size" == "50" ] \
+        || [ "$read_size" == "58" ] || [ "$read_size" == "72" ] || [ "$read_size" == "76" ] || [ "$read_size" == "100" ]; then
+            echo "* NOTE: Read length ($read_length) does not match discovered read size ($read_size). Using $read_size."
+            read_length=$read_size
+        else
+            echo "* WARNING: Read length ($read_length) does not match discovered read size ($read_size)."
+        fi
     fi
 
     # TODO: Need to make bam.bai?

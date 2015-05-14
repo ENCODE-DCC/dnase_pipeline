@@ -7,7 +7,7 @@
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "bam_no_chrM",
+      "name": "bam_to_sample",
       "label": "Filtered bam file without chrM",
       "class": "file",
       "optional": false,
