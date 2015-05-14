@@ -94,6 +94,36 @@ main() {
         qc_peaks=`qc_metrics.py -n edwComparePeaks -f ${peaks_root}_overlap_qc.txt`
         qc_signal=`echo $qc_signal, $qc_peaks`
     fi
+    read_size_A=`dx describe "$bam_A" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
+    if [ "$read_size_A" == "" ]; then
+        read_size_A=`dx describe "$bam_A" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
+        if [ "$read_size_A" == "" ] && [ -f /usr/bin/parse_property.py ]; then
+            read_size_A=`parse_property.py -f "$bam_A" -k "average length" --quiet`
+            if [ "$read_size_A" == "" ]; then
+                read_size_A=`parse_property.py -f "$bam_A" -s edwBamStats -k readSizeMean --quiet`
+            fi
+        fi
+    fi
+    read_size_B=`dx describe "$bam_B" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
+    if [ "$read_size_B" == "" ]; then
+        read_size_B=`dx describe "$bam_B" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
+        if [ "$read_size_B" == "" ] && [ -f /usr/bin/parse_property.py ]; then
+            read_size_B=`parse_property.py -f "$bam_B" -k "average length" --quiet`
+            if [ "$read_size_B" == "" ]; then
+                read_size_B=`parse_property.py -f "$bam_B" -s edwBamStats -k readSizeMean --quiet`
+            fi
+        fi
+    fi
+    if [ "$read_size_A" != "" ] && [ "$read_size_B" != "" ] &&  [ "$read_size_A" != "$read_size_A" ]; then
+        echo "* WARNING: Read lengths of two bam files do not match."
+    fi
+    if [ "$read_size_A" != "" ]; then
+        read_len=`echo "\"average length\": $read_size_A"`
+        qc_signal=`echo $qc_signal, $read_len`
+    elif [ "$read_size_B" != "" ]; then
+        read_len=`echo "\"average length\": $read_size_B"`
+        qc_signal=`echo $qc_signal, $read_len`
+    fi
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
