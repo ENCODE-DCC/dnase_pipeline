@@ -13,60 +13,58 @@ main() {
         versions=`tool_versions.py --applet $script_name --appver $script_ver`
     fi
 
-    echo "* Value of fastq_file: '$fastq_file'"
+    echo "* Value of reads: '$reads'"
 
     #echo "* Download files..."
-    if [ ${#fastq_file} -gt 1 ]; then
-        outfile_name="concat"
-        rm -f concat.fq
-        for ix in ${!fastq_file[@]}
-        do
-            filename=`dx describe "${fastq_file[$ix]}" --name | cut -d'.' -f1`
-            file_root=${filename%.fastq.gz}
-            file_root=${filename%.fq.gz}
+    outfile_name=""
+    concat=""
+    rm -f concat.fq
+    for ix in ${!reads[@]}
+    do
+        filename=`dx describe "${reads[$ix]}" --name | cut -d'.' -f1`
+        file_root=${filename%.fastq.gz}
+        file_root=${filename%.fq.gz}
+        if [ "${outfile_name}" == "" ]; then
+            outfile_name="${file_root}"
+        else
             outfile_name="${file_root}_${outfile_name}"
-            echo "* Downloading and concatenating ${file_root}.fq.gz file..."
-            dx download "${fastq_file[$ix]}" -o - | gunzip >> concat.fq
-        done
-        mv concat.fq ${outfile_name}.fq
-        echo "* Gzipping file..."
-        gzip ${outfile_name}.fq
-        echo "* Fastqs concatenated as: '${outfile_name}.fq.gz'"
-        fastq_root=${outfile_name}
-    else
-        echo "* Download files..."
-        fastq_root=`dx describe "$fastq_file" --name`
-        fastq_root=${fastq_root%.fastq.gz}
-        fastq_root=${fastq_root%.fq.gz}
-        dx download "$fastq_file" -o ${fastq_root}.fq.gz
-        echo "* Fastq file: '${fastq_root}.fq.gz'"
-    fi
-
+            if [ "${concat}" == "" ]; then
+                outfile_name="${outfile_name}_concat" 
+                concat="s concatenated as"
+            fi
+        fi
+        echo "* Downloading and concatenating ${file_root}.fq.gz file..."
+        dx download "${reads[$ix]}" -o - | gunzip >> concat.fq
+    done
+    mv concat.fq ${outfile_name}.fq
+    echo "* Gzipping file..."
+    gzip ${outfile_name}.fq
+    echo "* Fastq${concat} file: '${outfile_name}.fq.gz'"
+    reads_root=${outfile_name}
+    
     echo "* Running fastqStatsAndSubsample..."
     set -x
-    fastqStatsAndSubsample -smallOk -seed=12345 ${fastq_root}.fq.gz ${fastq_root}_qc.txt ${fastq_root}_sample.fq
+    fastqStatsAndSubsample -smallOk -seed=12345 ${reads_root}.fq.gz ${reads_root}_qc.txt ${reads_root}_sample.fq
     set +x
 
     echo "* Prepare metadata json..."
+    meta=""
     if [ -f /usr/bin/qc_metrics.py ]; then
-        meta=`qc_metrics.py -n fastqStatsAndSubsample -f ${fastq_root}_qc.txt`
-    fi
-
-    if [ ${#fastq_file} -gt 1 ]; then
-        echo "* Set property in ${#fastq_file} source files..."
-        for ix in ${!fastq_file[@]}
+        meta=`qc_metrics.py -n fastqStatsAndSubsample -f ${reads_root}_qc.txt`
+        for ix in ${!reads[@]}
         do
-            dx set_properties "${fastq_file[$ix]}" QC="{ $meta }"
+            filename=`dx describe "${reads[$ix]}" --name`
+            echo "* Set QC property in ${filename}..."
+            set -x
+            $(dx set_properties "${reads[$ix]}" QC="{ $meta }")
+            set +x
         done
-    else
-        echo "* Set property in source file..."
-        dx set_properties "$fastq_file" QC="{ $meta }"
     fi
 
     echo "* Upload results..."
-    fastq_qc=$(dx upload ${fastq_root}_qc.txt --details "{ $meta }" --property QC="{ $meta }" --property SW="$versions" --brief)
-    #gzip ${fastq_root}_sample.fq
-    #fastq_sample=$(dx upload ${fastq_root}_sample.fq.gz --brief)
+    fastq_qc=$(dx upload ${reads_root}_qc.txt --details "{ $meta }" --property QC="{ $meta }" --property SW="$versions" --brief)
+    #gzip ${reads_root}_sample.fq
+    #fastq_sample=$(dx upload ${reads_root}_sample.fq.gz --brief)
 
     dx-jobutil-add-output fastq_qc "$fastq_qc" --class=file
     #dx-jobutil-add-output fastq_sample "$fastq_sample" --class=file

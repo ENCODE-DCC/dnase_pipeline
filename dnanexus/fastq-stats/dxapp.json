@@ -7,8 +7,8 @@
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "fastq_file",
-      "label": "Fastq file (single or paired-end)",
+      "name": "reads",
+      "label": "Single or paired-end fastq file (gzipped)",
       "class": "array:file",
       "optional": false,
       "patterns": ["*.fq.gz","*.fastq.gz"]
