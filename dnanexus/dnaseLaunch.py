@@ -235,28 +235,6 @@ class DnaseLaunch(Launch):
         psv['sample_size']   = 15000000
         psv['read_length']   = args.read_length
         
-        # run will either be for combined or single rep.
-        if not psv['combined']:
-            run = psv['reps']['a']  # If not combined then run will be for the first (only) replicate
-        else:
-            run = psv
-            
-        # workflow labeling
-        psv['description'] = "The ENCODE DNase-seq pipeline"
-        run['name'] = "dnase_"+psv['genome']
-        if psv['gender'] == 'female':
-            run['name'] += "XX"
-        else:
-            run['name'] += "XY"
-        if psv['paired_end']:
-            run['title'] = "DNase-seq paired-end "
-            run['name'] += "PE"
-        else:
-            run['title'] = "DNase-seq single-end "
-            run['name'] += "SE"
-        run['title']   += psv['experiment']+" - "+run['rep_tech']+" on "+psv['genome']+", "+psv['gender'] + "."
-        run['name']    += "_"+psv['experiment']+"_"+run['rep_tech']
-
         if verbose:
             print "Pipeline Specific Vars:"
             print json.dumps(psv,indent=4)
