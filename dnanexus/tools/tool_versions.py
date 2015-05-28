@@ -32,6 +32,7 @@ APP_TOOLS = {
                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
                             "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
                         ],
+    "merge-bams.sh": [ "samtools" ],
     "merge-replicates.sh": [ "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate","edwComparePeaks" ],
     "fastq-stats.sh": [ "fastqStatsAndSubsample" ]
  }

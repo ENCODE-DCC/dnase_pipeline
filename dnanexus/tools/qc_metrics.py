@@ -348,7 +348,7 @@ def read_flagstats(filePath,verbose=False):
             parts = line.split()
             pairs["paired_properly"] = string_or_number(parts[0]) 
             pairs["paired_properly_qc_failed"] = string_or_number(parts[2]) 
-            val = parts[4][1:].split(':')[0] 
+            val = parts[5][1:].split(':')[0] 
             pairs["paired_properly_pct"] = string_or_number(val) 
         # 0 + 0      singletons (0.00%:-nan%)
         elif line.find("singletons") > 0:

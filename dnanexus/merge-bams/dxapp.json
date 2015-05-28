@@ -1,0 +1,63 @@
+{
+  "name": "merge-bams",
+  "title": "Merge bams",
+  "summary": "Merge two or more bams for the ENCODE DNase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.2.0",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "bam_set",
+      "label": "Two or more bam files to merge",
+      "class": "array:file",
+      "optional": false,
+      "patterns": ["*_bwa.bam"]
+    },
+    {
+      "name": "nthreads",
+      "label": "Number of threads to use",
+      "class": "int",
+      "optional": true,
+      "default": 8
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "bam_merged",
+      "label": " Bam file of merged technical replicates",
+      "class": "file",
+      "patterns": ["*_merged.bam"]
+    },
+    {
+      "name": "bam_merged_qc",
+      "label": "Text file with some bam stats",
+      "class": "file",
+      "patterns": ["*_merged_bam_qc.txt"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/merge-bams.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}
