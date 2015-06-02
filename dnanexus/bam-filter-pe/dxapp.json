@@ -11,7 +11,7 @@
       "label": "Raw bam (paired-end) to be filtered",
       "class": "file",
       "optional": false,
-      "patterns": ["*_bwa.bam"]
+      "patterns": ["*_bwa.bam","*_merged.bam"]
     },
     {
       "name": "map_thresh",
