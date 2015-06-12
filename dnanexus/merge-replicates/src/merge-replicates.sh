@@ -29,7 +29,7 @@ main() {
 
     bam_B_root=`dx describe "$bam_B" --name`
     bam_B_root=${bam_B_root%_filtered.bam}
-    dx download "$bam_A" -o bam_B.bam
+    dx download "$bam_B" -o bam_B.bam
     echo "* bam_B file: '${bam_B_root}_filtered.bam'"
     bam_pooled_root="${bam_A_root}_${bam_B_root}_pooled"
     echo "* bam_pooled will be: '${bam_pooled_root}.bam'"

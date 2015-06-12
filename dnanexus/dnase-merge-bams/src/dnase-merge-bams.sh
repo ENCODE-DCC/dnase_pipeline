@@ -1,8 +1,8 @@
 #!/bin/bash
-# merge-bams.sh
+# dnase-merge-bams.sh - Merge two or more bams for the ENCODE DNase-seq pipeline.
 
-script_name="merge-bams.sh"
-script_ver="0.2.0"
+script_name="dnase-merge-bams.sh"
+script_ver="0.2.1"
 
 main() {
     # Executables in resources/usr/bin

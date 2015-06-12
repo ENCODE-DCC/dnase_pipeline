@@ -1,0 +1,76 @@
+{
+  "name": "dnase-size-bam",
+  "title": "Size bam",
+  "summary": "Conditionally reduce the bam size to a target, or no larger than a limit of reads for the ENCODE DNase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.0.1",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "unsized_bam",
+      "label": "Target bam file to harmonize",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_filtered.bam"]
+    },
+    {
+      "name": "target_size",
+      "label": "Target number of reads in properly sized bam",
+      "class": "int",
+      "optional": false
+    }
+    {
+      "name": "upper_limit",
+      "label": "Uper limit of reads (no limit == 0)",
+      "class": "int",
+      "optional": true,
+      "default": 0
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "bam_sized",
+      "label": " Bam file of harmonious size",
+      "class": "file",
+      "optional": true,
+      "patterns": ["*_sized.bam"]
+    },
+    {
+      "name": "bam_sized_qc",
+      "label": "Text file with some bam stats",
+      "class": "file",
+      "optional": true,
+      "patterns": ["*_sized_bam_qc.txt"]
+    },
+    {
+      "name": "final_read_count",
+      "label": "Count of reads in the bam",
+      "class": "int",
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/dnase-size-bam.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}

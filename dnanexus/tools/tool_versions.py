@@ -9,15 +9,25 @@ import sys, os, argparse, json, commands
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
 APP_TOOLS = { 
     "index-bwa.sh":     [ "bwa", "samtools" ],
-    "align-bwa-pe.sh":  [ "bwa", "samtools" ],
-    "align-bwa-se.sh":  [ "bwa", "samtools" ],
-    "bam-filter-pe.sh": [
-                            "samtools","edwBamFilter","edwBamStats",#"R",
-                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                        ],
-    "bam-filter-se.sh": [
-                            "samtools","edwBamFilter","edwBamStats",#"R",
-                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+    "dnase-align-bwa-pe.sh": [ "bwa", "samtools" ],
+    "dnase-align-bwa-se.sh": [ "bwa", "samtools" ],
+    "dnase-filter-pe.sh":    [ "samtools" ],
+    "dnase-filter-se.sh":    [ "samtools" ],
+    "dnase-size-bam.sh":     [ "edwBamStats" ],
+    "dnase-eval-bam-pe.sh":  [
+                             "samtools","edwBamFilter","edwBamStats",#"R",
+                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                             ],
+    "dnase-eval-bam-se.sh":  [
+                             "samtools","edwBamFilter","edwBamStats",#"R",
+                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                             ],
+    "dnase-merge-bams.sh": [ "samtools" ],
+    "sample-hotspots.sh": [
+                            "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
+                            "bedops","bedmap (bedops)","sort-bed (bedops)",
+                            "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
+                            "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
                         ],
     "call-hotspots.sh": [
                             "hotspot","hotspot.py (GCAP)","samtools",
@@ -26,14 +36,15 @@ APP_TOOLS = {
                             "bedtools","bamToBed (bedtools)","intersectBed (bedtools)","shuffleBed (bedtools)",
                             "bedToBigBed","bedGraphToBigWig","bedGraphPack"
                         ],
-    "sample-hotspots.sh": [
-                            "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
-                            "bedops","bedmap (bedops)","sort-bed (bedops)",
-                            "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
-                            "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
-                        ],
-    "merge-bams.sh": [ "samtools" ],
     "merge-replicates.sh": [ "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate","edwComparePeaks" ],
+    "bam-filter-pe.sh": [
+                            "samtools","edwBamFilter","edwBamStats",#"R",
+                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                        ],
+    "bam-filter-se.sh": [
+                            "samtools","edwBamFilter","edwBamStats",#"R",
+                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                        ],
     "fastq-stats.sh": [ "fastqStatsAndSubsample" ]
  }
 

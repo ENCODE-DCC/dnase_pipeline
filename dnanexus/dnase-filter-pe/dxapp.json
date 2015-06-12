@@ -1,0 +1,79 @@
+{
+  "name": "dnase-filter-pe",
+  "title": "Filter bam pe",
+  "summary": "Filter bam (paired-end) for the ENCODE DNase-seq pipeline",
+  "dxapi": "1.0.0",
+  "version": "0.2.1",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "bam_bwa",
+      "label": "Raw bam (paired-end) to be filtered",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_bwa.bam","*_merged.bam"]
+    },
+    {
+      "name": "map_thresh",
+      "label": "Map threshold",
+      "class": "int",
+      "optional": true,
+      "default": 3
+    },
+    {
+      "name": "nthreads",
+      "label": "Number of threads to use",
+      "class": "int",
+      "optional": true,
+      "default": 8
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "bam_filtered",
+      "label": "Filtered bam file",
+      "class": "file",
+      "patterns": ["*_filtered.bam"]
+    },
+    {
+      "name": "bam_filtered_qc",
+      "label": "Filtered bam 'samtools flagstats' output",
+      "class": "file",
+      "patterns": ["*_filtered_qc.txt"]
+    },
+    {
+      "name": "bam_filtered_qc_full",
+      "label": "Filtered bam 'samtools stats' output",
+      "class": "file",
+      "patterns": ["*_filtered_qc_full.txt"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/dnase-filter-pe.sh",
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    },
+    "execDepends": [
+        { "name": "gawk" }
+    ]
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}

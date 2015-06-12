@@ -1,9 +1,9 @@
 {
-  "name": "merge-bams",
+  "name": "dnase-merge-bams",
   "title": "Merge bams",
   "summary": "Merge two or more bams for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -42,7 +42,7 @@
   ],
   "runSpec": {
     "interpreter": "bash",
-    "file": "src/merge-bams.sh",
+    "file": "src/dnase-merge-bams.sh",
     "systemRequirements": {
       "main": {
         "instanceType": "mem3_hdd2_x8"

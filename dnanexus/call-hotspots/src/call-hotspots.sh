@@ -1,10 +1,8 @@
 #!/bin/bash
-# call-hotspots 0.2.0
+# call-hotspots.sh
 
 script_name="call-hotspots.sh"
-script_ver="0.1.0"
-#script_name=`head -2 $0 | tail -1 | awk '{ print $2 }'`
-#script_ver=`head -2 $0 | tail -1 | awk '{ print $3 }'`
+script_ver="0.2.0"
 
 main() {
     echo "* Installing hotspot and dependencies (gsl)..." 2>&1 | tee -a install.log
@@ -132,8 +130,8 @@ main() {
     qc_hotspot=''
     if [ -f /usr/bin/qc_metrics.py ]; then
         qc_hotspot=`qc_metrics.py -n hotspot -f ${bam_root}_hotspot_qc.txt`
-        qc_spots=`qc_metrics.py -n singleton -f ${narrowPeak_root}_qc.txt -k "hotspot count" --keypair "hotspot count"`
-        qc_regions=`qc_metrics.py -n singleton -f ${broadPeak_root}_qc.txt -k "regions count" --keypair "regions count"`
+        qc_spots=`qc_metrics.py -n singleton -f ${narrowPeak_root}_qc.txt -k "peak count" --keypair "peak count"`
+        qc_regions=`qc_metrics.py -n singleton -f ${broadPeak_root}_qc.txt -k "hotspot count" --keypair "hotspot count"`
         qc_hotspot=`echo $qc_hotspot, \"peak_counts\": { $qc_spots, $qc_regions }`
     fi
     
