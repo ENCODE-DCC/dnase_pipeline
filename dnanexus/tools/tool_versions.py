@@ -9,8 +9,8 @@ import sys, os, argparse, json, commands
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
 APP_TOOLS = { 
     "index-bwa.sh":     [ "bwa", "samtools" ],
-    "dnase-align-bwa-pe.sh": [ "bwa", "samtools" ],
-    "dnase-align-bwa-se.sh": [ "bwa", "samtools" ],
+    "dnase-align-bwa-pe.sh": [ "bwa", "samtools", "edwBamStats" ],
+    "dnase-align-bwa-se.sh": [ "bwa", "samtools", "edwBamStats" ],
     "dnase-filter-pe.sh":    [ "samtools" ],
     "dnase-filter-se.sh":    [ "samtools" ],
     "dnase-size-bam.sh":     [ "edwBamStats" ],
@@ -22,21 +22,24 @@ APP_TOOLS = {
                              "samtools","edwBamFilter","edwBamStats",#"R",
                              "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                              ],
-    "dnase-merge-bams.sh": [ "samtools" ],
-    "sample-hotspots.sh": [
+    "dnase-merge-bams.sh":   [ "samtools" ],
+    "dnase-hotspots-qc.sh":  [
                             "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
                             "bedops","bedmap (bedops)","sort-bed (bedops)",
                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
                             "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
-                        ],
-    "call-hotspots.sh": [
+                            ],
+    "dnase-call-hotspots.sh":  [
                             "hotspot","hotspot.py (GCAP)","samtools",
                             "bedops","bedmap (bedops)","sort-bed (bedops)",
                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
                             "bedtools","bamToBed (bedtools)","intersectBed (bedtools)","shuffleBed (bedtools)",
-                            "bedToBigBed","bedGraphToBigWig","bedGraphPack"
-                        ],
-    "merge-replicates.sh": [ "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate","edwComparePeaks" ],
+                            "bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
+                            ],
+    "dnase-pool-bioreps.sh":  [ 
+                            "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
+                            "edwComparePeaks", "edwBamStats" 
+                            ],
     "bam-filter-pe.sh": [
                             "samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"

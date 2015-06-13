@@ -1,9 +1,9 @@
 {
-  "name": "sample-hotspots",
-  "title": "Call sample of hotspots",
-  "summary": "Call a sample of peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
+  "name": "dnase-hotspot-qc",
+  "title": "Call hotspots on sample for qc",
+  "summary": "Calls hotspots on a sample for qc for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -45,10 +45,16 @@
       "patterns": ["*_sample_5M.bam"]
     },
     {
-      "name": "hotspot_sample_5M_qc",
-      "label": "Sample of 5 million reads hotspot output",
+      "name": "bam_sample_5M_qc",
+      "label": "Sample of 5 million qc: edwBamStats and hotspot output",
       "class": "file",
-      "patterns": ["*_sample_5M_hotspot_qc.txt"]
+      "patterns": ["*_sample_5M_qc.txt"]
+    },
+    {
+      "name": "reads",
+      "label": "Count of reads in the sample bam",
+      "optional": true,
+      "class": "string"
     },
     {
       "name": "metadata",
@@ -58,7 +64,7 @@
   ],
   "runSpec": {
     "interpreter": "bash",
-    "file": "src/sample-hotspots.sh",
+    "file": "src/dnase-hotspot-qc.sh",
     "systemRequirements": {
       "main": {
         "instanceType": "mem3_hdd2_x8"

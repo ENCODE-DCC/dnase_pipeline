@@ -18,7 +18,7 @@
       "label": "Target number of reads in properly sized bam",
       "class": "int",
       "optional": false
-    }
+    },
     {
       "name": "upper_limit",
       "label": "Uper limit of reads (no limit == 0)",
@@ -37,15 +37,16 @@
     },
     {
       "name": "bam_sized_qc",
-      "label": "Text file with some bam stats",
+      "label": "Sized bam qc: edwBamStats output",
       "class": "file",
       "optional": true,
-      "patterns": ["*_sized_bam_qc.txt"]
+      "patterns": ["*_sized_qc.txt"]
     },
     {
-      "name": "final_read_count",
-      "label": "Count of reads in the bam",
-      "class": "int",
+      "name": "reads",
+      "label": "Count of reads in the sized bam",
+      "optional": true,
+      "class": "string"
     },
     {
       "name": "metadata",

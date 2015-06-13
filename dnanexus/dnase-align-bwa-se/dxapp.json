@@ -36,10 +36,16 @@
       "patterns": ["*_bwa.bam"]
     },
     {
-      "name": "bam_bwa_qc",
-      "label": "Text file with some bam stats",
+      "name": "bam_qc",
+      "label": "bam qc: samtools flagstat and edwBamStats results",
       "class": "file",
-      "patterns": ["*_bam_qc.txt"]
+      "patterns": ["*_bwa_qc.txt"]
+    },
+    {
+      "name": "reads",
+      "label": "Count of reads in the bam",
+      "optional": true,
+      "class": "string"
     },
     {
       "name": "metadata",

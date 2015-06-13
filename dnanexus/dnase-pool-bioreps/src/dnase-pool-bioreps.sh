@@ -1,8 +1,8 @@
 #!/bin/bash
-# merge-replicates.sh
+# dnase-pool-bioreps.sh - Pools two biological replicates for the ENCODE DNase-seq pipeline.
 
-script_name="merge-replicates.sh"
-script_ver="0.2.0"
+script_name="dnase-pool-bioreps.sh"
+script_ver="0.2.1"
 
 main() {
     # Executables in resources/usr/bin
@@ -60,9 +60,34 @@ main() {
 
     dx download "$chrom_sizes" -o chromSizes.txt
 
+    read_len_A=`parse_property.py -f "$bam_A" -p "read_length" --quiet`
+    read_len_B=`parse_property.py -f "$bam_B" -p "read_length" --quiet`
+    if [ "$read_len_A" == "" ]; then
+        echo "* Running edwBamStats on 'bam_A.bam'"
+        set -x
+        edwBamStats bam_A.bam bam_A_edwBamStats.txt
+        set +x
+        read_len_A=`qc_metrics.py -n edwBamStats -f bam_A_edwBamStats.txt -k readSizeMean`
+    fi
+    if [ "$read_len_B" == "" ]; then
+        echo "* Running edwBamStats on 'bam_B.bam'"
+        set -x
+        edwBamStats bam_B.bam bam_B_edwBamStats.txt
+        set +x
+        read_len_B=`qc_metrics.py -n edwBamStats -f bam_B_edwBamStats.txt -k readSizeMean`
+    fi
+    if [ "$read_len_A" != "" ] && [ "$read_len_B" != "" ] &&  [ "$read_len_A" != "$read_len_A" ]; then
+        echo "* WARNING: Read lengths of two bam files do not match."
+    fi
+
     echo "* Merging bams..."
     set -x
     samtools cat bam_A.bam bam_B.bam > ${bam_pooled_root}.bam
+    set +x
+
+    echo "* Running edwBamStats on '${bam_pooled_root}.bam'"
+    set -x
+    edwBamStats ${bam_pooled_root}.bam ${bam_pooled_root}_edwBamStats.txt
     set +x
 
     echo "* Merging peaks..."
@@ -86,58 +111,45 @@ main() {
     # TODO: Collect QC from: ${signal_root}_corr_qc.txt and ${peaks_root}_overlap_qc.txt?
     
     echo "* Prepare metadata..."
+    qc_pooled=''  
     qc_peaks=''  
     qc_signal='' 
+    reads=0
+    read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
+        qc_pooled=`qc_metrics.py -n edwBamStats -f ${bam_pooled_root}_edwBamStats.txt`
+        reads=`qc_metrics.py -n edwBamStats -f ${bam_pooled_root}_edwBamStats.txt -k readCount`
+        read_len=`qc_metrics.py -n edwBamStats -f ${bam_pooled_root}_edwBamStats.txt -k readSizeMean`
         #qc_signal=`qc_metrics.py -n bigWigCorrelate -f ${signal_root}_corr_qc.txt`
         qc_signal=`qc_metrics.py -n singleton -f ${signal_root}_corr_qc.txt -k "bigWigCorrelate" --keypair "bigWigCorrelate"`
         qc_peaks=`qc_metrics.py -n edwComparePeaks -f ${peaks_root}_overlap_qc.txt`
-        qc_signal=`echo $qc_signal, $qc_peaks`
+        qc_pooled=`echo $qc_pooled, $qc_signal, $qc_peaks`
     fi
-    read_size_A=`dx describe "$bam_A" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
-    if [ "$read_size_A" == "" ]; then
-        read_size_A=`dx describe "$bam_A" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
-        if [ "$read_size_A" == "" ] && [ -f /usr/bin/parse_property.py ]; then
-            read_size_A=`parse_property.py -f "$bam_A" -k "average length" --quiet`
-            if [ "$read_size_A" == "" ]; then
-                read_size_A=`parse_property.py -f "$bam_A" -s edwBamStats -k readSizeMean --quiet`
-            fi
-        fi
-    fi
-    read_size_B=`dx describe "$bam_B" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
-    if [ "$read_size_B" == "" ]; then
-        read_size_B=`dx describe "$bam_B" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
-        if [ "$read_size_B" == "" ] && [ -f /usr/bin/parse_property.py ]; then
-            read_size_B=`parse_property.py -f "$bam_B" -k "average length" --quiet`
-            if [ "$read_size_B" == "" ]; then
-                read_size_B=`parse_property.py -f "$bam_B" -s edwBamStats -k readSizeMean --quiet`
-            fi
-        fi
-    fi
-    if [ "$read_size_A" != "" ] && [ "$read_size_B" != "" ] &&  [ "$read_size_A" != "$read_size_A" ]; then
-        echo "* WARNING: Read lengths of two bam files do not match."
-    fi
-    if [ "$read_size_A" != "" ]; then
-        read_len=`echo "\"average length\": $read_size_A"`
-        qc_signal=`echo $qc_signal, $read_len`
-    elif [ "$read_size_B" != "" ]; then
-        read_len=`echo "\"average length\": $read_size_B"`
-        qc_signal=`echo $qc_signal, $read_len`
-    fi
+    # All qc to one file per target file:
+    echo "===== edwBamStats ====="          > ${bam_pooled_root}_qc.txt
+    cat ${bam_pooled_root}_edwBamStats.txt >> ${bam_pooled_root}_qc.txt
+    echo " "                               >> ${bam_pooled_root}_qc.txt
+    echo "===== bigWigCorrelate ====="     >> ${bam_pooled_root}_qc.txt
+    cat ${signal_root}_corr_qc.txt         >> ${bam_pooled_root}_qc.txt
+    echo " "                               >> ${bam_pooled_root}_qc.txt
+    echo "===== edwComparePeaks ====="     >> ${bam_pooled_root}_qc.txt
+    cat ${peaks_root}_overlap_qc.txt       >> ${bam_pooled_root}_qc.txt
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_pooled=$(dx upload ${bam_pooled_root}.bam   --details "{ $qc_signal }" --property QC="{ $qc_signal }" --property SW="$versions" --brief)
+    bam_pooled=$(dx upload ${bam_pooled_root}.bam   --details "{ $qc_pooled }" --property QC="{ $qc_pooled }" \
+                                                    --property reads="$reads" --property read_length="$read_len" \
+                                                    --property SW="$versions" --brief)
     bed_merged=$(dx upload ${peaks_merged_root}.bed --details "{ $qc_peaks }" --property QC="{ $qc_peaks }" --property SW="$versions" --brief)
     bb_merged=$(dx upload ${peaks_merged_root}.bb   --details "{ $qc_peaks }" --property QC="{ $qc_peaks }" --property SW="$versions" --brief)
-    signal_corr_qc=$(dx upload ${signal_root}_corr_qc.txt --property SW="$versions" --brief)
-    peaks_overlap_qc=$(dx upload ${peaks_root}_overlap_qc.txt --property SW="$versions" --brief)
+    pooled_qc=$(dx upload ${bam_pooled_root}_qc --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_pooled "$bam_pooled" --class=file
     dx-jobutil-add-output bed_merged "$bed_merged" --class=file
     dx-jobutil-add-output bb_merged "$bb_merged" --class=file
-    dx-jobutil-add-output signal_corr_qc "$signal_corr_qc" --class=file
-    dx-jobutil-add-output peaks_overlap_qc "$peaks_overlap_qc" --class=file
+    dx-jobutil-add-output pooled_qc "$pooled_qc" --class=file
+
+    dx-jobutil-add-output reads "$reads" --class=string
     dx-jobutil-add-output metadata "{ $qc_signal }" --class=string
 
     echo "* Finished."

@@ -1,8 +1,8 @@
 #!/bin/bash
-# sample-hotspots
+# dnase-hotspot-qc.sh - Calls hotspots on a sample for qc for the ENCODE DNase-seq pipeline.
 
-script_name="sample-hotspots.sh"
-script_ver="0.2.0"
+script_name="dnase-hotspot-qc.sh"
+script_ver="0.2.1"
 
 main() {
     echo "* Installing hotspot and dependencies (gsl)..." 2>&1 | tee -a install.log
@@ -53,26 +53,6 @@ main() {
     # sort-bed is important!
     grep -v chrM chromSizes.txt | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' | sort-bed - > ${genome}.chromInfo.bed
 
-    read_size=`dx describe "$bam_to_sample" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
-    if [ "$read_size" == "" ]; then
-        read_size=`dx describe "$bam_to_sample" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
-        if [ "$read_size" == "" ] && [ -f /usr/bin/parse_property.py ]; then
-            read_size=`parse_property.py -f "$bam_to_sample" -k "average length" --quiet`
-            if [ "$read_size" == "" ]; then
-                read_size=`parse_property.py -f "$bam_to_sample" -s edwBamStats -k readSizeMean --quiet`
-            fi
-        fi
-    fi
-    if [ "$read_size" != "" ] && [ "$read_length" -ne "$read_size" ]; then
-        if [ "$read_size" == "32" ] || [ "$read_size" == "36" ] || [ "$read_size" == "40" ] || [ "$read_size" == "50" ] \
-        || [ "$read_size" == "58" ] || [ "$read_size" == "72" ] || [ "$read_size" == "76" ] || [ "$read_size" == "100" ]; then
-            echo "* NOTE: Read length ($read_length) does not match discovered read size ($read_size). Using $read_size."
-            read_length=$read_size
-        else
-            echo "* WARNING: Read length ($read_length) does not match discovered read size ($read_size)."
-        fi
-    fi
-
     # TODO: Need to make bam.bai?
     echo "* Indexing bam..."
     set -x
@@ -81,10 +61,21 @@ main() {
     
     echo "* Sampling bam..."
     set -x
-    edwBamStats -sampleBamSize=5000000 -u4mSize=5000000 -sampleBam=${sample_root}.bam ${bam_root}.bam ${sample_root}_stats.txt
+    edwBamStats -sampleBamSize=5000000 -u4mSize=5000000 -sampleBam=${sample_root}.bam ${bam_root}.bam ${sample_root}_edwBamStats.txt
     samtools index ${sample_root}.bam
     set +x
     
+    read_len=`qc_metrics.py -n edwBamStats -f ${sample_root}_edwBamStats.txt -k readSizeMean`
+    if [ "$read_len" != "" ] && [ "$read_length" -ne "$read_len" ]; then
+        if [ "$read_len" == "32" ] || [ "$read_len" == "36" ] || [ "$read_len" == "40" ] || [ "$read_len" == "50" ] \
+        || [ "$read_len" == "58" ] || [ "$read_len" == "72" ] || [ "$read_len" == "76" ] || [ "$read_len" == "100" ]; then
+            echo "* NOTE: Read length ($read_length) does not match discovered read size ($read_len). Using $read_len."
+            read_length=$read_len
+        else
+            echo "* WARNING: Read length ($read_length) does not match discovered read size ($read_len)."
+        fi
+    fi
+
     echo "* Running hotspot.py..."
     set -x
     mkdir tmp
@@ -102,19 +93,31 @@ main() {
 
     echo "* Prepare metadata..."
     qc_sampled=''
+    reads_sample=5000000
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_sampled=`qc_metrics.py -n edwBamStats -f ${sample_root}_stats.txt`
+        qc_sampled=`qc_metrics.py -n edwBamStats -f ${sample_root}_edwBamStats.txt`
+        reads_sample=`qc_metrics.py -n edwBamStats -f ${sample_root}_edwBamStats.txt -k readCount`
         meta=`qc_metrics.py -n hotspot -f ${sample_root}_hotspot_qc.txt`
         qc_sampled=`echo $qc_sampled, $meta`
     fi
+    # All qc to one file per target file:
+    echo "===== edwBamStats ====="          > ${sample_root}_qc.txt
+    cat ${sample_root}_edwBamStats.txt.txt >> ${sample_root}_qc.txt
+    echo " "                               >> ${sample_root}_qc.txt
+    echo "===== hotspot out ====="         >> ${sample_root}_qc.txt
+    cat ${sample_root}_hotspot_qc.txt      >> ${sample_root}_qc.txt
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_sample_5M=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property QC="{ $qc_sampled }" --property SW="$versions" --brief)
-    hotspot_sample_5M_qc=$(dx upload ${sample_root}_hotspot_qc.txt --property SW="$versions" --brief)
+    bam_sample_5M=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property QC="{ $qc_sampled }" \
+                                                 --property reads="$reads_sample" --property read_length="$read_len" \
+                                                 --property SW="$versions" --brief)
+    bam_sample_5M_qc=$(dx upload ${sample_root}_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_sample_5M "$bam_sample_5M" --class=file
-    dx-jobutil-add-output hotspot_sample_5M_qc "$hotspot_sample_5M_qc" --class=file
+    dx-jobutil-add-output bam_sample_5M_qc "$bam_sample_5M_qc" --class=file
+
+    dx-jobutil-add-output reads "$reads_sample" --class=string
     dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."

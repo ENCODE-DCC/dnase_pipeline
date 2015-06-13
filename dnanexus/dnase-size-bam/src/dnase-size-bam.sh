@@ -28,9 +28,9 @@ main() {
     # Skip the contortions of looking up value in details or properties.  Just run edwBamStats!
     echo "* Running edwBamStats on '${bam_root}_unsized.bam'"
     set -x
-    edwBamStats ${bam_root}_unsized.bam ${bam_root}_unsized_stats.txt
+    edwBamStats ${bam_root}_unsized.bam ${bam_root}_unsized_edwBamStats.txt
     set +x
-    reads_unsized=`qc_metrics.py -n edwBamStats -f ${bam_root}_unsized_stats.txt -k readCount`
+    reads_unsized=`qc_metrics.py -n edwBamStats -f ${bam_root}_unsized_edwBamStats.txt -k readCount`
     
     # Figure out the right size
     reads_sized=$reads_unsized
@@ -50,14 +50,14 @@ main() {
         # Nothing to be done?
         set -x
         mv ${bam_root}_unsized.bam ${bam_root}_sized.bam
-        mv ${bam_root}_unsized_stats.txt ${bam_root}_sized.bam_stats.txt
+        mv ${bam_root}_unsized_edwBamStats.txt ${bam_root}_sized_edwBamStats.txt
         set +x
         # Output unsized as sized?
     else
         echo "* Sampling $reads_sized reads from '${bam_root}_unsized.bam'"
         set -x
         edwBamStats -sampleBamSize=$reads_sized -u4mSize=$reads_sized -sampleBam=${bam_root}_sized.bam \
-                                                              ${bam_root}_unsized.bam ${bam_root}_sized.bam_stats.txt
+                                                              ${bam_root}_unsized.bam ${bam_root}_sized_edwBamStats.txt
         set +x
         # What would be nice is to move $unsized_bam to ${bam_root}_full.bam 
         # then upload ${bam_root}_sized.bam to ${bam_root}.bam
@@ -68,23 +68,26 @@ main() {
     echo "* Prepare metadata for sized bam..."
     qc_sized=''
     final_reads_count=$reads_sized
-    reads_len=0
+    read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
         qc_sized=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized.bam_stats.txt`
-        final_reads_count=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_stats.txt -k readCount`
-        reads_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_stats.txt -k readSizeMean`
+        final_reads_count=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k readCount`
+        read_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k readSizeMean`
     fi
+    # All qc to one file per target file:
+    echo "===== edwBamStats ====="         > ${bam_root}_sized_qc.txt
+    cat ${bam_root}_sized_edwBamStats.txt >> ${bam_root}_sized_qc.txt
     
     echo "* Upload results..."
     bam_sized=$(dx upload ${bam_root}_sized.bam --details "{ $qc_sized }" --property QC="{ $qc_sized }" \
-                                                --property reads="$final_reads_count" --property read_length="$reads_len" \
+                                                --property reads="$final_reads_count" --property read_length="$read_len" \
                                                 --property SW="$versions" --brief)
-    bam_sized_qc=$(dx upload ${bam_root}_sized.bam_stats.txt --property SW="$versions" --brief)
+    bam_sized_qc=$(dx upload ${bam_root}_sized_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_sized    "$bam_sized"    --class=file
     dx-jobutil-add-output bam_sized_qc "$bam_sized_qc" --class=file
     
-    dx-jobutil-add-output final_read_count "$final_reads_count" --class=string
+    dx-jobutil-add-output reads "$final_reads_count" --class=string
     dx-jobutil-add-output metadata "$versions" --class=string
     
     echo "* Finished."

@@ -23,16 +23,22 @@
   ],
   "outputSpec": [
     {
-      "name": "bam_merged",
+      "name": "bam_biorep",
       "label": " Bam file of merged technical replicates",
       "class": "file",
-      "patterns": ["*_merged.bam"]
+      "patterns": ["*_biorep.bam"]
     },
     {
-      "name": "bam_merged_qc",
-      "label": "Text file with some bam stats",
+      "name": "bam_biorep_qc",
+      "label": "Text file with samtools flagstat/stats results",
       "class": "file",
-      "patterns": ["*_merged_bam_qc.txt"]
+      "patterns": ["*_biorep_qc.txt"]
+    },
+    {
+      "name": "reads",
+      "label": "Count of reads in the merged biorep bam",
+      "optional": true,
+      "class": "string"
     },
     {
       "name": "metadata",

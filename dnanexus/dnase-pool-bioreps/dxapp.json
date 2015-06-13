@@ -1,9 +1,9 @@
 {
-  "name": "merge-replicates",
-  "title": "Merge replicates",
-  "summary": "Merge two replicates for the ENCODE DNase-seq pipeline",
+  "name": "dnase-pool-bioreps",
+  "title": "Pools 2 bio-reps",
+  "summary": "Pools two biological replicates for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -76,16 +76,16 @@
       "patterns": ["*_narrowPeak_merged.bb"]
     },
     {
-      "name": "signal_corr_qc",
-      "label": "Hotspot Signals correlation",
+      "name": "pooled_qc",
+      "label": "Compared and pooled qc: edwBamStats, bigWigCorrelate and edwComparePeaks output",
       "class": "file",
-      "patterns": ["*_signal_corr_qc.txt"]
+      "patterns": ["*_pooled_qc.txt"]
     },
     {
-      "name": "peaks_overlap_qc",
-      "label": "Hotspot peaks overlap",
-      "class": "file",
-      "patterns": ["*_narrowPeaks_overlap_qc.txt"]
+      "name": "reads",
+      "label": "Count of reads in the pooled bam",
+      "optional": true,
+      "class": "string"
     },
     {
       "name": "metadata",
@@ -95,7 +95,7 @@
   ],
   "runSpec": {
     "interpreter": "bash",
-    "file": "src/merge-replicates.sh",
+    "file": "src/dnase-pool-bioreps.sh",
     "systemRequirements": {
       "main": {
         "instanceType": "mem3_hdd2_x8"

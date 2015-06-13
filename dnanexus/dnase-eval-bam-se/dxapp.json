@@ -19,13 +19,6 @@
       "class": "int",
       "optional": true,
       "default": 15000000
-    },
-    {
-      "name": "nthreads",
-      "label": "Number of threads to use",
-      "class": "int",
-      "optional": true,
-      "default": 8
     }
   ],
   "outputSpec": [
@@ -36,10 +29,10 @@
       "patterns": ["*_no_chrM.bam"]
     },
     {
-      "name": "bam_no_chrM_stats",
+      "name": "bam_no_chrM_qc",
       "label": "No chrM bam 'edwBamStats' output",
       "class": "file",
-      "patterns": ["*_sample_stats.txt"]
+      "patterns": ["*_no_chrM_qc.txt"]
     },
     {
       "name": "bam_sample",
@@ -48,22 +41,16 @@
       "patterns": ["*_sample.bam"]
     },
     {
-      "name": "bam_sample_stats",
-      "label": "Sample bam 'edwBamStats' output",
+      "name": "bam_sample_qc",
+      "label": "Sample bam qc: edwBamStats, spp and PBC output",
       "class": "file",
-      "patterns": ["*_sample_stats.txt"]
+      "patterns": ["*_sample_qc.txt"]
     },
     {
-      "name": "bam_sample_spp",
-      "label": "Sample bam 'Rscript run_spp.R' output",
-      "class": "file",
-      "patterns": ["*_sample_spp.txt"]
-    },
-    {
-      "name": "bam_sample_pbc",
-      "label": "Sample bam 'PBC' output",
-      "class": "file",
-      "patterns": ["*_sample_pbc.txt"]
+      "name": "reads",
+      "label": "Count of reads in the no chrM bam",
+      "optional": true,
+      "class": "string"
     },
     {
       "name": "metadata",

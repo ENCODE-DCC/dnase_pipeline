@@ -44,6 +44,12 @@ main() {
     echo "* Fastq${concat} file: '${outfile_name}.fq.gz'"
     reads_root=${outfile_name}
     bam_root="${reads_root}_bwa"
+    if [ -f /usr/bin/parse_property.py ]; then
+        new_root=`parse_property.py -f "'${reads[0]}'" --project "${DX_PROJECT_CONTEXT_ID}" --root_name`
+        if "$new_root" != "" ]; then
+            bam_root="${new_root}_bwa"
+        fi
+    fi
 
     bwa_ix_root=`dx describe "$bwa_index" --name`
     bwa_ix_root=${bwa_ix_root%.tar.gz}
@@ -65,23 +71,37 @@ main() {
 
     echo "* Collect bam stats..."
     set -x
-    samtools flagstat ${bam_root}.bam > ${bam_root}_bam_qc.txt
+    samtools flagstat ${bam_root}.bam > ${bam_root}_flagstat.txt
+    edwBamStats ${bam_root}.bam ${bam_root}_edwBamStats.txt
     set +x
 
     echo "* Prepare metadata json..."
     meta=''
+    reads=0
+    read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
-        #cat ${bam_root}_bam_qc.txt
-        meta=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_bam_qc.txt`
+        meta=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_flagstat.txt`
+        reads=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt -k readCount`
+        read_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt -k readSizeMean`
     fi
+    # All qc to one file per target file:
+    echo "===== samtools flagstat =====" > ${bam_root}_qc.txt
+    cat ${bam_root}_flagstat.txt        >> ${bam_root}_qc.txt
+    echo " "                            >> ${bam_root}_qc.txt
+    echo "===== edwBamStats ====="      >> ${bam_root}_qc.txt
+    cat ${bam_root}_edwBamStats.txt     >> ${bam_root}_qc.txt
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property QC=" { $meta }" --property SW="$versions" --brief)
-    bam_bwa_qc=$(dx upload ${bam_root}_bam_qc.txt --property SW="$versions" --brief)
+    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property QC=" { $meta }" \
+                                        --property reads="$reads" --property read_length="$read_len" \
+                                        --property SW="$versions" --brief)
+    bam_qc=$(dx upload ${bam_root}_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file
-    dx-jobutil-add-output bam_bwa_qc "$bam_bwa_qc" --class=file
+    dx-jobutil-add-output bam_qc "$bam_qc" --class=file
+
+    dx-jobutil-add-output reads "$reads" --class=string
     dx-jobutil-add-output metadata "$meta" --class=string
 
     echo "* Finished."

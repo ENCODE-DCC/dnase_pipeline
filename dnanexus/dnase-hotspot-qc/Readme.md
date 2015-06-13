@@ -1,7 +1,7 @@
 <!-- dx-header -->
 # DNase-seq (DNAnexus Platform App)
 
-Merge two replicates for the ENCODE DNase-seq pipeline
+Calls hotspots on a sample for qc for the ENCODE DNase-seq pipeline.
 
 This is the source code for an app that runs on the DNAnexus Platform.
 For more information about how to run or modify it, see

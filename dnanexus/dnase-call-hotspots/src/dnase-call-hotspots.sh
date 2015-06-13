@@ -1,8 +1,8 @@
 #!/bin/bash
-# call-hotspots.sh
+# dnase-call-hotspots.sh - Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline.
 
-script_name="call-hotspots.sh"
-script_ver="0.2.0"
+script_name="dnase-call-hotspots.sh"
+script_ver="0.2.1"
 
 main() {
     echo "* Installing hotspot and dependencies (gsl)..." 2>&1 | tee -a install.log
@@ -57,23 +57,21 @@ main() {
     # sort-bed is important!
     grep -v chrM chromSizes.txt | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' | sort-bed - > ${genome}.chromInfo.bed
 
-    read_size=`dx describe "$bam_to_call" --details --json | grep "\"average length\":" | awk '{print $3}' | tr -d ,`
-    if [ "$read_size" == "" ]; then
-        read_size=`dx describe "$bam_to_call" --details --json | grep "\"readSizeMean\":" | awk '{print $2}' | tr -d ,`
-        if [ "$read_size" == "" ] && [ -f /usr/bin/parse_property.py ]; then
-            read_size=`parse_property.py -f "$bam_to_call" -k "average length" --quiet`
-            if [ "$read_size" == "" ]; then
-                read_size=`parse_property.py -f "$bam_to_call" -s edwBamStats -k readSizeMean --quiet`
-            fi
-        fi
+    read_len=`parse_property.py -f "$bam_to_call" -p "read_length" --quiet`
+    if [ "$read_len" == "" ]; then
+        echo "* Running edwBamStats on '${bam_root}.bam'"
+        set -x
+        edwBamStats ${bam_root}.bam ${bam_root}_edwBamStats.txt
+        set +x
+        read_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt -k readSizeMean`
     fi
-    if [ "$read_size" != "" ] && [ "$read_length" -ne "$read_size" ]; then
-        if [ "$read_size" == "32" ] || [ "$read_size" == "36" ] || [ "$read_size" == "40" ] || [ "$read_size" == "50" ] \
-        || [ "$read_size" == "58" ] || [ "$read_size" == "72" ] || [ "$read_size" == "76" ] || [ "$read_size" == "100" ]; then
-            echo "* NOTE: Read length ($read_length) does not match discovered read size ($read_size). Using $read_size."
-            read_length=$read_size
+    if [ "$read_len" != "" ] && [ "$read_length" -ne "$read_len" ]; then
+        if [ "$read_len" == "32" ] || [ "$read_len" == "36" ] || [ "$read_len" == "40" ] || [ "$read_len" == "50" ] \
+        || [ "$read_len" == "58" ] || [ "$read_len" == "72" ] || [ "$read_len" == "76" ] || [ "$read_len" == "100" ]; then
+            echo "* NOTE: Read length ($read_length) does not match discovered read size ($read_len). Using $read_len."
+            read_length=$read_len
         else
-            echo "* WARNING: Read length ($read_length) does not match discovered read size ($read_size)."
+            echo "* WARNING: Read length ($read_length) does not match discovered read size ($read_len)."
         fi
     fi
 
@@ -93,7 +91,7 @@ main() {
     mappable=${genome}.K${read_length}.mappable_only
     wget http://www.uwencode.org/proj/hotspot/${mappable}.bed -O hotspot/hotspot-distr/data/${mappable}.bed >> install.log 2>&1
     python2.7 /usr/bin/hotspot.py hotspot/hotspot-distr/ ${bam_root}.bam $genome DNase-seq $read_length tmp out
-    cp tmp/${bam_root}.spot.out ${bam_root}_hotspot_qc.txt
+    cp tmp/${bam_root}.spot.out ${bam_root}_hotspot_out.txt
     set +x
 
     echo "* Generating narrowPeaks..."
@@ -129,19 +127,33 @@ main() {
     echo "* Prepare metadata..."
     qc_hotspot=''
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_hotspot=`qc_metrics.py -n hotspot -f ${bam_root}_hotspot_qc.txt`
+        qc_hotspot=`qc_metrics.py -n hotspot -f ${bam_root}_hotspot_out.txt`
         qc_spots=`qc_metrics.py -n singleton -f ${narrowPeak_root}_qc.txt -k "peak count" --keypair "peak count"`
         qc_regions=`qc_metrics.py -n singleton -f ${broadPeak_root}_qc.txt -k "hotspot count" --keypair "hotspot count"`
         qc_hotspot=`echo $qc_hotspot, \"peak_counts\": { $qc_spots, $qc_regions }`
     fi
+    # All qc to one file:
+    echo "===== hotspot out ====="                > ${bam_root}_hotspot_qc.txt
+    cat ${bam_root}_hotspot_out.txt              >> ${bam_root}_hotspot_qc.txt
+    echo " "                                     >> ${bam_root}_hotspot_qc.txt
+    echo "===== hotspot narrowPeak count ====="  >> ${bam_root}_hotspot_qc.txt
+    echo " "                                     >> ${bam_root}_hotspot_qc.txt
+    cat ${narrowPeak_root}_qc.txt                >> ${bam_root}_hotspot_qc.txt
+    echo "===== hotspot broadPeak count ====="   >> ${bam_root}_hotspot_qc.txt
+    cat ${broadPeak_root}_qc.txt                 >> ${bam_root}_hotspot_qc.txt
     
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --details "{ $qc_spots }"   --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
-    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed   --details "{ $qc_regions }" --property QC="{ $qc_regions }" --property SW="$versions" --brief)
-    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb   --details "{ $qc_spots }"   --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
-    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb     --details "{ $qc_regions }" --property QC="{ $qc_regions }" --property SW="$versions" --brief)
-    bw_hotspot_signal=$(dx upload ${signal_root}.bw           --details "{ $qc_hotspot }" --property QC="{ $qc_hotspot }" --property SW="$versions" --brief)
+    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --details "{ $qc_spots }"   \
+                                                          --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
+    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed   --details "{ $qc_regions }" \
+                                                          --property QC="{ $qc_regions }" --property SW="$versions" --brief)
+    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb   --details "{ $qc_spots }"   \
+                                                          --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
+    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb     --details "{ $qc_regions }" 
+                                                          --property QC="{ $qc_regions }" --property SW="$versions" --brief)
+    bw_hotspot_signal=$(dx upload ${signal_root}.bw           --details "{ $qc_hotspot }" \
+                                                          --property QC="{ $qc_hotspot }" --property SW="$versions" --brief)
     bam_hotspot_qc=$(dx upload ${bam_root}_hotspot_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bed_hotspot_narrowPeak "$bed_hotspot_narrowPeak" --class=file

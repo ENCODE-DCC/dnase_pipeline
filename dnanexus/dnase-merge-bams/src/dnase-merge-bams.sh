@@ -28,7 +28,7 @@ main() {
         else
             outfile_name="${file_root}_${outfile_name}"
             if [ "${merged}" == "" ]; then
-                outfile_name="${outfile_name}_bwa_merged" 
+                outfile_name="${outfile_name}_bwa_biorep" 
                 merged="s merged as"
             fi
         fi
@@ -44,6 +44,19 @@ main() {
             set +x
         fi
     done
+    #if [ -f /usr/bin/parse_property.py ]; then
+    #    new_root=`parse_property.py -f "'${bam_set[0]}'" --project "${DX_PROJECT_CONTEXT_ID}" --root_name`
+    #    next_rep=`parse_property.py -f "'${bam_set[1]}'" --project "${DX_PROJECT_CONTEXT_ID}" --rep_tag`
+    #    try_root=""
+    #    if [ "$next_rep" != "" ]; then
+    #        try_root="_${next_rep}"
+    #    fi
+    #    if [ "$new_root" != "" ]; then
+    #        try_root="${new_root}_${try_root}_bwa"
+    #        echo "Could use root: ${try_root}"
+    #        #bam_root="${new_root}_bwa"
+    #    fi
+    #fi
     
     # TODO: sorting needed?
     echo "* Sorting merged bam..."
@@ -54,9 +67,8 @@ main() {
     
     # At this point there is a 'sofar.bam' with one or more input bams
     if [ "${merged}" == "" ]; then
-        # Needs to end in '_merged.bam' for pattern matching
-        outfile_name="${file_root}_bwa_not_merged"
-        mv sofar.bam ${outfile_name}.bam.bam
+        outfile_name="${file_root}_bwa_biorep"
+        mv sofar.bam ${outfile_name}.bam
         echo "* Only one input file, no merging required."
     else
         mv sofar.bam ${outfile_name}.bam
@@ -65,28 +77,42 @@ main() {
 
     echo "* Collect bam stats..."
     set -x
-    samtools flagstat ${outfile_name}.bam > ${outfile_name}_bam_qc.txt
-    samtools stats ${outfile_name}.bam > ${outfile_name}_bam_qc_full.txt
-    head -3 ${outfile_name}_bam_qc_full.txt
-    grep ^SN ${outfile_name}_bam_qc_full.txt | cut -f 2- > ${outfile_name}_bam_qc_summary.txt
+    samtools flagstat ${outfile_name}.bam > ${outfile_name}_flagstat.txt
+    samtools stats ${outfile_name}.bam > ${outfile_name}_samstats.txt
+    head -3 ${outfile_name}_samstats.txt
+    grep ^SN ${outfile_name}_samstats.txt | cut -f 2- > ${outfile_name}_samstats_summary.txt
     set +x
 
 
     echo "* Prepare metadata..."
     qc_stats=''
+    reads=0
+    read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_stats=`qc_metrics.py -n samtools_flagstats -f ${outfile_name}_bam_qc.txt`
-        meta=`qc_metrics.py -n samtools_stats -d ':' -f ${outfile_name}_bam_qc_summary.txt`
+        qc_stats=`qc_metrics.py -n samtools_flagstats -f ${outfile_name}_flagstat.txt`
+        reads=`qc_metrics.py -n samtools_flagstats -f ${outfile_name}_flagstat.txt -k total`
+        meta=`qc_metrics.py -n samtools_stats -d ':' -f ${outfile_name}_samstats_summary.txt`
+        read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${outfile_name}_samstats_summary.txt -k "average length"`
         qc_stats=`echo $qc_stats, $meta`
     fi
+    # All qc to one file per target file:
+    echo "===== samtools flagstat =====" > ${outfile_name}_qc.txt
+    cat ${outfile_name}_flagstat.txt    >> ${outfile_name}_qc.txt
+    echo " "                            >> ${outfile_name}_qc.txt
+    echo "===== samtools stats ====="   >> ${outfile_name}_qc.txt
+    cat ${outfile_name}_samstats.txt    >> ${outfile_name}_qc.txt
 
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_merged=$(dx upload ${outfile_name}.bam --details "{ $qc_stats }" --property QC="{ $qc_stats }" --property SW="$versions" --brief)
-    bam_merged_qc=$(dx upload ${outfile_name}_bam_qc.txt --property SW="$versions" --brief)
+    bam_biorep=$(dx upload ${outfile_name}.bam --details "{ $qc_stats }" --property QC="{ $qc_stats }" \
+                                               --property reads="$reads" --property read_length="$read_len" \
+                                               --property SW="$versions" --brief)
+    bam_biorep_qc=$(dx upload ${outfile_name}_qc.txt --property SW="$versions" --brief)
 
-    dx-jobutil-add-output bam_merged "$bam_merged" --class=file
-    dx-jobutil-add-output bam_merged_qc "$bam_merged_qc" --class=file
+    dx-jobutil-add-output bam_biorep "$bam_biorep" --class=file
+    dx-jobutil-add-output bam_biorep_qc "$bam_biorep_qc" --class=file
+
+    dx-jobutil-add-output reads "$reads" --class=string
     dx-jobutil-add-output metadata "{ $qc_stats }" --class=string
 
     echo "* Finished."

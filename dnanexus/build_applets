@@ -1,7 +1,8 @@
 #!/bin/bash
 
-applets='index-bwa align-bwa-pe align-bwa-se bam-filter-pe bam-filter-se sample-hotspots call-hotspots merge-replicates'
-#extra_apps='dnase-install fastq-stats'
+applets="index-bwa dnase-align-bwa-pe dnase-align-bwa-se dnase-merge-bams dnase-filter-pe dnase-filter-se dnase-size-bam"
+applets="$applets dnase-eval-bam-pe dnase-eval-bam-se dnase-hotspot-qc dnase-call-hotspots dnase-pool-bioreps"
+#extra_apps='dnase-install fastq-stats bam-filter-pe bam-filter-se'
 
 applet_dest=`cat ~/.dnanexus_config/DX_PROJECT_CONTEXT_NAME`
 

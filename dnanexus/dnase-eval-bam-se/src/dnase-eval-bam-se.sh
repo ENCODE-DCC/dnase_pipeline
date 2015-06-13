@@ -28,7 +28,6 @@ main() {
 
     echo "* Value of bam_sized: '$bam_sized'"
     echo "* Value of sample_size: '$sample_size'"
-    echo "* Value of nthreads: '$nthreads'"
 
     echo "* Download files..."
     # expecting *_concat_bwa_merged_filtered_sized.bam
@@ -53,7 +52,7 @@ main() {
 
     echo "* Generating stats on no_chrM.bam..."
     set -x
-    edwBamStats ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_stats.txt
+    edwBamStats ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_edwBamStats.txt
     set +x
 
     echo "* Prepare metadata for no_chrM.bam..."
@@ -61,15 +60,18 @@ main() {
     reads_no_chrM=0
     read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_no_chrM=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_stats.txt`
-        reads_no_chrM=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_stats.txt -k readCount`
-        reads_len=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_stats.txt -k readSizeMean`
+        qc_no_chrM=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_edwBamStats.txt`
+        reads_no_chrM=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_edwBamStats.txt -k readCount`
+        read_len=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_edwBamStats.txt -k readSizeMean`
     fi
+    # All qc to one file per target file:
+    echo "===== edwBamStats ====="           > ${bam_no_chrM_root}_qc.txt
+    cat ${bam_no_chrM_root}_edwBamStats.txt >> ${bam_no_chrM_root}_qc.txt
     
     echo "* Generating stats on $sample_size reads..."
     set -x
     edwBamStats -sampleBamSize=${sample_size} -u4mSize=${sample_size} -sampleBam=${bam_sample_root}.bam \
-                                                        ${bam_no_chrM_root}.bam ${bam_sample_root}_stats.txt
+                                                        ${bam_no_chrM_root}.bam ${bam_sample_root}_edwBamStats.txt
     samtools index ${bam_sample_root}.bam
     set +x
 
@@ -94,36 +96,41 @@ main() {
     qc_sampled=''
     reads_sampled=$sample_size
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_sampled=`qc_metrics.py -n edwBamStats -f ${bam_sample_root}_stats.txt`
-        reads_sampled=`qc_metrics.py -n edwBamStats -f ${bam_sample_root}_stats.txt -k readCount`
+        qc_sampled=`qc_metrics.py -n edwBamStats -f ${bam_sample_root}_edwBamStats.txt`
+        reads_sampled=`qc_metrics.py -n edwBamStats -f ${bam_sample_root}_edwBamStats.txt -k readCount`
         # Note that all values in ${bam_sample_root}_spp.txt are found in ${bam_sample_root}_spp_out.txt
         meta=`qc_metrics.py -n phantompeaktools_spp -f ${bam_sample_root}_spp_out.txt`
         qc_sampled=`echo $qc_sampled, $meta, $read_len`
         meta=`qc_metrics.py -n pbc -f ${bam_sample_root}_pbc.txt`
         qc_sampled=`echo $qc_sampled, $meta`
     fi
+    # All qc to one file per target file:
+    echo "===== edwBamStats ====="           > ${bam_sample_root}_qc.txt
+    cat ${bam_sample_root}_edwBamStats.txt  >> ${bam_sample_root}_qc.txt
+    echo " "                                >> ${bam_sample_root}_qc.txt
+    echo "===== phantompeaktools spp =====" >> ${bam_sample_root}_qc.txt
+    cat ${bam_sample_root}_spp_out.txt      >> ${bam_sample_root}_qc.txt
+    echo " "                                >> ${bam_sample_root}_qc.txt
+    echo "===== bedtools pbc  ====="        >> ${bam_sample_root}_qc.txt
+    cat ${bam_sample_root}_pbc.txt          >> ${bam_sample_root}_qc.txt
     
     echo "* Upload results..."
     # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
     bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --details "{ $qc_no_chrM }" --property QC="{ $qc_no_chrM }" \
-                                                    --property reads="$reads_no_chrM" --property read_length="$reads_len" \
+                                                    --property reads="$reads_no_chrM" --property read_length="$read_len" \
                                                     --property SW="$versions" --brief)
     bam_sample=$(dx upload ${bam_sample_root}.bam   --details "{ $qc_sampled }" --property QC="{ $qc_sampled }" \
-                                                    --property reads="$reads_sampled" --property read_length="$reads_len" \
+                                                    --property reads="$reads_sampled" --property read_length="$read_len" \
                                                     --property SW="$versions" --brief)
-    bam_no_chrM_stats=$(dx upload ${bam_no_chrM_root}_stats.txt       --property SW="$versions" --brief)
-    bam_sample_stats=$(dx upload ${bam_sample_root}_stats.txt         --property SW="$versions" --brief)
-    bam_sample_spp=$(dx upload ${bam_sample_root}_spp.txt             --property SW="$versions" --brief)
-    #bam_sample_spp=$(dx upload ${bam_sample_root}_spp_out.txt         --property SW="$versions" --brief)
-    bam_sample_pbc=$(dx upload ${bam_sample_root}_pbc.txt             --property SW="$versions" --brief)
+    bam_no_chrM_qc=$(dx upload ${bam_no_chrM_root}_qc.txt --property SW="$versions" --brief)
+    bam_sample_qc=$(dx upload ${bam_sample_root}_qc.txt   --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_no_chrM "$bam_no_chrM" --class=file
     dx-jobutil-add-output bam_sample "$bam_sample" --class=file
-    dx-jobutil-add-output bam_no_chrM_stats "$bam_no_chrM_stats" --class=file
-    dx-jobutil-add-output bam_sample_stats "$bam_sample_stats" --class=file
-    dx-jobutil-add-output bam_sample_spp "$bam_sample_spp" --class=file
-    dx-jobutil-add-output bam_sample_pbc "$bam_sample_pbc" --class=file
+    dx-jobutil-add-output bam_no_chrM_qc "$bam_no_chrM_qc" --class=file
+    dx-jobutil-add-output bam_sample_qc "$bam_sample_qc" --class=file
 
+    dx-jobutil-add-output reads "$reads_no_chrM" --class=string
     dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."

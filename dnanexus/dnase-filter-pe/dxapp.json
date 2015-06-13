@@ -11,7 +11,7 @@
       "label": "Raw bam (paired-end) to be filtered",
       "class": "file",
       "optional": false,
-      "patterns": ["*_bwa.bam","*_merged.bam"]
+      "patterns": ["*_bwa.bam","*_biorep.bam"]
     },
     {
       "name": "map_thresh",
@@ -37,15 +37,15 @@
     },
     {
       "name": "bam_filtered_qc",
-      "label": "Filtered bam 'samtools flagstats' output",
+      "label": "Filtered bam qc: samtools flagstat/stats results",
       "class": "file",
       "patterns": ["*_filtered_qc.txt"]
     },
     {
-      "name": "bam_filtered_qc_full",
-      "label": "Filtered bam 'samtools stats' output",
-      "class": "file",
-      "patterns": ["*_filtered_qc_full.txt"]
+      "name": "reads",
+      "label": "Count of reads in the filtered bam",
+      "optional": true,
+      "class": "string"
     },
     {
       "name": "metadata",
