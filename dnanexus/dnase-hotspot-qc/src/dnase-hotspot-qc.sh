@@ -108,10 +108,8 @@ main() {
     cat ${sample_root}_hotspot_qc.txt      >> ${sample_root}_qc.txt
 
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_sample_5M=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property QC="{ $qc_sampled }" \
-                                                 --property reads="$reads_sample" --property read_length="$read_len" \
-                                                 --property SW="$versions" --brief)
+    bam_sample_5M=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property SW="$versions" \
+                                                 --property reads="$reads_sample" --property read_length="$read_len" --brief)
     bam_sample_5M_qc=$(dx upload ${sample_root}_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_sample_5M "$bam_sample_5M" --class=file

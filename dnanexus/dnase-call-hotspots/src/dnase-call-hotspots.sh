@@ -143,17 +143,11 @@ main() {
     cat ${broadPeak_root}_qc.txt                 >> ${bam_root}_hotspot_qc.txt
     
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --details "{ $qc_spots }"   \
-                                                          --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
-    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed   --details "{ $qc_regions }" \
-                                                          --property QC="{ $qc_regions }" --property SW="$versions" --brief)
-    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb   --details "{ $qc_spots }"   \
-                                                          --property QC="{ $qc_spots }"   --property SW="$versions" --brief)
-    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb     --details "{ $qc_regions }" 
-                                                          --property QC="{ $qc_regions }" --property SW="$versions" --brief)
-    bw_hotspot_signal=$(dx upload ${signal_root}.bw           --details "{ $qc_hotspot }" \
-                                                          --property QC="{ $qc_hotspot }" --property SW="$versions" --brief)
+    bed_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bed --details "{ $qc_spots }"   --property SW="$versions" --brief)
+    bed_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bed   --details "{ $qc_regions }" --property SW="$versions" --brief)
+    bb_hotspot_narrowPeak=$(dx upload ${narrowPeak_root}.bb   --details "{ $qc_spots }"   --property SW="$versions" --brief)
+    bb_hotspot_broadPeak=$(dx upload ${broadPeak_root}.bb     --details "{ $qc_regions }" --property SW="$versions" --brief)
+    bw_hotspot_signal=$(dx upload ${signal_root}.bw           --details "{ $qc_hotspot }" --property SW="$versions" --brief)
     bam_hotspot_qc=$(dx upload ${bam_root}_hotspot_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bed_hotspot_narrowPeak "$bed_hotspot_narrowPeak" --class=file

@@ -136,12 +136,10 @@ main() {
     cat ${peaks_root}_overlap_qc.txt       >> ${bam_pooled_root}_qc.txt
 
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_pooled=$(dx upload ${bam_pooled_root}.bam   --details "{ $qc_pooled }" --property QC="{ $qc_pooled }" \
-                                                    --property reads="$reads" --property read_length="$read_len" \
-                                                    --property SW="$versions" --brief)
-    bed_merged=$(dx upload ${peaks_merged_root}.bed --details "{ $qc_peaks }" --property QC="{ $qc_peaks }" --property SW="$versions" --brief)
-    bb_merged=$(dx upload ${peaks_merged_root}.bb   --details "{ $qc_peaks }" --property QC="{ $qc_peaks }" --property SW="$versions" --brief)
+    bam_pooled=$(dx upload ${bam_pooled_root}.bam   --details "{ $qc_pooled }" --property SW="$versions" \
+                                                    --property reads="$reads" --property read_length="$read_len" --brief)
+    bed_merged=$(dx upload ${peaks_merged_root}.bed --details "{ $qc_peaks }" --property SW="$versions" --brief)
+    bb_merged=$(dx upload ${peaks_merged_root}.bb   --details "{ $qc_peaks }" --property SW="$versions" --brief)
     pooled_qc=$(dx upload ${bam_pooled_root}_qc --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_pooled "$bam_pooled" --class=file

@@ -115,13 +115,10 @@ main() {
     cat ${bam_sample_root}_pbc.txt          >> ${bam_sample_root}_qc.txt
     
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --details "{ $qc_no_chrM }" --property QC="{ $qc_no_chrM }" \
-                                                    --property reads="$reads_no_chrM" --property read_length="$read_len" \
-                                                    --property SW="$versions" --brief)
-    bam_sample=$(dx upload ${bam_sample_root}.bam   --details "{ $qc_sampled }" --property QC="{ $qc_sampled }" \
-                                                    --property reads="$reads_sampled" --property read_length="$read_len" \
-                                                    --property SW="$versions" --brief)
+    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --details "{ $qc_no_chrM }" --property SW="$versions" \
+                                                  --property reads="$reads_no_chrM" --property read_length="$read_len" --brief)
+    bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property SW="$versions" \
+                                                  --property reads="$reads_sampled" --property read_length="$read_len" --brief)
     bam_no_chrM_qc=$(dx upload ${bam_no_chrM_root}_qc.txt --property SW="$versions" --brief)
     bam_sample_qc=$(dx upload ${bam_sample_root}_qc.txt   --property SW="$versions" --brief)
 
