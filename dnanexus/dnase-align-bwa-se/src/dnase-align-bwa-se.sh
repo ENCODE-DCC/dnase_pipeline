@@ -2,7 +2,7 @@
 # dnase-align-bwa-se.sh
 
 script_name="dnase-align-bwa-se.sh"
-script_ver="0.2.1"
+script_ver="0.2.2"
 
 main() {
     # Executable in resources/usr/bin
@@ -43,13 +43,14 @@ main() {
     gzip ${outfile_name}.fq
     echo "* Fastq${concat} file: '${outfile_name}.fq.gz'"
     reads_root=${outfile_name}
-    bam_root="${reads_root}_bwa"
+    bam_root="${reads_root}_bwa_techrep"
     if [ -f /usr/bin/parse_property.py ]; then
         new_root=`parse_property.py -f "'${reads[0]}'" --project "${DX_PROJECT_CONTEXT_ID}" --root_name`
-        if "$new_root" != "" ]; then
-            bam_root="${new_root}_bwa"
+        if [ "$new_root" != "" ]; then
+            bam_root="${new_root}_bwa_techrep"
         fi
     fi
+    echo "* Alignments file will be: '${bam_root}.bam'"
 
     bwa_ix_root=`dx describe "$bwa_index" --name`
     bwa_ix_root=${bwa_ix_root%.tar.gz}
@@ -92,10 +93,8 @@ main() {
     cat ${bam_root}_edwBamStats.txt     >> ${bam_root}_qc.txt
 
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property QC=" { $meta }" \
-                                        --property reads="$reads" --property read_length="$read_len" \
-                                        --property SW="$versions" --brief)
+    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property SW="$versions" \
+                                        --property reads="$reads" --property read_length="$read_len" --brief)
     bam_qc=$(dx upload ${bam_root}_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file

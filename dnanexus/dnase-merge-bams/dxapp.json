@@ -8,10 +8,10 @@
   "inputSpec": [
     {
       "name": "bam_set",
-      "label": "Two or more bam files to merge",
+      "label": "Two or more tech_rep bam files to merge",
       "class": "array:file",
       "optional": false,
-      "patterns": ["*_bwa.bam"]
+      "patterns": ["*_techrep.bam", "*_bwa.bam"]
     },
     {
       "name": "nthreads",

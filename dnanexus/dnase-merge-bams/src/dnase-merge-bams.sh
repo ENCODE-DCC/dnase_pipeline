@@ -18,11 +18,13 @@ main() {
 
     outfile_name=""
     merged=""
+    tech_reps=""
     rm -f concat.fq
     for ix in ${!bam_set[@]}
     do
-        filename=`dx describe "${bam_set[$ix]}" --name`
-        file_root=${filename%_bwa.bam}
+        file_root=`dx describe "${bam_set[$ix]}" --name`
+        file_root=${file_root%_bwa_techrep.bam}
+        file_root=${file_root%_bwa.bam}
         if [ "${outfile_name}" == "" ]; then
             outfile_name="${file_root}"
         else
@@ -30,6 +32,19 @@ main() {
             if [ "${merged}" == "" ]; then
                 outfile_name="${outfile_name}_bwa_biorep" 
                 merged="s merged as"
+            fi
+        fi
+        if [ -f /usr/bin/parse_property.py ]; then
+            if [ "$exp_id" == "" ]; then
+                exp_id=`parse_property.py -f "'${bam_set[$ix]}'" --project "${DX_PROJECT_CONTEXT_ID}" --exp_id`
+            fi
+            rep_tech=`parse_property.py -f "'${bam_set[$ix]}'" --project "${DX_PROJECT_CONTEXT_ID}" --rep_tech`
+            if [ "$rep_tech" != "" ]; then
+                if  [ "$tech_reps" != "" ]; then
+                    tech_reps="${tech_reps}_${rep_tech}"
+                else
+                    tech_reps="${rep_tech}"
+                fi
             fi
         fi
         echo "* Downloading ${file_root}_bwa.bam file..."
@@ -44,19 +59,10 @@ main() {
             set +x
         fi
     done
-    #if [ -f /usr/bin/parse_property.py ]; then
-    #    new_root=`parse_property.py -f "'${bam_set[0]}'" --project "${DX_PROJECT_CONTEXT_ID}" --root_name`
-    #    next_rep=`parse_property.py -f "'${bam_set[1]}'" --project "${DX_PROJECT_CONTEXT_ID}" --rep_tag`
-    #    try_root=""
-    #    if [ "$next_rep" != "" ]; then
-    #        try_root="_${next_rep}"
-    #    fi
-    #    if [ "$new_root" != "" ]; then
-    #        try_root="${new_root}_${try_root}_bwa"
-    #        echo "Could use root: ${try_root}"
-    #        #bam_root="${new_root}_bwa"
-    #    fi
-    #fi
+    if [ "$exp_id" != "" ] && [ "$tech_reps" != "" ]; then
+        outfile_name="${exp_id}_${tech_reps}_bwa_biorep"
+    fi
+    echo "* Merged alignments file will be: '${outfile_name}.bam'"
     
     # TODO: sorting needed?
     echo "* Sorting merged bam..."
@@ -103,10 +109,8 @@ main() {
     cat ${outfile_name}_samstats.txt    >> ${outfile_name}_qc.txt
 
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_biorep=$(dx upload ${outfile_name}.bam --details "{ $qc_stats }" --property QC="{ $qc_stats }" \
-                                               --property reads="$reads" --property read_length="$read_len" \
-                                               --property SW="$versions" --brief)
+    bam_biorep=$(dx upload ${outfile_name}.bam --details "{ $qc_stats }" --property SW="$versions" \
+                                               --property reads="$reads" --property read_length="$read_len" --brief)
     bam_biorep_qc=$(dx upload ${outfile_name}_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_biorep "$bam_biorep" --class=file

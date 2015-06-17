@@ -3,7 +3,7 @@
   "title": "DNase align bwa se",
   "summary": "Alignment by bwa of single-end fastq for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -33,13 +33,13 @@
       "name": "bam_bwa",
       "label": "Alignment bam file",
       "class": "file",
-      "patterns": ["*_bwa.bam"]
+      "patterns": ["*_bwa_techrep.bam"]
     },
     {
       "name": "bam_qc",
       "label": "bam qc: samtools flagstat and edwBamStats results",
       "class": "file",
-      "patterns": ["*_bwa_qc.txt"]
+      "patterns": ["*_bwa_techrep_qc.txt"]
     },
     {
       "name": "reads",

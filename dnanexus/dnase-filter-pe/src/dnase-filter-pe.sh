@@ -70,10 +70,8 @@ main() {
     cat ${bam_filtered_root}_samstats.txt >> ${bam_filtered_root}_qc.txt
     
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property QC="{ $qc_filtered }" \
-                                                      --property reads="$reads" --property read_length="$read_len" \
-                                                      --property SW="$versions" --brief)
+    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property SW="$versions" \
+                                                      --property reads="$reads" --property read_length="$read_len" --brief)
     bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file
