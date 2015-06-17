@@ -51,18 +51,18 @@ main() {
     meta=""
     if [ -f /usr/bin/qc_metrics.py ]; then
         meta=`qc_metrics.py -n fastqStatsAndSubsample -f ${reads_root}_qc.txt`
-        for ix in ${!reads[@]}
-        do
-            filename=`dx describe "${reads[$ix]}" --name`
-            echo "* Set QC property in ${filename}..."
-            set -x
-            $(dx set_properties "${reads[$ix]}" QC="{ $meta }")
-            set +x
-        done
+        #for ix in ${!reads[@]}
+        #do
+        #    filename=`dx describe "${reads[$ix]}" --name`
+        #    echo "* Set QC property in ${filename}..."
+        #    set -x
+        #    $(dx set_properties "${reads[$ix]}" details="{ $meta }")  ### Won't work
+        #    set +x
+        #done
     fi
 
     echo "* Upload results..."
-    fastq_qc=$(dx upload ${reads_root}_qc.txt --details "{ $meta }" --property QC="{ $meta }" --property SW="$versions" --brief)
+    fastq_qc=$(dx upload ${reads_root}_qc.txt --details "{ $meta }" --property SW="$versions" --brief)
     #gzip ${reads_root}_sample.fq
     #fastq_sample=$(dx upload ${reads_root}_sample.fq.gz --brief)
 
