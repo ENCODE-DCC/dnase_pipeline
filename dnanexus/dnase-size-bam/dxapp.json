@@ -3,7 +3,7 @@
   "title": "Size bam",
   "summary": "Conditionally reduce the bam size to a target, or no larger than a limit of reads for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.0.1",
+  "version": "0.2.2",
   "authorizedUsers": [],
   "inputSpec": [
     {

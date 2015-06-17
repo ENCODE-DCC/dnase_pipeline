@@ -2,7 +2,7 @@
 # dnase-size-bam.sh  Conditionally reduce the bam size to a target, or no larger than a limit of reads
 
 script_name="dnase-size-bam.sh"
-script_ver="0.0.1"
+script_ver="0.2.2"
 
 main() {
     # Executables in resources/usr/bin
@@ -20,7 +20,7 @@ main() {
     echo "* Download files..."
     bam_root=`dx describe "$unsized_bam" --name`
     bam_root=${bam_root%.bam}
-    dx download "$bam_root" -o ${bam_root}_unsized.bam
+    dx download "$unsized_bam" -o ${bam_root}_unsized.bam
     echo "* unsized_bam file: '${bam_root}_unsized.bam'"
 
     echo "* bam_sized will be: '${bam_root}_sized.bam'"
@@ -58,6 +58,8 @@ main() {
         set -x
         edwBamStats -sampleBamSize=$reads_sized -u4mSize=$reads_sized -sampleBam=${bam_root}_sized.bam \
                                                               ${bam_root}_unsized.bam ${bam_root}_sized_edwBamStats.txt
+        edwBamStats -sampleBamSize=$reads_sized -u4mSize=$reads_sized -sampleBam=${bam_root}_sized.bam \
+                                                              ${bam_root}_unsized.bam ${bam_root}_sized_edwBamStats.txt
         set +x
         # What would be nice is to move $unsized_bam to ${bam_root}_full.bam 
         # then upload ${bam_root}_sized.bam to ${bam_root}.bam
@@ -67,11 +69,11 @@ main() {
 
     echo "* Prepare metadata for sized bam..."
     qc_sized=''
-    final_reads_count=$reads_sized
+    reads_final=$reads_sized
     read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_sized=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized.bam_stats.txt`
-        final_reads_count=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k readCount`
+        qc_sized=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt`
+        reads_final=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k u4mReadCount`
         read_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k readSizeMean`
     fi
     # All qc to one file per target file:
@@ -79,15 +81,14 @@ main() {
     cat ${bam_root}_sized_edwBamStats.txt >> ${bam_root}_sized_qc.txt
     
     echo "* Upload results..."
-    bam_sized=$(dx upload ${bam_root}_sized.bam --details "{ $qc_sized }" --property QC="{ $qc_sized }" \
-                                                --property reads="$final_reads_count" --property read_length="$read_len" \
-                                                --property SW="$versions" --brief)
+    bam_sized=$(dx upload ${bam_root}_sized.bam --details "{ $qc_sized }" --property SW="$versions" \
+                                                --property reads="$reads_final" --property read_length="$read_len" --brief)
     bam_sized_qc=$(dx upload ${bam_root}_sized_qc.txt --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_sized    "$bam_sized"    --class=file
     dx-jobutil-add-output bam_sized_qc "$bam_sized_qc" --class=file
     
-    dx-jobutil-add-output reads "$final_reads_count" --class=string
+    dx-jobutil-add-output reads "$reads_final" --class=string
     dx-jobutil-add-output metadata "$versions" --class=string
     
     echo "* Finished."
