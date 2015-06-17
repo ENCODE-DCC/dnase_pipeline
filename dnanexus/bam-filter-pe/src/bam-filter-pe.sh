@@ -121,10 +121,9 @@ main() {
     fi
         
     echo "* Upload results..."
-    # NOTE: adding meta 'details' ensures json is valid.  But details are not updatable so rely on QC property
-    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property QC="{ $qc_filtered }" --property SW="$versions" --brief)
-    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam   --details "{ $read_len }"                                     --property SW="$versions" --brief)
-    bam_sample=$(dx upload ${bam_sample_root}.bam     --details "{ $qc_sampled }"  --property QC="{ $qc_sampled }"  --property SW="$versions" --brief)
+    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property SW="$versions" --brief)
+    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam   --details "{ $read_len }"    --property SW="$versions" --brief)
+    bam_sample=$(dx upload ${bam_sample_root}.bam     --details "{ $qc_sampled }"  --property SW="$versions" --brief)
     bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt           --property SW="$versions" --brief)
     bam_filtered_qc_full=$(dx upload ${bam_filtered_root}_qc_full.txt --property SW="$versions" --brief)
     bam_sample_stats=$(dx upload ${bam_sample_root}_stats.txt         --property SW="$versions" --brief)
