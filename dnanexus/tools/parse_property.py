@@ -164,13 +164,15 @@ def file_find_rep(filePath,project=None,verbose=False):
     '''Returns the replicate tag when in folder {exp_acc}/repN_N.'''
 
     folder = file_describe(filePath,'folder',project=project,verbose=False)
-    folders = folder.split('/')
-    rep = folders[-1]
-    if not rep.startswith('rep'):
-        rep = ''
+    rep = ''
+    for part in folder.split('/'):
+        if part.startswith('rep'):
+            exp = part
+            break
+    if rep == '':
         # Very limited success with file names
         name = file_describe(filePath,'name',verbose=False)
-        for part in name.split('/'):
+        for part in name.split('_'):
             if part.startswith('rep'):
                 rep = part
             elif rep != '':
@@ -191,12 +193,19 @@ def file_find_rep(filePath,project=None,verbose=False):
 def file_find_exp_id(filePath,project=None,verbose=False):
     '''Returns the experiment id (accession) when in folder {exp_acc}/repN_N.'''
 
-    folder = file_describe(filePath,'folder',verbose=False)
+    folder = file_describe(filePath,'folder',project=project,verbose=False)
     exp = ''
     for part in folder.split('/'):
         if part.startswith('ENCSR'):
             exp = part
             break
+            
+    if exp == '':
+        # Very limited success with file names
+        name = file_describe(filePath,'name',verbose=False)
+        for part in name.split('_'):
+            if part.startswith('ENCSR'):
+                exp = part
     
     if verbose:
         sys.stderr.write(exp + '\n')
@@ -231,8 +240,8 @@ def main():
                         required=False)
     parser.add_argument('--root_name', action="store_true", required=False, default=False, 
                         help="Return a standardized file name root based on file location.")
-    parser.add_argument('--rep_tag', action="store_true", required=False, default=False, 
-                        help="Return a rep tag based on file location.")
+    parser.add_argument('--rep_tech', action="store_true", required=False, default=False, 
+                        help="Return a rep_tech tag based on file location.")
     parser.add_argument('--exp_id', action="store_true", required=False, default=False, 
                         help="Return the exp_id based on file location.")
     parser.add_argument('-d', '--describe', action="store_true", required=False, default=False, 
@@ -263,7 +272,7 @@ def main():
             sys.stderr.write("exp_id: '"+exp_id+"'\n")
         sys.exit(0)
         
-    elif args.rep_tag:
+    elif args.rep_tech:
         rep = file_find_rep(args.file,project=args.project,verbose=args.verbose)
         print rep
         if not args.quiet:
