@@ -111,7 +111,7 @@ main() {
     echo "* Upload results..."
     bam_biorep=$(dx upload ${outfile_name}.bam --details "{ $qc_stats }" --property SW="$versions" \
                                                --property reads="$reads" --property read_length="$read_len" --brief)
-    bam_biorep_qc=$(dx upload ${outfile_name}_qc.txt --property SW="$versions" --brief)
+    bam_biorep_qc=$(dx upload ${outfile_name}_qc.txt --details "{ $qc_stats }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_biorep "$bam_biorep" --class=file
     dx-jobutil-add-output bam_biorep_qc "$bam_biorep_qc" --class=file

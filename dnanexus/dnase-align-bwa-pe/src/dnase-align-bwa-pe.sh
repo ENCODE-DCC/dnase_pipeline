@@ -128,7 +128,7 @@ main() {
     echo "* Upload results..."
     bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property SW="$versions" \
                                         --property reads="$reads" --property read_length="$read_len" --brief)
-    bam_qc=$(dx upload ${bam_root}_qc.txt --property SW="$versions" --brief)
+    bam_qc=$(dx upload ${bam_root}_qc.txt --details "{ $meta }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file
     dx-jobutil-add-output bam_qc "$bam_qc" --class=file

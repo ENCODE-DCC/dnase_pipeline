@@ -31,22 +31,22 @@ main() {
 
     echo "* Download files..."
     # expecting *_concat_bwa_merged_filtered_sized.bam
-    bam_root=`dx describe "$bam_sized" --name`
-    #bam_bwa_root=${bam_bwa_root%_concat_bwa_merged_filtered_sized.bam}
-    #bam_bwa_root=${bam_bwa_root%_bwa_merged_filtered_sized.bam}
-    #bam_bwa_root=${bam_bwa_root%_merged_filtered_sized.bam}
-    #bam_bwa_root=${bam_bwa_root%_bwa_filtered_sized.bam}
-    bam_root=${bam_root%.bam}
-    dx download "$bam_bwa" -o ${bam_root}.bam
-    echo "* bam file: '${bam_root}.bam'"
-    bam_no_chrM_root="${bam_root}_no_chrM"
+    bam_input_root=`dx describe "$bam_sized" --name`
+    #bam_input_root=${bam_input_root%_concat_bwa_merged_filtered_sized.bam}
+    #bam_input_root=${bam_input_root%_bwa_merged_filtered_sized.bam}
+    #bam_input_root=${bam_input_root%_merged_filtered_sized.bam}
+    #bam_input_root=${bam_input_root%_bwa_filtered_sized.bam}
+    bam_input_root=${bam_input_root%.bam}
+    dx download "$bam_sized" -o ${bam_input_root}.bam
+    echo "* bam file: '${bam_input_root}.bam'"
+    bam_no_chrM_root="${bam_input_root}_no_chrM"
     bam_sample_root="${bam_no_chrM_root}_${sample_size}_sample"
     # expecting *_concat_bwa_merged_filtered_sized_no_chrM_15000000_sample.bam
     
     echo "* Filter out chrM..."
     # Note the sort by name which is needed for proper pe sampling
     set -x
-    edwBamFilter -sponge -chrom=chrM ${bam_filtered_root}.bam ${bam_no_chrM_root}.bam  ## qc based on bam without chrm
+    edwBamFilter -sponge -chrom=chrM ${bam_input_root}.bam ${bam_no_chrM_root}.bam  ## qc based on bam without chrm
     samtools sort -m 50G -n -f ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_byname.sam ## for pbc usage
     samtools view -hb ${bam_no_chrM_root}_byname.sam > ${bam_no_chrM_root}_byname.bam
     samtools index ${bam_no_chrM_root}_byname.bam
@@ -74,7 +74,8 @@ main() {
     echo "* Generating stats on $sample_size reads..."
     set -x
     edwBamStats -sampleBamSize=${sample_size} -u4mSize=${sample_size} -sampleBam=${bam_sample_root}.bam \
-                                                        ${bam_no_chrM_root}_byname.bam ${bam_sample_root}_edwBamStats.txt
+                                              ${bam_no_chrM_root}_byname.bam ${bam_no_chrM_root}_sampling_edwBamStats.txt
+    edwBamStats ${bam_sample_root}.bam ${bam_sample_root}_edwBamStats.txt
     samtools index ${bam_sample_root}.bam
     set +x
 
@@ -104,7 +105,7 @@ main() {
         reads_sampled=`qc_metrics.py -n edwBamStats -f ${bam_sample_root}_edwBamStats.txt -k readCount`
         # Note that all values in ${bam_sample_root}_spp.txt are found in ${bam_sample_root}_spp_out.txt
         meta=`qc_metrics.py -n phantompeaktools_spp -f ${bam_sample_root}_spp_out.txt`
-        qc_sampled=`echo $qc_sampled, $meta, $read_len`
+        qc_sampled=`echo $qc_sampled, $meta`
         meta=`qc_metrics.py -n pbc -f ${bam_sample_root}_pbc.txt`
         qc_sampled=`echo $qc_sampled, $meta`
     fi
@@ -123,8 +124,8 @@ main() {
                                                   --property reads="$reads_no_chrM" --property read_length="$read_len" --brief)
     bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property SW="$versions" \
                                                   --property reads="$reads_sampled" --property read_length="$read_len" --brief)
-    bam_no_chrM_qc=$(dx upload ${bam_no_chrM_root}_qc.txt --property SW="$versions" --brief)
-    bam_sample_qc=$(dx upload ${bam_sample_root}_qc.txt   --property SW="$versions" --brief)
+    bam_no_chrM_qc=$(dx upload ${bam_no_chrM_root}_qc.txt --details "{ $qc_no_chrM }" --property SW="$versions" --brief)
+    bam_sample_qc=$(dx upload ${bam_sample_root}_qc.txt   --details "{ $qc_sampled }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_no_chrM "$bam_no_chrM" --class=file
     dx-jobutil-add-output bam_sample "$bam_sample" --class=file

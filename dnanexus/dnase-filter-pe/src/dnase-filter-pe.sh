@@ -31,6 +31,12 @@ main() {
     bam_filtered_root="${bam_bwa_root}_filtered"
 
     echo "* Filter on threashold..."
+    # -F 1804 means not:
+    #       4 read unmapped
+    #       8 mate unmapped
+    #     256 not primary alignment
+    #     512 read fails platform/vendor quality checks
+    #    1024 read is PCR or optical duplicate
     set -x
     samtools view -F 1804 -f 2 -q ${map_thresh} -u ${bam_bwa_root}.bam | \
             samtools sort -@ $nthreads -m 50G -n -f - ${bam_filtered_root}_tmp.sam
@@ -72,7 +78,7 @@ main() {
     echo "* Upload results..."
     bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property SW="$versions" \
                                                       --property reads="$reads" --property read_length="$read_len" --brief)
-    bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --property SW="$versions" --brief)
+    bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --details "{ $qc_filtered }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file
     dx-jobutil-add-output bam_filtered_qc "$bam_filtered_qc" --class=file

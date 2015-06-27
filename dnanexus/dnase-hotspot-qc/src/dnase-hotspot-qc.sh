@@ -61,7 +61,9 @@ main() {
     
     echo "* Sampling bam..."
     set -x
-    edwBamStats -sampleBamSize=5000000 -u4mSize=5000000 -sampleBam=${sample_root}.bam ${bam_root}.bam ${sample_root}_edwBamStats.txt
+    edwBamStats -sampleBamSize=5000000 -u4mSize=5000000 -sampleBam=${sample_root}.bam ${bam_root}.bam \
+                                                                                      ${bam_root}_sampling_edwBamStats.txt
+    edwBamStats ${sample_root}.bam ${sample_root}_edwBamStats.txt
     samtools index ${sample_root}.bam
     set +x
     
@@ -96,7 +98,7 @@ main() {
     reads_sample=5000000
     if [ -f /usr/bin/qc_metrics.py ]; then
         qc_sampled=`qc_metrics.py -n edwBamStats -f ${sample_root}_edwBamStats.txt`
-        reads_sample=`qc_metrics.py -n edwBamStats -f ${sample_root}_edwBamStats.txt -k readCount`
+        reads_sample=`qc_metrics.py -n edwBamStats -f ${sample_root}_edwBamStats.txt -k u4mReadCount`
         meta=`qc_metrics.py -n hotspot -f ${sample_root}_hotspot_qc.txt`
         qc_sampled=`echo $qc_sampled, $meta`
     fi
@@ -110,7 +112,7 @@ main() {
     echo "* Upload results..."
     bam_sample_5M=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property SW="$versions" \
                                                  --property reads="$reads_sample" --property read_length="$read_len" --brief)
-    bam_sample_5M_qc=$(dx upload ${sample_root}_qc.txt --property SW="$versions" --brief)
+    bam_sample_5M_qc=$(dx upload ${sample_root}_qc.txt --details "{ $qc_sampled }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_sample_5M "$bam_sample_5M" --class=file
     dx-jobutil-add-output bam_sample_5M_qc "$bam_sample_5M_qc" --class=file

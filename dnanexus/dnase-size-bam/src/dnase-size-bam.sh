@@ -57,9 +57,8 @@ main() {
         echo "* Sampling $reads_sized reads from '${bam_root}_unsized.bam'"
         set -x
         edwBamStats -sampleBamSize=$reads_sized -u4mSize=$reads_sized -sampleBam=${bam_root}_sized.bam \
-                                                              ${bam_root}_unsized.bam ${bam_root}_sized_edwBamStats.txt
-        edwBamStats -sampleBamSize=$reads_sized -u4mSize=$reads_sized -sampleBam=${bam_root}_sized.bam \
-                                                              ${bam_root}_unsized.bam ${bam_root}_sized_edwBamStats.txt
+                                                              ${bam_root}_unsized.bam ${bam_root}_$reads_sized_edwBamStats.txt
+        edwBamStats ${bam_root}_sized.bam ${bam_root}_sized_edwBamStats.txt
         set +x
         # What would be nice is to move $unsized_bam to ${bam_root}_full.bam 
         # then upload ${bam_root}_sized.bam to ${bam_root}.bam
@@ -73,7 +72,7 @@ main() {
     read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
         qc_sized=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt`
-        reads_final=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k u4mReadCount`
+        reads_final=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k readCount`
         read_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_sized_edwBamStats.txt -k readSizeMean`
     fi
     # All qc to one file per target file:
@@ -83,7 +82,7 @@ main() {
     echo "* Upload results..."
     bam_sized=$(dx upload ${bam_root}_sized.bam --details "{ $qc_sized }" --property SW="$versions" \
                                                 --property reads="$reads_final" --property read_length="$read_len" --brief)
-    bam_sized_qc=$(dx upload ${bam_root}_sized_qc.txt --property SW="$versions" --brief)
+    bam_sized_qc=$(dx upload ${bam_root}_sized_qc.txt --details "{ $qc_sized }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_sized    "$bam_sized"    --class=file
     dx-jobutil-add-output bam_sized_qc "$bam_sized_qc" --class=file
