@@ -133,7 +133,7 @@ def file_describe(filePath,key=None,project=None,verbose=False):
     
     return value
 
-def file_create_root(filePath,project=None,verbose=False):
+def file_create_root(filePath,project=None,verbose=False,quiet=False):
     '''Returns a standard file name root when in folder {exp_acc}/repN_N.'''
 
     folder = file_describe(filePath,'folder',project=project,verbose=False)
@@ -153,14 +153,14 @@ def file_create_root(filePath,project=None,verbose=False):
          
     if verbose:
         sys.stderr.write(root + '\n')
-    if root == '':
+    if root == '' and not quiet:  # Note, this is not an error when file is from a different dx context!
         sys.stderr.write("Found nothing for root: folder["+folder+"] path ["+filePath+"] \n")
         desc = file_describe(filePath,project=project,verbose=False)
         sys.stderr.write(json.dumps(desc,indent=4) + '\n')
     
     return root
 
-def file_find_rep(filePath,project=None,verbose=False):
+def file_find_rep(filePath,project=None,verbose=False,quiet=False):
     '''Returns the replicate tag when in folder {exp_acc}/repN_N.'''
 
     folder = file_describe(filePath,'folder',project=project,verbose=False)
@@ -183,14 +183,14 @@ def file_find_rep(filePath,project=None,verbose=False):
          
     if verbose:
         sys.stderr.write(rep + '\n')
-    if rep == '':
+    if rep == '' and not quiet:  # Note, this is not an error when file is from a different dx context!
         sys.stderr.write("Found nothing for rep: folder["+folder+"] path ["+filePath+"] \n")
         desc = file_describe(filePath,project=project,verbose=False)
         sys.stderr.write(json.dumps(desc,indent=4) + '\n')
     
     return rep
 
-def file_find_exp_id(filePath,project=None,verbose=False):
+def file_find_exp_id(filePath,project=None,verbose=False,quiet=False):
     '''Returns the experiment id (accession) when in folder {exp_acc}/repN_N.'''
 
     folder = file_describe(filePath,'folder',project=project,verbose=False)
@@ -209,6 +209,10 @@ def file_find_exp_id(filePath,project=None,verbose=False):
     
     if verbose:
         sys.stderr.write(exp + '\n')
+    if exp == '' and not quiet:  # Note, this is not an error when file is from a different dx context!
+        sys.stderr.write("Found nothing for exp: folder["+folder+"] path ["+filePath+"] \n")
+        desc = file_describe(filePath,project=project,verbose=False)
+        sys.stderr.write(json.dumps(desc,indent=4) + '\n')
     
     return exp
 
@@ -247,7 +251,7 @@ def main():
     parser.add_argument('-d', '--describe', action="store_true", required=False, default=False, 
                         help="Look for key in file description.")
     parser.add_argument('-j', '--json', action="store_true", required=False, default=False, 
-                        help="Expect json.")
+                        help="Return json.")
     parser.add_argument('-q', '--quiet', action="store_true", required=False, default=False, 
                         help="Suppress non-error stderr messages.")
     parser.add_argument('-v', '--verbose', action="store_true", required=False, default=False, 
@@ -259,21 +263,21 @@ def main():
         return
     
     if args.root_name:
-        root = file_create_root(args.file,project=args.project,verbose=args.verbose)
+        root = file_create_root(args.file,project=args.project,verbose=args.verbose,quiet=args.quiet)
         print root
         if not args.quiet:
             sys.stderr.write("root_name: '"+root+"'\n")
         sys.exit(0)
         
     elif args.exp_id:
-        exp_id = file_find_exp_id(args.file,project=args.project,verbose=args.verbose)
+        exp_id = file_find_exp_id(args.file,project=args.project,verbose=args.verbose,quiet=args.quiet)
         print exp_id
         if not args.quiet:
             sys.stderr.write("exp_id: '"+exp_id+"'\n")
         sys.exit(0)
         
     elif args.rep_tech:
-        rep = file_find_rep(args.file,project=args.project,verbose=args.verbose)
+        rep = file_find_rep(args.file,project=args.project,verbose=args.verbose,quiet=args.quiet)
         print rep
         if not args.quiet:
             sys.stderr.write("rep: '"+rep+"'\n")
@@ -311,6 +315,10 @@ def main():
             print '"' + args.keypair + '": '
             if not args.quiet:
                 sys.stderr.write('"' + args.keypair + '": \n')
+    elif isinstance(properties, basestring) or isinstance(properties, int):
+        print properties
+        if not args.quiet:
+            sys.stderr.write(properties + '\n')
     else: 
         print json.dumps(properties)
         if not args.quiet:

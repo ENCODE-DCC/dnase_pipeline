@@ -23,9 +23,9 @@ main() {
     rm -f concat.fq
     for ix in ${!reads[@]}
     do
-        filename=`dx describe "${reads[$ix]}" --name | cut -d'.' -f1`
-        file_root=${filename%.fastq.gz}
-        file_root=${filename%.fq.gz}
+        file_root=`dx describe "${reads[$ix]}" --name`
+        file_root=${file_root%.fastq.gz}
+        file_root=${file_root%.fq.gz}
         if [ "${outfile_name}" == "" ]; then
             outfile_name="${file_root}"
         else
