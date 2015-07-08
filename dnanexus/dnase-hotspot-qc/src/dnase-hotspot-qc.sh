@@ -103,11 +103,11 @@ main() {
         qc_sampled=`echo $qc_sampled, $meta`
     fi
     # All qc to one file per target file:
-    echo "===== edwBamStats ====="          > ${sample_root}_qc.txt
-    cat ${sample_root}_edwBamStats.txt.txt >> ${sample_root}_qc.txt
-    echo " "                               >> ${sample_root}_qc.txt
-    echo "===== hotspot out ====="         >> ${sample_root}_qc.txt
-    cat ${sample_root}_hotspot_qc.txt      >> ${sample_root}_qc.txt
+    echo "===== edwBamStats ====="      > ${sample_root}_qc.txt
+    cat ${sample_root}_edwBamStats.txt >> ${sample_root}_qc.txt
+    echo " "                           >> ${sample_root}_qc.txt
+    echo "===== hotspot out ====="     >> ${sample_root}_qc.txt
+    cat ${sample_root}_hotspot_qc.txt  >> ${sample_root}_qc.txt
 
     echo "* Upload results..."
     bam_sample_5M=$(dx upload ${sample_root}.bam --details "{ $qc_sampled }" --property SW="$versions" \

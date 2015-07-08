@@ -23,32 +23,32 @@ APP_TOOLS = {
                              "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                              ],
     "dnase-merge-bams.sh":   [ "samtools" ],
-    "dnase-hotspots-qc.sh":  [
-                            "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
-                            "bedops","bedmap (bedops)","sort-bed (bedops)",
-                            "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
-                            "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
-                            ],
-    "dnase-call-hotspots.sh":  [
-                            "hotspot","hotspot.py (GCAP)","samtools",
-                            "bedops","bedmap (bedops)","sort-bed (bedops)",
-                            "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
-                            "bedtools","bamToBed (bedtools)","intersectBed (bedtools)","shuffleBed (bedtools)",
-                            "bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
-                            ],
-    "dnase-pool-bioreps.sh":  [ 
-                            "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
-                            "edwComparePeaks", "edwBamStats" 
-                            ],
-    "bam-filter-pe.sh": [
-                            "samtools","edwBamFilter","edwBamStats",#"R",
-                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                        ],
-    "bam-filter-se.sh": [
-                            "samtools","edwBamFilter","edwBamStats",#"R",
-                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                        ],
-    "fastq-stats.sh": [ "fastqStatsAndSubsample" ]
+    "dnase-hotspot-qc.sh":   [
+                             "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
+                             "bedops","bedmap (bedops)","sort-bed (bedops)",
+                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
+                             "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
+                             ],
+    "dnase-call-hotspots.sh": [
+                             "hotspot","hotspot.py (GCAP)","samtools",
+                             "bedops","bedmap (bedops)","sort-bed (bedops)",
+                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
+                             "bedtools","bamToBed (bedtools)","intersectBed (bedtools)","shuffleBed (bedtools)",
+                             "bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
+                             ],
+    "dnase-pool-bioreps.sh": [ 
+                             "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
+                             "edwComparePeaks", "edwBamStats" 
+                             ],
+    "bam-filter-pe.sh":      [
+                             "samtools","edwBamFilter","edwBamStats",#"R",
+                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                             ],
+    "bam-filter-se.sh":      [
+                             "samtools","edwBamFilter","edwBamStats",#"R",
+                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                             ],
+    "fastq-stats.sh":        [ "fastqStatsAndSubsample" ]
  }
 
 # ALL_TOOLS contains the printable tool name (key) and the command that is used to determine the version.

@@ -140,7 +140,7 @@ main() {
                                                     --property reads="$reads" --property read_length="$read_len" --brief)
     bed_merged=$(dx upload ${peaks_merged_root}.bed --details "{ $qc_peaks }" --property SW="$versions" --brief)
     bb_merged=$(dx upload ${peaks_merged_root}.bb   --details "{ $qc_peaks }" --property SW="$versions" --brief)
-    pooled_qc=$(dx upload ${bam_pooled_root}_qc --details "{ $qc_pooled }" --property SW="$versions" --brief)
+    pooled_qc=$(dx upload ${bam_pooled_root}_qc.txt --details "{ $qc_pooled }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_pooled "$bam_pooled" --class=file
     dx-jobutil-add-output bed_merged "$bed_merged" --class=file
