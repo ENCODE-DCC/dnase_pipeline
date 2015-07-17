@@ -1,9 +1,6 @@
 #!/bin/bash
 # dnase-eval-bam-pe.sh - Evaluates (paired-end) bam and returns with chrM filtered out and small sample for the ENCODE DNase-seq pipeline.
 
-script_name="dnase-eval-bam-pe.sh"
-script_ver="0.2.1"
-
 main() {
     echo "* Installing phantompeakqualtools, caTools, snow and spp..." 2>&1 | tee -a install.log
     set -x
@@ -23,11 +20,12 @@ main() {
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
-        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+        versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
  
     echo "* Value of bam_sized: '$bam_sized'"
     echo "* Value of sample_size: '$sample_size'"
+    echo "* Value of nthreads: '$nthreads'"
 
     echo "* Download files..."
     # expecting *_concat_bwa_merged_filtered_sized.bam
@@ -47,7 +45,7 @@ main() {
     # Note the sort by name which is needed for proper pe sampling
     set -x
     edwBamFilter -sponge -chrom=chrM ${bam_input_root}.bam ${bam_no_chrM_root}.bam  ## qc based on bam without chrm
-    samtools sort -m 50G -n -f ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_byname.sam ## for pbc usage
+    samtools sort -@ $nthreads -m 6G -n -f ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_byname.sam ## for pbc usage
     samtools view -hb ${bam_no_chrM_root}_byname.sam > ${bam_no_chrM_root}_byname.bam
     samtools index ${bam_no_chrM_root}_byname.bam
     rm *.sam

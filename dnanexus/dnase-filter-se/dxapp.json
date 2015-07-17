@@ -1,9 +1,9 @@
 {
   "name": "dnase-filter-se",
-  "title": "Filter bam se",
+  "title": "Filter bam - se (v0.2.2)",
   "summary": "Filter bam (single-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "authorizedUsers": [],
   "inputSpec": [
     {

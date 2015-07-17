@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
-# qc_metrics.py v1 Creates a json string of qc_metrics for a given applet.
-#                  Write request to stdout and verbose info to stderr.  This allows easy use in dx app scripts.
+# qc_metrics.py v1.1 Creates a json string of qc_metrics for a given applet.
+#                    Write request to stdout and verbose info to stderr.  This allows easy use in dx app scripts.
 
 # imports needed for Settings class:
 import os, sys, string, argparse, json
@@ -420,8 +420,9 @@ def read_samstats(filePath,verbose=False):
     '''
     pairs = read_vertical(filePath,delimit=':',verbose=verbose)
     val = pairs['reads MQ0']
-    val = val.split('\t')
-    pairs['reads MQ0'] = string_or_number(val[0])
+    if isinstance(val,str):
+        val = val.split('\t')
+        pairs['reads MQ0'] = string_or_number(val[0])
     return pairs
 
 def read_spp(filePath,verbose=False):

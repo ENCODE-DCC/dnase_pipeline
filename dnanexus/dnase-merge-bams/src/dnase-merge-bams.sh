@@ -1,21 +1,18 @@
 #!/bin/bash
 # dnase-merge-bams.sh - Merge two or more bams for the ENCODE DNase-seq pipeline.
 
-script_name="dnase-merge-bams.sh"
-script_ver="0.2.1"
-
 main() {
     # Executables in resources/usr/bin
     set +x
     
     # If available, will print tool versions to stderr and json string to stdout
     if [ -f /usr/bin/tool_versions.py ]; then 
-        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+        versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
 
     echo "* Value of bam_set: '$bam_set'"
     echo "* Value of nthreads: '$nthreads'"
-
+    
     outfile_name=""
     merged=""
     tech_reps=""
@@ -67,7 +64,7 @@ main() {
     # TODO: sorting needed?
     echo "* Sorting merged bam..."
     set -x
-    samtools sort -@ $nthreads -m 50G -f sofar.bam sorted.bam
+    samtools sort -@ $nthreads -m 6G -f sofar.bam sorted.bam
     samtools view -hb sorted.bam > sofar.bam 
     set +x
     

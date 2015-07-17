@@ -1,6 +1,6 @@
 {
-  "name": "dnase-size-bam",
-  "title": "Size bam (v0.2.3)",
+  "name": "dnase-size-bam-alt",
+  "title": "Size bam (virtual-0.2.3)",
   "summary": "Conditionally reduce the bam size to a target, or no larger than a limit of reads for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
   "version": "0.2.3",

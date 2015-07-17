@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
-# tool_versions.py v1  Creates "SW" versions json string for a particular DX applet.
-#                      Write request to stdout and verbose info to stderr.  This allows easy use in dx app scripts.
+# tool_versions.py v1.1  Creates "SW" versions json string for a particular DX applet.
+#                        Write request to stdout and verbose info to stderr.  This allows easy use in dx app scripts.
 #
 # Creates versions json string for a particular applet
 
@@ -8,48 +8,59 @@ import sys, os, argparse, json, commands
 
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
 APP_TOOLS = { 
-    "index-bwa.sh":     [ "bwa", "samtools" ],
-    "dnase-align-bwa-pe.sh": [ "bwa", "samtools", "edwBamStats" ],
-    "dnase-align-bwa-se.sh": [ "bwa", "samtools", "edwBamStats" ],
-    "dnase-filter-pe.sh":    [ "samtools" ],
-    "dnase-filter-se.sh":    [ "samtools" ],
-    "dnase-size-bam.sh":     [ "edwBamStats" ],
-    "dnase-eval-bam-pe.sh":  [
-                             "samtools","edwBamFilter","edwBamStats",#"R",
-                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                             ],
-    "dnase-eval-bam-se.sh":  [
-                             "samtools","edwBamFilter","edwBamStats",#"R",
-                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                             ],
-    "dnase-merge-bams.sh":   [ "samtools" ],
-    "dnase-hotspot-qc.sh":   [
-                             "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
-                             "bedops","bedmap (bedops)","sort-bed (bedops)",
-                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
-                             "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
-                             ],
-    "dnase-call-hotspots.sh": [
-                             "hotspot","hotspot.py (GCAP)","samtools",
-                             "bedops","bedmap (bedops)","sort-bed (bedops)",
-                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
-                             "bedtools","bamToBed (bedtools)","intersectBed (bedtools)","shuffleBed (bedtools)",
-                             "bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
-                             ],
-    "dnase-pool-bioreps.sh": [ 
-                             "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
-                             "edwComparePeaks", "edwBamStats" 
-                             ],
-    "bam-filter-pe.sh":      [
-                             "samtools","edwBamFilter","edwBamStats",#"R",
-                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                             ],
-    "bam-filter-se.sh":      [
-                             "samtools","edwBamFilter","edwBamStats",#"R",
-                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                             ],
-    "fastq-stats.sh":        [ "fastqStatsAndSubsample" ]
- }
+    "dnase-index-bwa":    [ "bwa", "samtools" ],
+    "dnase-align-bwa-pe": [ "bwa", "samtools", "edwBamStats" ],
+    "dnase-align-bwa-se": [ "bwa", "samtools", "edwBamStats" ],
+    "dnase-filter-pe":    [ "samtools" ],
+    "dnase-filter-se":    [ "samtools" ],
+    "dnase-size-bam":     [ "edwBamStats" ],
+    "dnase-eval-bam-pe":  [
+                            "samtools","edwBamFilter","edwBamStats",#"R",
+                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                          ],
+    "dnase-eval-bam-se":  [
+                            "samtools","edwBamFilter","edwBamStats",#"R",
+                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+                          ],
+    "dnase-merge-bams":   [ "samtools" ],
+    "dnase-hotspot-qc":   [
+                            "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
+                            "bedops","bedmap (bedops)","sort-bed (bedops)",
+                            "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
+                            "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
+                          ],
+    "dnase-call-hotspots": [
+                            "hotspot","hotspot.py (GCAP)","samtools",
+                            "bedops","bedmap (bedops)","sort-bed (bedops)",
+                            "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
+                            "bedtools","bamToBed (bedtools)","intersectBed (bedtools)","shuffleBed (bedtools)",
+                            "bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
+                          ],
+    "dnase-pool-bioreps": [ 
+                            "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
+                            "edwComparePeaks", "edwBamStats" 
+                          ],
+    #"bam-filter-pe":      [
+    #                        "samtools","edwBamFilter","edwBamStats",#"R",
+    #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+    #                      ],
+    #"bam-filter-se":      [
+    #                        "samtools","edwBamFilter","edwBamStats",#"R",
+    #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+    #                      ],
+    #"fastq-stats":        [ "fastqStatsAndSubsample" ]
+    }
+
+# Virtual apps only differ from their parent by name/version. 
+VIRTUAL_APPS = {
+    "dnase-merge-bams-alt":      "dnase-merge-bams",
+    "dnase-size-bam-alt":        "dnase-size-bam",
+    "dnase-hotspot-qc-alt":      "dnase-hotspot-qc",   
+    "dnase-call-hotspots-alt":   "dnase-call-hotspots",
+    "dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
+    "dnase-pooled-hotspots":     "dnase-call-hotspots",
+    "dnase-pooled-hotspots-alt": "dnase-call-hotspots",
+    }
 
 # ALL_TOOLS contains the printable tool name (key) and the command that is used to determine the version.
 ALL_TOOLS = { 
@@ -85,13 +96,36 @@ ALL_TOOLS = {
             "unstarch (bedops)":        "unstarch --version 2>&1 | grep version | awk '{print $3}'"
             }
 
+def parse_dxjson(dxjson):
+    '''Parses the dnanexus-executable.json file in the job directory to get applet name and version.'''
+    with open(dxjson) as data_file:    
+        dxapp = json.load(data_file)
+
+    appver = "unknown"    
+    applet = dxapp.get("name")
+    if "version" in dxapp:
+        appver = dxapp.get("version")
+    else:
+        title = dxapp.get("title")
+        last_word = title.split(' ')[-1]
+        if last_word.startswith('(virtual-') and last_word.endswith(')'):
+            appver = last_word[9:-1]
+        elif last_word.startswith('(v') and last_word.endswith(')'):
+            appver = last_word[2:-1]
+    
+    return (applet, appver)
+
+
 def main():
     parser = argparse.ArgumentParser(description =  "Versions parser for a dx applet. " + \
-                                                    "Prints version lines to stderr and json string to stdout.")
-    parser.add_argument('-a','--applet', required=True,
+                                                    "Prints version lines to stderr and json string to stdout. " + \
+                                                    "MUST specify either --applet and --appver or --dxjson.")
+    parser.add_argument('-a','--applet', required=False,
                         help="Applet to print versions for")
-    parser.add_argument('-av','--appver', required=True,
+    parser.add_argument('-av','--appver', required=False,
                         help="Version of applet")
+    parser.add_argument('-j','--dxjson', required=False,
+                        help="Use dnanexus json file to discover 'applet' and 'appver'")
     parser.add_argument('-q', '--quiet', action="store_true", required=False, default=False, 
                         help="Don't print versions to stderr.")
     parser.add_argument('-v', '--verbose', action="store_true", required=False, default=False, 
@@ -103,13 +137,26 @@ def main():
         parser.print_usage()
         return
         
+    if (args.applet == None or args.appver == None) and args.dxjson == None:
+        parser.print_help()
+        return
+
+    applet = args.applet
+    applet = args.appver
+    
+    if args.dxjson != None:
+        (applet,appver) = parse_dxjson(args.dxjson)
+    
     versions = {}
-    versions["DX applet"] = { args.applet: args.appver }
+    versions["DX applet"] = { applet: appver }
     if not args.quiet:
         sys.stderr.write("********\n")
-        sys.stderr.write("* Running " + args.applet + ": " + args.appver+ "\n")
+        sys.stderr.write("* Running " + applet + ": " + appver+ "\n")
         
-    tools = APP_TOOLS[args.applet]
+    if applet in VIRTUAL_APPS:
+        tools = APP_TOOLS[VIRTUAL_APPS[applet]]
+    else:
+        tools = APP_TOOLS[applet]
     for tool in tools:
         cmd = ALL_TOOLS[tool]
         if args.verbose:

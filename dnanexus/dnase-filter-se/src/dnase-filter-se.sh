@@ -1,9 +1,6 @@
 #!/bin/bash
 # dnase-filter-se.sh - Filter bam (single-end) for the ENCODE DNase-seq pipeline.
 
-script_name="dnase-filter-se.sh"
-script_ver="0.2.1"
-
 main() {
     # executables in resources/usr/bin
     set +x
@@ -11,7 +8,7 @@ main() {
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
-        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+        versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
 
     echo "* Value of bam_bwa: '$bam_bwa'"
@@ -39,7 +36,7 @@ main() {
     #    1024 read is PCR or optical duplicate
     set -x
     samtools view -F 1804 -q ${map_thresh} -u ${bam_bwa_root}.bam | \
-            samtools sort -@ $nthreads -m 5G -f - ${bam_filtered_root}.sam
+            samtools sort -@ $nthreads -m 6G -f - ${bam_filtered_root}.sam
     samtools view -hb ${bam_filtered_root}.sam > ${bam_filtered_root}.bam
     samtools index ${bam_filtered_root}.bam
     set +x

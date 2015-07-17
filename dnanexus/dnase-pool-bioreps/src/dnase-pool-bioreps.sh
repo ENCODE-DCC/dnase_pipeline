@@ -1,16 +1,13 @@
 #!/bin/bash
 # dnase-pool-bioreps.sh - Pools two biological replicates for the ENCODE DNase-seq pipeline.
 
-script_name="dnase-pool-bioreps.sh"
-script_ver="0.2.1"
-
 main() {
     # Executables in resources/usr/bin
     set +x
     
     # If available, will print tool versions to stderr and json string to stdout
     if [ -f /usr/bin/tool_versions.py ]; then 
-        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+        versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
 
     echo "* Value of bam_A: '$bam_A'"

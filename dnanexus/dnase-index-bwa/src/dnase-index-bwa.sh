@@ -1,8 +1,5 @@
 #!/bin/bash
-# index-bwa.sh
-
-script_name="index-bwa.sh"
-script_ver="0.1.0"
+# dnase-index-bwa.sh
 
 main() {
     # Executable in resources/usr/bin
@@ -10,7 +7,7 @@ main() {
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
-        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+        versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
     #echo "*****"
     #echo "* Running: index-bwa.sh [v0.1.0]"

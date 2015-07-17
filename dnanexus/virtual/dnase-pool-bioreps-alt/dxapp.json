@@ -1,6 +1,6 @@
 {
-  "name": "dnase-pool-bioreps",
-  "title": "Pools 2 bio-replicates (v0.2.2)",
+  "name": "dnase-pool-bioreps-alt",
+  "title": "Pools 2 bio-replicates (virtual-0.2.2)",
   "summary": "Pools two biological replicates for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
   "version": "0.2.2",

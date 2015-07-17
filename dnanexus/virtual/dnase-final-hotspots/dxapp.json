@@ -1,9 +1,9 @@
 {
-  "name": "dnase-call-hotspots",
-  "title": "Call hotspots (v0.2.2)",
+  "name": "dnase-final-hotspots",
+  "title": "Call hotspots on pooled replicates (virtual-0.1.0)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.2",
+  "version": "0.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -11,7 +11,7 @@
       "label": "Bam to call hotspots from",
       "class": "file",
       "optional": false,
-      "patterns": ["*_no_chrM.bam","*_pooled.bam"]
+      "patterns": ["*_pooled.bam"]
     },
     {
       "name": "chrom_sizes",

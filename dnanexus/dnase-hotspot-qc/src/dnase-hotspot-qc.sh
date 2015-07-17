@@ -1,9 +1,6 @@
 #!/bin/bash
 # dnase-hotspot-qc.sh - Calls hotspots on a sample for qc for the ENCODE DNase-seq pipeline.
 
-script_name="dnase-hotspot-qc.sh"
-script_ver="0.2.1"
-
 main() {
     echo "* Installing hotspot and dependencies (gsl)..." 2>&1 | tee -a install.log
     exe_dir="`pwd`"
@@ -32,7 +29,7 @@ main() {
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
-        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+        versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
 
     echo "* Value of bam_to_sample: '$bam_to_sample'"

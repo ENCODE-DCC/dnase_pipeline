@@ -1,9 +1,9 @@
 {
   "name": "dnase-eval-bam-pe",
-  "title": "Evaluate pe bam",
+  "title": "Evaluate bam - pe (v0.2.3)",
   "summary": "Evaluates (paired-end) bam and returns with chrM filtered out and small sample for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -19,6 +19,13 @@
       "class": "int",
       "optional": true,
       "default": 15000000
+    },
+    {
+      "name": "nthreads",
+      "label": "Number of threads to use",
+      "class": "int",
+      "optional": true,
+      "default": 8
     }
   ],
   "outputSpec": [

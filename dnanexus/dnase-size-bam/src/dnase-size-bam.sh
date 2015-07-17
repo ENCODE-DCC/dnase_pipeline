@@ -1,16 +1,13 @@
 #!/bin/bash
 # dnase-size-bam.sh  Conditionally reduce the bam size to a target, or no larger than a limit of reads
 
-script_name="dnase-size-bam.sh"
-script_ver="0.2.2"
-
 main() {
     # Executables in resources/usr/bin
     set +x
     
     # If available, will print tool versions to stderr and json string to stdout
     if [ -f /usr/bin/tool_versions.py ]; then 
-        versions=`tool_versions.py --applet $script_name --appver $script_ver`
+        versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
 
     echo "* Value of unsized_bam: '$unsized_bam'"
@@ -36,7 +33,9 @@ main() {
     reads_sized=$reads_unsized
     if [ $reads_unsized -gt $target_size ]; then
         # only if unsized is more than 1.5 times target
-        new_target=`expr $target_size \* 3 / 2`  # integers only
+        #new_target=`expr $target_size \* 3 / 2`  # integers only
+        # only if unsized is more than 1.2 times target
+        new_target=`expr $target_size \* 6 / 5`  # integers only
         if [ $reads_unsized -gt $new_target ]; then
             reads_sized=$target_size
         fi

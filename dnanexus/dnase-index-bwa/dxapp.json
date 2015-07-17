@@ -1,9 +1,9 @@
 {
-  "name": "index-bwa",
-  "title": "DNase-seq-bwa-genome-index",
+  "name": "dnase-index-bwa",
+  "title": "Index genome with bwa for DNase (v0.1.1)",
   "summary": "Prepare reference genome index for BWA used in the ENCODE dnase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -38,7 +38,7 @@
   ],
   "runSpec": {
     "interpreter": "bash",
-    "file": "src/index-bwa.sh",
+    "file": "src/dnase-index-bwa.sh",
     "systemRequirements": {
       "main": {
         "instanceType": "mem3_hdd2_x4"
