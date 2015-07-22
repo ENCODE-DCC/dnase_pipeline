@@ -38,7 +38,7 @@ main() {
     samtools view -F 1804 -f 2 -q ${map_thresh} -u ${bam_bwa_root}.bam | \
             samtools sort -@ $nthreads -m 6G -n -f - ${bam_filtered_root}_tmp.sam
     samtools view -hb ${bam_filtered_root}_tmp.sam > ${bam_filtered_root}_tmp.bam
-    samtools fixmate -r ${bam_filtered_root}_tmp.bam -o sam - | \
+    samtools fixmate -r ${bam_filtered_root}_tmp.bam -O sam - | \
             samtools view -F 1804 -f 2 -u - | \
             samtools sort -@ $nthreads -m 6G -f - ${bam_filtered_root}.sam
     samtools view -hb ${bam_filtered_root}.sam > ${bam_filtered_root}.bam

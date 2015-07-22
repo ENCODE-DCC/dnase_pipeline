@@ -58,8 +58,8 @@ VIRTUAL_APPS = {
     "dnase-hotspot-qc-alt":      "dnase-hotspot-qc",   
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
     "dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
-    "dnase-pooled-hotspots":     "dnase-call-hotspots",
-    "dnase-pooled-hotspots-alt": "dnase-call-hotspots",
+    "dnase-final-hotspots":      "dnase-call-hotspots",
+    "dnase-final-hotspots-alt":  "dnase-call-hotspots",
     }
 
 # ALL_TOOLS contains the printable tool name (key) and the command that is used to determine the version.
