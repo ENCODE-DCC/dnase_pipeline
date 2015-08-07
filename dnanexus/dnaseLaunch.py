@@ -369,10 +369,6 @@ class DnaseLaunch(Launch):
         '''Adds pipeline specific variables to a dict, for use building the workflow.'''
         psv = Launch.pipeline_specific_vars(self,args)
         
-        #if not psv['paired_end']:
-        #    print "Rampage is always expected to be paired-end but mapping says otherwise."
-        #    sys.exit(1)
-
         # Some specific settings
         psv['nthreads']    = 8
         psv['map_thresh']  = 3
