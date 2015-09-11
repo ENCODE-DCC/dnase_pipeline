@@ -11,24 +11,34 @@ main() {
     fi
 
     echo "* Value of reference: '$reference'"
-    echo "* Value of genome: '$genome'"
-    echo "* Value of gender: '$gender'"
+    # Prefer to discover genome and gender
+    source_msg="Value of"
+    if [ -f /usr/bin/parse_property.py ]; then 
+        genome_prop=`parse_property.py -f "$reference" -p "genome" --quiet`
+        gender_prop=`parse_property.py -f "$reference" -p "gender" --quiet`
+        if [ "$genome_prop" != "" ] &&  [ "$gender_prop" != "" ]; then
+            genome=$genome_prop
+            gender=$gender_prop
+            source_msg="Discovered"
+        fi
+    fi
+    if [ "$genome" == "" ] || [ "$gender" == "" ]; then
+        echo "Reference genome and/or gender could not be determined and must be supplied as arguments."
+        exit 1
+    fi
+    echo "* ${source_msg} genome: '$genome'"
+    echo "* ${source_msg} gender: '$gender'"
 
     index_id="${genome}_${gender}"
     index_file="${index_id}_bwa_index.tgz"
     echo "* Index file will be: '$index_file'"
 
     echo "* Download files..."
-    #ref_root=`dx describe "$reference" --name`
-    #ref_root=${ref_root%.fasta.gz}
-    #ref_root=${ref_root%.fa.gz}
     dx download "$reference" -o "$index_id".fa.gz
     gunzip "$index_id".fa.gz 
     ref="$index_id".fa
 
     echo "* Reference file: '$ref'"
-
-    # Fill in your application code here.
 
     echo "* Build index..."
     set -x

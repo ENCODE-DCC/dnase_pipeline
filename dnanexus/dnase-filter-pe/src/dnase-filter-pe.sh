@@ -28,18 +28,19 @@ main() {
     bam_filtered_root="${bam_bwa_root}_filtered"
 
     echo "* Filter on threashold..."
-    # -F 1804 means not:
+    # -F 1804 means not: 0111 0000 1100
     #       4 read unmapped
     #       8 mate unmapped
     #     256 not primary alignment
     #     512 read fails platform/vendor quality checks
     #    1024 read is PCR or optical duplicate
+    # -F 780 means:  0011 0000 1100 not: 4,8,256,512
     set -x
-    samtools view -F 1804 -f 2 -q ${map_thresh} -u ${bam_bwa_root}.bam | \
+    samtools view -F 780 -f 2 -q ${map_thresh} -u ${bam_bwa_root}.bam | \
             samtools sort -@ $nthreads -m 6G -n -f - ${bam_filtered_root}_tmp.sam
     samtools view -hb ${bam_filtered_root}_tmp.sam > ${bam_filtered_root}_tmp.bam
     samtools fixmate -r ${bam_filtered_root}_tmp.bam -O sam - | \
-            samtools view -F 1804 -f 2 -u - | \
+            samtools view -F 780 -f 2 -u - | \
             samtools sort -@ $nthreads -m 6G -f - ${bam_filtered_root}.sam
     samtools view -hb ${bam_filtered_root}.sam > ${bam_filtered_root}.bam
     samtools index ${bam_filtered_root}.bam

@@ -1,9 +1,9 @@
 {
   "name": "dnase-filter-pe",
-  "title": "Filter bam - pe (v0.2.3)",
+  "title": "Filter bam - pe (v0.2.4)",
   "summary": "Filter bam (paired-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -18,7 +18,7 @@
       "label": "Map threshold",
       "class": "int",
       "optional": true,
-      "default": 3
+      "default": 10
     },
     {
       "name": "nthreads",
