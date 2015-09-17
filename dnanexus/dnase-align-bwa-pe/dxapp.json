@@ -1,9 +1,9 @@
 {
   "name": "dnase-align-bwa-pe",
-  "title": "Align with bwa - pe (v0.3.0)",
+  "title": "Align with bwa - pe (v1.0.0)",
   "summary": "Alignment by bwa of paired-end fastqs for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -49,8 +49,14 @@
       "patterns": ["*_bwa_techrep_qc.txt"]
     },
     {
-      "name": "reads",
-      "label": "Count of reads in the bam",
+      "name": "all_reads",
+      "label": "Count of all reads in the bam",
+      "optional": true,
+      "class": "string"
+    },
+    {
+      "name": "mapped_reads",
+      "label": "Count of mapped reads in the filtered bam",
       "optional": true,
       "class": "string"
     },

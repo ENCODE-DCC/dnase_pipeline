@@ -1,7 +1,7 @@
 <!-- dx-header -->
 # DNase-seq (DNAnexus Platform App)
 
-Filter bam (paired-end) for the ENCODE DNase-seq pipeline
+Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline.
 
 This is the source code for an app that runs on the DNAnexus Platform.
 For more information about how to run or modify it, see

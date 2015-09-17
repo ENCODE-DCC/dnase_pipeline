@@ -44,7 +44,7 @@ main() {
     if [ -f /usr/bin/parse_property.py ]; then
         new_root=`parse_property.py -f "'${reads[0]}'" --project "${DX_PROJECT_CONTEXT_ID}" --root_name`
         if [ "$new_root" != "" ]; then
-            bam_root="${new_root}_bwa_techrep"
+            bam_root="${new_root}_se_bwa_techrep"
         fi
     fi
     echo "* Alignments file will be: '${bam_root}.bam'"
@@ -74,13 +74,17 @@ main() {
     set +x
 
     echo "* Prepare metadata json..."
-    meta=''
-    reads=0
+    qc_aligned=''
+    all_reads=0
+    mapped_reads=0
     read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
-        meta=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_flagstat.txt`
-        reads=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt -k readCount`
+        qc_aligned=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_flagstat.txt`
+        mapped_reads=`qc_metrics.py -n samtools_flagstats -f ${bam_root}_flagstat.txt -k mapped`
+        all_reads=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt -k readCount`
         read_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt -k readSizeMean`
+        meta=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt`
+        qc_aligned=`echo $qc_aligned, $meta`
     fi
     # All qc to one file per target file:
     echo "===== samtools flagstat =====" > ${bam_root}_qc.txt
@@ -90,15 +94,17 @@ main() {
     cat ${bam_root}_edwBamStats.txt     >> ${bam_root}_qc.txt
 
     echo "* Upload results..."
-    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $meta }" --property SW="$versions" \
-                                        --property reads="$reads" --property read_length="$read_len" --brief)
-    bam_qc=$(dx upload ${bam_root}_qc.txt --details "{ $meta }" --property SW="$versions" --brief)
+    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $qc_aligned }" --property SW="$versions" \
+                                        --property mapped_reads="$mapped_reads" --property all_reads="$all_reads" \
+                                        --property read_length="$read_len" --brief)
+    bam_qc=$(dx upload ${bam_root}_qc.txt --details "{ $qc_aligned }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file
     dx-jobutil-add-output bam_qc "$bam_qc" --class=file
 
-    dx-jobutil-add-output reads "$reads" --class=string
-    dx-jobutil-add-output metadata "$meta" --class=string
+    dx-jobutil-add-output all_reads "$all_reads" --class=string
+    dx-jobutil-add-output mapped_reads "$mapped_reads" --class=string
+    dx-jobutil-add-output metadata "$qc_aligned" --class=string
 
     echo "* Finished."
 }

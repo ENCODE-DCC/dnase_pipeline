@@ -1,17 +1,17 @@
 {
   "name": "dnase-eval-bam-pe",
-  "title": "Evaluate bam - pe (v0.2.3)",
-  "summary": "Evaluates (paired-end) bam and returns with chrM filtered out and small sample for the ENCODE DNase-seq pipeline",
+  "title": "Evaluate bam - pe (v1.0.0)",
+  "summary": "Evaluates sample of (paired-end) bam for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "bam_sized",
-      "label": "Paired-end bam filtered and sized",
+      "name": "bam_filtered",
+      "label": "Paired-end filtered bam",
       "class": "file",
       "optional": false,
-      "patterns": [ "*_filtered_sized.bam" ]
+      "patterns": [ "*_filtered.bam", "*_filtered_sized.bam" ]
     },
     {
       "name": "sample_size",
@@ -30,18 +30,6 @@
   ],
   "outputSpec": [
     {
-      "name": "bam_no_chrM",
-      "label": "Bam file without chrM",
-      "class": "file",
-      "patterns": ["*_no_chrM.bam"]
-    },
-    {
-      "name": "bam_no_chrM_qc",
-      "label": "No chrM bam 'edwBamStats' output",
-      "class": "file",
-      "patterns": ["*_no_chrM_qc.txt"]
-    },
-    {
       "name": "bam_sample",
       "label": "Sample of bam filtered and without chrM",
       "class": "file",
@@ -54,8 +42,8 @@
       "patterns": ["*_sample_qc.txt"]
     },
     {
-      "name": "reads",
-      "label": "Count of reads in the no chrM bam",
+      "name": "sampled_reads",
+      "label": "Count of reads in the sample bam",
       "optional": true,
       "class": "string"
     },

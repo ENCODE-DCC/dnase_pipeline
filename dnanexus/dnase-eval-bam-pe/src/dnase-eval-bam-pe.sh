@@ -1,5 +1,5 @@
 #!/bin/bash
-# dnase-eval-bam-pe.sh - Evaluates (paired-end) bam and returns with chrM filtered out and small sample for the ENCODE DNase-seq pipeline.
+# dnase-eval-bam-pe.sh - Evaluates sample of (paired-end) bam for the ENCODE DNase-seq pipeline.
 
 main() {
     echo "* Installing phantompeakqualtools, caTools, snow and spp..." 2>&1 | tee -a install.log
@@ -23,23 +23,24 @@ main() {
         versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
  
-    echo "* Value of bam_sized: '$bam_sized'"
+    echo "* Value of bam_filtered: '$bam_filtered'"
     echo "* Value of sample_size: '$sample_size'"
     echo "* Value of nthreads: '$nthreads'"
 
     echo "* Download files..."
-    # expecting *_concat_bwa_merged_filtered_sized.bam
-    bam_input_root=`dx describe "$bam_sized" --name`
-    #bam_input_root=${bam_input_root%_concat_bwa_merged_filtered_sized.bam}
-    #bam_input_root=${bam_input_root%_bwa_merged_filtered_sized.bam}
-    #bam_input_root=${bam_input_root%_merged_filtered_sized.bam}
-    #bam_input_root=${bam_input_root%_bwa_filtered_sized.bam}
+    # expecting *_bwa_biorep_filtered.bam
+    bam_input_root=`dx describe "$bam_filtered" --name`
+    # Better to leave the whole suffix!
     bam_input_root=${bam_input_root%.bam}
-    dx download "$bam_sized" -o ${bam_input_root}.bam
+    #bam_input_root=${bam_input_root%_sized}
+    #bam_input_root=${bam_input_root%_filtered}
+    #bam_input_root=${bam_input_root%_biorep}
+    #bam_input_root=${bam_input_root%_techrep}
+    #bam_input_root=${bam_input_root%_bwa}
+    dx download "$bam_filtered" -o ${bam_input_root}.bam
     echo "* bam file: '${bam_input_root}.bam'"
     bam_no_chrM_root="${bam_input_root}_no_chrM"
-    bam_sample_root="${bam_no_chrM_root}_${sample_size}_sample"
-    # expecting *_concat_bwa_merged_filtered_sized_no_chrM_15000000_sample.bam
+    bam_sample_root="${bam_input_root}_${sample_size}_sample"
     
     echo "* Filter out chrM..."
     # Note the sort by name which is needed for proper pe sampling
@@ -51,24 +52,6 @@ main() {
     rm *.sam
     set +x
 
-    echo "* Generating stats on no_chrM.bam..."
-    set -x
-    edwBamStats ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_edwBamStats.txt
-    set +x
-
-    echo "* Prepare metadata for no_chrM.bam..."
-    qc_no_chrM=''
-    reads_no_chrM=0
-    read_len=0
-    if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_no_chrM=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_edwBamStats.txt`
-        reads_no_chrM=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_edwBamStats.txt -k readCount`
-        read_len=`qc_metrics.py -n edwBamStats -f ${bam_no_chrM_root}_edwBamStats.txt -k readSizeMean`
-    fi
-    # All qc to one file per target file:
-    echo "===== edwBamStats ====="           > ${bam_no_chrM_root}_qc.txt
-    cat ${bam_no_chrM_root}_edwBamStats.txt >> ${bam_no_chrM_root}_qc.txt
-    
     echo "* Generating stats on $sample_size reads..."
     set -x
     edwBamStats -sampleBamSize=${sample_size} -u4mSize=${sample_size} -sampleBam=${bam_sample_root}.bam \
@@ -118,19 +101,14 @@ main() {
     cat ${bam_sample_root}_pbc.txt          >> ${bam_sample_root}_qc.txt
         
     echo "* Upload results..."
-    bam_no_chrM=$(dx upload ${bam_no_chrM_root}.bam --details "{ $qc_no_chrM }" --property SW="$versions" \
-                                                  --property reads="$reads_no_chrM" --property read_length="$read_len" --brief)
     bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property SW="$versions" \
-                                                  --property reads="$reads_sampled" --property read_length="$read_len" --brief)
-    bam_no_chrM_qc=$(dx upload ${bam_no_chrM_root}_qc.txt --details "{ $qc_no_chrM }" --property SW="$versions" --brief)
+                           --property sampled_reads="$reads_sampled" --property read_length="$read_len" --brief)
     bam_sample_qc=$(dx upload ${bam_sample_root}_qc.txt   --details "{ $qc_sampled }" --property SW="$versions" --brief)
 
-    dx-jobutil-add-output bam_no_chrM "$bam_no_chrM" --class=file
     dx-jobutil-add-output bam_sample "$bam_sample" --class=file
-    dx-jobutil-add-output bam_no_chrM_qc "$bam_no_chrM_qc" --class=file
     dx-jobutil-add-output bam_sample_qc "$bam_sample_qc" --class=file
 
-    dx-jobutil-add-output reads "$reads_no_chrM" --class=string
+    dx-jobutil-add-output sampled_reads "$reads_sampled" --class=string
     dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."

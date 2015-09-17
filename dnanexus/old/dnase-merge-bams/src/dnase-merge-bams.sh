@@ -16,6 +16,7 @@ main() {
     outfile_name=""
     merged=""
     tech_reps=""
+    pe_se=""
     rm -f concat.fq
     for ix in ${!bam_set[@]}
     do
@@ -32,6 +33,17 @@ main() {
             fi
         fi
         if [ -f /usr/bin/parse_property.py ]; then
+            # If even one is se then all are se
+            sans_se=${file_root%_se}
+            if [ "${sans_se}" != "${file_root}" ]; then
+                pe_se="_se"
+            elif [ "${pe_se}" == "" ]; then
+                # If it can be determined to be pe then default it to that
+                sans_pe=${file_root%_pe}
+                if [ "${sans_pe}" != "${file_root}" ]; then
+                    pe_se="_pe"
+                fi
+            fi
             if [ "$exp_id" == "" ]; then
                 exp_id=`parse_property.py -f "'${bam_set[$ix]}'" --project "${DX_PROJECT_CONTEXT_ID}" --exp_id`
             fi
@@ -57,7 +69,7 @@ main() {
         fi
     done
     if [ "$exp_id" != "" ] && [ "$tech_reps" != "" ]; then
-        outfile_name="${exp_id}_${tech_reps}_bwa_biorep"
+        outfile_name="${exp_id}_${tech_reps}${pe_se}_bwa_biorep"
     fi
     echo "* Merged alignments file will be: '${outfile_name}.bam'"
     
@@ -93,7 +105,7 @@ main() {
     read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
         qc_stats=`qc_metrics.py -n samtools_flagstats -f ${outfile_name}_flagstat.txt`
-        reads=`qc_metrics.py -n samtools_flagstats -f ${outfile_name}_flagstat.txt -k total`
+        reads=`qc_metrics.py -n samtools_flagstats -f ${outfile_name}_flagstat.txt -k mapped`
         meta=`qc_metrics.py -n samtools_stats -d ':' -f ${outfile_name}_samstats_summary.txt`
         read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${outfile_name}_samstats_summary.txt -k "average length"`
         qc_stats=`echo $qc_stats, $meta`

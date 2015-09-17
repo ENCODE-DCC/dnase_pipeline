@@ -1,7 +1,7 @@
 <!-- dx-header -->
 # DNase-seq (DNAnexus Platform App)
 
-Evaluates (paired-end) bam and returns with chrM filtered out and small sample for the ENCODE DNase-seq pipeline.
+Evaluates sample of (paired-end) bam for the ENCODE DNase-seq pipeline.
 
 This is the source code for an app that runs on the DNAnexus Platform.
 For more information about how to run or modify it, see

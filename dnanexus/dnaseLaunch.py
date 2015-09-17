@@ -20,7 +20,7 @@ class DnaseLaunch(Launch):
     RESULT_FOLDER_DEFAULT = '/dnase/'
     ''' This the default location to place results folders for each experiment.'''
     
-    PIPELINE_BRANCH_ORDER = [ "TECH_REP", "BIO_REP", "COMBINED_REPS" ]
+    PIPELINE_BRANCH_ORDER = [ "TECH_REP", "BIO_REP" ] #, "COMBINED_REPS" ]
     '''A pipeline is frequently made of branches that flow into each other, such as replicate level to combined replicate.'''
     
     PIPELINE_BRANCHES = {
@@ -37,7 +37,7 @@ class DnaseLaunch(Launch):
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
                                 },
-                                #"output_values": { "reads_bwa": "reads" },
+                                #"output_values": { "all_reads": "all_reads" },
                             },
                             "dnase-align-bwa-pe": {
                                 "inputs": { "reads1": "reads1", "reads2": "reads2", "bwa_index": "bwa_index" }, 
@@ -47,224 +47,152 @@ class DnaseLaunch(Launch):
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
                                 },
-                                #"output_values": { "reads_techrep": "reads" },
+                                #"output_values": { "all_reads": "all_reads" },
                             }, 
                 }
         },
         "BIO_REP":  {
-                "ORDER": { "se": [  "dnase-merge-bams-alt", 
-                                    "dnase-filter-se", 
-                                    "dnase-size-bam-alt",      
+                "ORDER": { "se": [  "dnase-filter-se", 
                                     "dnase-eval-bam-se", 
-                                    "biorep-call-hotspots-alt", 
-                                    "dnase-hotspot-qc-alt" ],
-                           "pe": [  "dnase-merge-bams", 
-                                    "dnase-filter-pe", 
-                                    "dnase-size-bam",
+                                    #"dnase-call-hotspots-alt", 
+                                    #"dnase-hotspot-qc-alt",
+                                 ],
+                           "pe": [  "dnase-filter-pe", 
                                     "dnase-eval-bam-pe", 
-                                    "biorep-call-hotspots", 
-                                    "dnase-hotspot-qc" ] },
+                                    #"dnase-call-hotspots", 
+                                    #"dnase-hotspot-qc",
+                                 ] },
                 "STEPS": {
-                            "dnase-merge-bams": {
-                                "inputs": { "bam_ABC":    "bam_set" },
-                                "app": "dnase-merge-bams", 
-                                "params": { "nthreads": "nthreads" }, 
-                                "results": {
-                                    "bam_biorep":      "bam_biorep", 
-                                    "bam_biorep_qc":   "bam_biorep_qc",
-                                },
-                                #"output_values": { "reads_biorep": "reads" },
-                            },
-                            "dnase-merge-bams-alt": {
-                                "inputs": { "bam_ABC":    "bam_set" },
-                                "app": "dnase-merge-bams-alt", 
-                                "params": { "nthreads": "nthreads" }, 
-                                "results": {
-                                    "bam_biorep":      "bam_biorep", 
-                                    "bam_biorep_qc":   "bam_biorep_qc",
-                                },
-                                #"output_values": { "reads_biorep": "reads" },
-                            },
                             "dnase-filter-pe": {
-                                "inputs": { "bam_biorep": "bam_bwa" }, 
+                                "inputs": { "bam_ABC":    "bam_set" },
                                 "app": "dnase-filter-pe", 
                                 "params": { "map_thresh": "map_thresh", "nthreads": "nthreads" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
                                     "bam_filtered_qc":      "bam_filtered_qc", 
                                 },
-                                "output_values": { "reads_filtered": "reads" },
+                                #"output_values": { "reads_filtered": "filtered_mapped_reads" },
                             },
                             "dnase-filter-se": {
-                                "inputs": { "bam_biorep": "bam_bwa" }, 
+                                "inputs": { "bam_ABC":    "bam_set" },
                                 "app": "dnase-filter-se", 
                                 "params": { "map_thresh": "map_thresh", "nthreads": "nthreads" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
                                     "bam_filtered_qc":      "bam_filtered_qc", 
                                 },
-                                "output_values": { "reads_filtered": "reads" },
-                            }, 
-                            "dnase-size-bam": {
-                                "inputs": { "bam_filtered": "unsized_bam" }, 
-                                "app": "dnase-size-bam", 
-                                "params": { "target_size": "target_size", "upper_limit": "upper_limit" },
-                                "param_links": { "target_size": {"name":"reads_filtered", "rep":"sister"} }, 
-                                "results": {
-                                    "bam_sized":            "bam_sized", 
-                                    "bam_sized_qc":         "bam_sized_qc", 
-                                },
-                                #"output_values": { "reads_sized": "reads" },
-                            }, 
-                            "dnase-size-bam-alt": {
-                                "inputs": { "bam_filtered": "unsized_bam" }, 
-                                "app": "dnase-size-bam-alt", 
-                                "params": { "target_size": "target_size", "upper_limit": "upper_limit" },
-                                "param_links": { "target_size": {"name":"reads_filtered", "rep":"sister"} }, 
-                                "results": {
-                                    "bam_sized":            "bam_sized", 
-                                    "bam_sized_qc":         "bam_sized_qc", 
-                                },
-                                #"output_values": { "reads_sized": "reads" },
+                                #"output_values": { "reads_filtered": "filtered_mapped_reads" },
                             }, 
                             "dnase-eval-bam-pe": {
-                                "inputs": { "bam_sized": "bam_sized" }, 
+                                "inputs": { "bam_filtered": "bam_filtered" }, 
                                 "app": "dnase-eval-bam-pe", 
                                 "params": { "sample_size": "sample_size", "nthreads": "nthreads" }, 
                                 "results": {
-                                    "bam_no_chrM":          "bam_no_chrM", 
-                                    "bam_no_chrM_qc":       "bam_no_chrM_qc", 
                                     "bam_sample":           "bam_sample", 
                                     "bam_sample_qc":        "bam_sample_qc", 
                                 },
-                                #"output_values": { "reads_no_chrM": "reads" },
+                                #"output_values": { "sampled_": "sampled_reads" },
                             },
                             "dnase-eval-bam-se": {
-                                "inputs": { "bam_sized":    "bam_sized" }, 
+                                "inputs": { "bam_filtered": "bam_filtered" }, 
                                 "app": "dnase-eval-bam-se", 
                                 "params": { "sample_size": "sample_size" }, 
                                 "results": {
-                                    "bam_no_chrM":          "bam_no_chrM", 
-                                    "bam_no_chrM_qc":       "bam_no_chrM_qc", 
+                                    #"bam_no_chrM":          "bam_no_chrM", 
+                                    #"bam_no_chrM_qc":       "bam_no_chrM_qc", 
                                     "bam_sample":           "bam_sample", 
                                     "bam_sample_qc":        "bam_sample_qc", 
                                 },
-                                #"output_values": { "reads_no_chrM": "reads" },
+                                #"output_values": { "sampled_": "sampled_reads" },
                             }, 
-                            "biorep-call-hotspots": {
-                                "inputs": { "bam_no_chrM": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
-                                "app": "dnase-call-hotspots", 
-                                "params": { "read_length": "read_length", "genome": "genome" }, 
-                                "results": {
-                                     "br_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
-                                    "br_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
-                                     "br_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
-                                    "br_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
-                                     "br_bw_hotspot_signal":      "bw_hotspot_signal", 
-                                    "br_bam_hotspot_qc":         "bam_hotspot_qc"
-                                },
-                            }, 
-                            "biorep-call-hotspots-alt": {
-                                "inputs": { "bam_no_chrM": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
-                                "app": "dnase-call-hotspots-alt", 
-                                "params": { "read_length": "read_length", "genome": "genome" }, 
-                                "results": {
-                                     "br_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
-                                    "br_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
-                                     "br_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
-                                    "br_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
-                                     "br_bw_hotspot_signal":      "bw_hotspot_signal", 
-                                    "br_bam_hotspot_qc":         "bam_hotspot_qc"
-                                },
-                            }, 
-                            "dnase-hotspot-qc": {
-                                "inputs": { "bam_no_chrM": "bam_to_sample", "chrom_sizes": "chrom_sizes" }, 
-                                "app": "dnase-hotspot-qc", 
-                                "params": { "read_length": "read_length", "genome": "genome"}, 
-                                "results": {
-                                    "bam_sample_5M":        "bam_sample_5M",
-                                    "bam_sample_5M_qc":     "bam_sample_5M_qc", 
-                                },
-                                #"output_values": { "reads_sample_5M": "reads" },
-                            },
-                            "dnase-hotspot-qc-alt": {
-                                "inputs": { "bam_no_chrM": "bam_to_sample", "chrom_sizes": "chrom_sizes" }, 
-                                "app": "dnase-hotspot-qc-alt", 
-                                "params": { "read_length": "read_length", "genome": "genome"}, 
-                                "results": {
-                                    "bam_sample_5M":        "bam_sample_5M",
-                                    "bam_sample_5M_qc":     "bam_sample_5M_qc", 
-                                },
-                                #"output_values": { "reads_sample_5M": "reads" },
-                            },
+                            #"dnase-call-hotspots": {
+                            #    "inputs": { "bam_no_chrM": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
+                            #    "app": "dnase-call-hotspots", 
+                            #    "params": { "read_length": "read_length", "genome": "genome" }, 
+                            #    "results": {
+                            #         "br_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
+                            #        "br_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
+                            #         "br_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
+                            #        "br_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
+                            #         "br_bw_hotspot_signal":      "bw_hotspot_signal", 
+                            #        "br_bam_hotspot_qc":         "bam_hotspot_qc"
+                            #    },
+                            #}, 
+                            #"dnase-call-hotspots-alt": {
+                            #    "inputs": { "bam_no_chrM": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
+                            #    "app": "dnase-call-hotspots-alt", 
+                            #    "params": { "read_length": "read_length", "genome": "genome" }, 
+                            #    "results": {
+                            #         "br_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
+                            #        "br_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
+                            #         "br_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
+                            #        "br_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
+                            #         "br_bw_hotspot_signal":      "bw_hotspot_signal", 
+                            #        "br_bam_hotspot_qc":         "bam_hotspot_qc"
+                            #    },
+                            #}, 
+                            #"dnase-hotspot-qc": {
+                            #    "inputs": { "bam_no_chrM": "bam_to_sample", "chrom_sizes": "chrom_sizes" }, 
+                            #    "app": "dnase-hotspot-qc", 
+                            #    "params": { "read_length": "read_length", "genome": "genome"}, 
+                            #    "results": {
+                            #        "bam_sample_5M":        "bam_sample_5M",
+                            #        "bam_sample_5M_qc":     "bam_sample_5M_qc", 
+                            #    },
+                            #    #"output_values": { "reads_sample_5M": "reads" },
+                            #},
+                            #"dnase-hotspot-qc-alt": {
+                            #    "inputs": { "bam_no_chrM": "bam_to_sample", "chrom_sizes": "chrom_sizes" }, 
+                            #    "app": "dnase-hotspot-qc-alt", 
+                            #    "params": { "read_length": "read_length", "genome": "genome"}, 
+                            #    "results": {
+                            #        "bam_sample_5M":        "bam_sample_5M",
+                            #        "bam_sample_5M_qc":     "bam_sample_5M_qc", 
+                            #    },
+                            #    #"output_values": { "reads_sample_5M": "reads" },
+                            #},
                 }
         },
-        "COMBINED_REPS": {
-                "ORDER": { "se": [ "dnase-pool-bioreps-alt", "final-hotspots-alt" ],
-                           "pe": [ "dnase-pool-bioreps",     "final-hotspots" ] },
-                "STEPS": {
-                            "dnase-pool-bioreps": {
-                                "inputs": {
-                                       "bam_A":    "bam_A",    "bam_B":    "bam_B", 
-                                    "signal_A": "signal_A", "signal_B": "signal_B", 
-                                     "peaks_A":  "peaks_A",  "peaks_B":  "peaks_B", 
-                                    "chrom_sizes": "chrom_sizes" 
-                                }, 
-                                "app": "dnase-pool-bioreps", 
-                                "params": {}, 
-                                "results": {
-                                    "bam_pooled":       "bam_pooled", 
-                                    "bed_merged":       "bed_merged", 
-                                    "bb_merged":        "bb_merged", 
-                                    "pooled_qc":        "pooled_qc", 
-                                },
-                                #"output_values": { "reads_pooled": "reads" },
-                            },
-                            "dnase-pool-bioreps-alt": {
-                                "inputs": {
-                                       "bam_A":    "bam_A",    "bam_B":    "bam_B", 
-                                    "signal_A": "signal_A", "signal_B": "signal_B", 
-                                     "peaks_A":  "peaks_A",  "peaks_B":  "peaks_B", 
-                                    "chrom_sizes": "chrom_sizes" 
-                                }, 
-                                "app": "dnase-pool-bioreps-alt", 
-                                "params": {}, 
-                                "results": {
-                                    "bam_pooled":       "bam_pooled", 
-                                    "bed_merged":       "bed_merged", 
-                                    "bb_merged":        "bb_merged", 
-                                    "pooled_qc":        "pooled_qc", 
-                                },
-                                #"output_values": { "reads_pooled": "reads" },
-                            },
-                            "final-hotspots": {
-                                "inputs": { "bam_pooled": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
-                                "app": "dnase-final-hotspots", 
-                                "params": { "read_length": "read_length", "genome": "genome" }, 
-                                "results": {
-                                     "pr_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
-                                    "pr_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
-                                     "pr_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
-                                    "pr_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
-                                     "pr_bw_hotspot_signal":      "bw_hotspot_signal", 
-                                    "pr_bam_hotspot_qc":         "bam_hotspot_qc" 
-                                }
-                            }, 
-                            "final-hotspots-alt": {
-                                "inputs": { "bam_pooled": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
-                                "app": "dnase-final-hotspots-alt", 
-                                "params": { "read_length": "read_length", "genome": "genome" }, 
-                                "results": {
-                                     "pr_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
-                                    "pr_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
-                                     "pr_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
-                                    "pr_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
-                                     "pr_bw_hotspot_signal":      "bw_hotspot_signal", 
-                                    "pr_bam_hotspot_qc":         "bam_hotspot_qc" 
-                                }
-                            }, 
-                }
-        }
+        #"COMBINED_REPS": {
+        #        "ORDER": { "se": [ "dnase-pool-bioreps-alt" ],
+        #                   "pe": [ "dnase-pool-bioreps",    ] },
+        #        "STEPS": {
+        #                    "dnase-pool-bioreps": {
+        #                        "inputs": {
+        #                               "bam_A":    "bam_A",    "bam_B":    "bam_B", 
+        #                            "signal_A": "signal_A", "signal_B": "signal_B", 
+        #                             "peaks_A":  "peaks_A",  "peaks_B":  "peaks_B", 
+        #                            "chrom_sizes": "chrom_sizes" 
+        #                        }, 
+        #                        "app": "dnase-pool-bioreps", 
+        #                        "params": {}, 
+        #                        "results": {
+        #                            "bam_pooled":       "bam_pooled", 
+        #                            "bed_merged":       "bed_merged", 
+        #                            "bb_merged":        "bb_merged", 
+        #                            "pooled_qc":        "pooled_qc", 
+        #                        },
+        #                        #"output_values": { "reads_pooled": "reads" },
+        #                    },
+        #                    "dnase-pool-bioreps-alt": {
+        #                        "inputs": {
+        #                               "bam_A":    "bam_A",    "bam_B":    "bam_B", 
+        #                            "signal_A": "signal_A", "signal_B": "signal_B", 
+        #                             "peaks_A":  "peaks_A",  "peaks_B":  "peaks_B", 
+        #                            "chrom_sizes": "chrom_sizes" 
+        #                        }, 
+        #                        "app": "dnase-pool-bioreps-alt", 
+        #                        "params": {}, 
+        #                        "results": {
+        #                            "bam_pooled":       "bam_pooled", 
+        #                            "bed_merged":       "bed_merged", 
+        #                            "bb_merged":        "bb_merged", 
+        #                            "pooled_qc":        "pooled_qc", 
+        #                        },
+        #                        #"output_values": { "reads_pooled": "reads" },
+        #                    },
+        #        }
+        #}
     }
 
     FILE_GLOBS = {
@@ -274,19 +202,14 @@ class DnaseLaunch(Launch):
         # dnase-align-pe/se results:
         "bam_techrep":              "/*_bwa_techrep.bam", 
         "bam_techrep_qc":           "/*_bwa_techrep_qc.txt",
-        # dnase-merge-bams input/results:
-        "bam_ABC":                  "/*_bwa_techrep.bam", 
-        "bam_biorep":               "/*_biorep.bam", 
-        "bam_biorep_qc":            "/*_biorep_qc.txt", 
         # dnase-filter-pe/se results:
+        "bam_ABC":                  "/*_bwa_techrep.bam", 
         "bam_filtered":             "/*_filtered.bam", 
         "bam_filtered_qc":          "/*_filtered_qc.txt", 
-        # dnase-size-bam results:
-        "bam_sized":                "/*_sized.bam", 
-        "bam_sized_qc":             "/*_sized_qc.txt", 
+        #### dnase-size-bam results:
+        ###"bam_sized":                "/*_sized.bam", 
+        ###"bam_sized_qc":             "/*_sized_qc.txt", 
         # dnase-eval-bam-pe/se results:
-        "bam_no_chrM":              "/*_no_chrM.bam", 
-        "bam_no_chrM_qc":           "/*_no_chrM_qc.txt", 
         "bam_sample":               "/*_sample.bam", 
         "bam_sample_qc":            "/*_sample_qc.txt",
         # biorep-call-hotspots input/results:
@@ -386,7 +309,8 @@ class DnaseLaunch(Launch):
         '''Locates all reference files based upon organism and gender.'''
         # TODO:  move all ref files to ref project and replace "/ref/" and self.REF_PROJECT_DEFAULT
         #bwaIx = self.psv['refLoc']+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
-        bwaIx = "/ref/"+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
+        base_dir = "/ref/" + self.psv['genome'] + "/dnase/"
+        bwaIx = base_dir+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
         #bwaIxFid = dxencode.find_file(bwaIx,dxencode.REF_PROJECT_DEFAULT)
         bwaIxFid = dxencode.find_file(bwaIx,self.REF_PROJECT_DEFAULT)
         if bwaIxFid == None:
@@ -453,30 +377,29 @@ class DnaseLaunch(Launch):
                 print "DEBUG: biorep: " + river_id + " tributaries: " + str(len(river['tributaries']))
 
         # Finally a pair of bio_reps are merged and processing finishes up
-        if len(bio_reps) == 2:
-            self.combined_reps = True  # More than one bio_rep so combining will be done!
-            sea = {} # SEA is the final branch into which all tributaries flow
-            sea['branch_id'] = 'COMBINED_REPS'
-            sea['tributaries'] = []
-            sea['rep_tech'] = 'reps'
-            for tributary_id in sorted( reps.keys() ):
-                if len(tributary_id) == 1:  # ignore the simple reps
-                    continue 
-                tributary = reps[tributary_id]
-                if len(sea['tributaries']) > 0:
-                    sea['rep_tech'] += '-'
-                sea['rep_tech'] += tributary['rep_tech'][4:]
-                sea['tributaries'].append(tributary_id)
-        
-            psv['rep_tech'] = sea['rep_tech']
-            reps[self.SEA_ID] = sea
-            # Special case of 2 allows for designating sisters
-            reps[sea['tributaries'][0]]['sister'] = sea['tributaries'][1]
-            reps[sea['tributaries'][1]]['sister'] = sea['tributaries'][0]
-        #else:
-        #    print "Found " + str(len(bio_reps)) + " bio_reps.  If exactly two, they would be combined."
-        #print json.dumps(reps,indent=4,sort_keys=True)
-            
+        #if len(bio_reps) == 2:
+        #    self.combined_reps = True  # More than one bio_rep so combining will be done!
+        #    sea = {} # SEA is the final branch into which all tributaries flow
+        #    sea['branch_id'] = 'COMBINED_REPS'
+        #    sea['tributaries'] = []
+        #    sea['rep_tech'] = 'reps'
+        #    for tributary_id in sorted( reps.keys() ):
+        #        if len(tributary_id) == 1:  # ignore the simple reps
+        #            continue 
+        #        tributary = reps[tributary_id]
+        #        if len(sea['tributaries']) > 0:
+        #            sea['rep_tech'] += '-'
+        #        sea['rep_tech'] += tributary['rep_tech'][4:]
+        #        sea['tributaries'].append(tributary_id)
+        #
+        #    psv['rep_tech'] = sea['rep_tech']
+        #    reps[self.SEA_ID] = sea
+        #    # Special case of 2 allows for designating sisters
+        #    reps[sea['tributaries'][0]]['sister'] = sea['tributaries'][1]
+        #    reps[sea['tributaries'][1]]['sister'] = sea['tributaries'][0]
+        ##else:
+        ##    print "Found " + str(len(bio_reps)) + " bio_reps.  If exactly two, they would be combined."
+        ##print json.dumps(reps,indent=4,sort_keys=True)
 
     #######################
 

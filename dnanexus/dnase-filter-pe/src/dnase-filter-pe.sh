@@ -1,5 +1,5 @@
 #!/bin/bash
-# dnase-filter-pe.sh - Filter bam (paired-end) for the ENCODE DNase-seq pipeline
+# dnase-filter-pe.sh - Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline.
 
 main() {
     # executables in resources/usr/bin
@@ -11,21 +11,80 @@ main() {
         versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
  
-    echo "* Value of bam_bwa: '$bam_bwa'"
+    echo "* Value of bam_set: '$bam_set'"
     echo "* Value of map_thresh: '$map_thresh'"
     echo "* Value of nthreads: '$nthreads'"
 
-    echo "* Download files..."
-    # expecting *_concat_bwa_biorep.bam
-    bam_bwa_root=`dx describe "$bam_bwa" --name`
-    #bam_bwa_root=${bam_bwa_root%_concat_bwa_biorep.bam}
-    #bam_bwa_root=${bam_bwa_root%_bwa_biorep.bam}
-    #bam_bwa_root=${bam_bwa_root%_biorep.bam}
-    #bam_bwa_root=${bam_bwa_root%_bwa.bam}
-    bam_bwa_root=${bam_bwa_root%.bam}
-    dx download "$bam_bwa" -o ${bam_bwa_root}.bam
-    echo "* bam_bwa file: '${bam_bwa_root}.bam'"
-    bam_filtered_root="${bam_bwa_root}_filtered"
+    merged_bam_root=""
+    merged=""
+    tech_reps=""
+    rm -f concat.fq
+    for ix in ${!bam_set[@]}
+    do
+        file_root=`dx describe "${bam_set[$ix]}" --name`
+        file_root=${file_root%_bwa_techrep.bam}
+        file_root=${file_root%_bwa.bam}
+        sans_se=${file_root%_se}
+        if [ "${sans_se}" != "${file_root}" ]; then
+            echo "ERROR: Single-ended alignment file is not supported in paired-end filtering."
+            exit 1
+        fi
+        if [ "${merged_bam_root}" == "" ]; then
+            merged_bam_root="${file_root}"
+        else
+            merged_bam_root="${file_root}_${merged_bam_root}"
+            if [ "${merged}" == "" ]; then
+                merged_bam_root="${merged_bam_root}_bwa_biorep" 
+                merged="s merged as"
+            fi
+        fi
+        if [ -f /usr/bin/parse_property.py ]; then
+            if [ "$exp_id" == "" ]; then
+                exp_id=`parse_property.py -f "'${bam_set[$ix]}'" --project "${DX_PROJECT_CONTEXT_ID}" --exp_id`
+            fi
+            rep_tech=`parse_property.py -f "'${bam_set[$ix]}'" --project "${DX_PROJECT_CONTEXT_ID}" --rep_tech`
+            if [ "$rep_tech" != "" ]; then
+                if  [ "$tech_reps" != "" ]; then
+                    tech_reps="${tech_reps}_${rep_tech}"
+                else
+                    tech_reps="${rep_tech}"
+                fi
+            fi
+        fi
+        echo "* Downloading ${file_root}_bwa.bam file..."
+        dx download "${bam_set[$ix]}" -o ${file_root}_bwa.bam
+        if [ ! -e sofar.bam ]; then
+            mv ${file_root}_bwa.bam sofar.bam
+        else
+            echo "* Merging..."
+            set -x
+            samtools cat sofar.bam ${file_root}_bwa.bam > merging.bam
+            mv merging.bam sofar.bam
+            set +x
+        fi
+    done
+    if [ "$exp_id" != "" ] && [ "$tech_reps" != "" ]; then
+        merged_bam_root="${exp_id}_${tech_reps}_pe_bwa_biorep"
+    fi
+    filtered_bam_root="${merged_bam_root}_filtered"
+    echo "* Merged alignments file will be: '${merged_bam_root}.bam'"
+    echo "* Filtered alignments file will be: '${filtered_bam_root}.bam'"
+    
+    #echo "* Sorting merged bam..."
+    #set -x
+    #samtools sort -@ $nthreads -m 6G -f sofar.bam sorted.bam
+    #samtools view -hb sorted.bam > sofar.bam 
+    #set +x
+    
+    # At this point there is a 'sofar.bam' with one or more input bams
+    if [ "${merged}" == "" ]; then
+        merged_bam_root="${file_root}_bwa_biorep"
+        mv sofar.bam ${merged_bam_root}.bam
+        echo "* Only one input file, no merging required."
+    else
+        mv sofar.bam ${merged_bam_root}.bam
+        echo "* Files merged into '${merged_bam_root}.bam'"
+    fi 
 
     echo "* Filter on threashold..."
     # -F 1804 means not: 0111 0000 1100
@@ -36,52 +95,64 @@ main() {
     #    1024 read is PCR or optical duplicate
     # -F 780 means:  0011 0000 1100 not: 4,8,256,512
     set -x
-    samtools view -F 780 -f 2 -q ${map_thresh} -u ${bam_bwa_root}.bam | \
-            samtools sort -@ $nthreads -m 6G -n -f - ${bam_filtered_root}_tmp.sam
-    samtools view -hb ${bam_filtered_root}_tmp.sam > ${bam_filtered_root}_tmp.bam
-    samtools fixmate -r ${bam_filtered_root}_tmp.bam -O sam - | \
+    samtools view -F 780 -f 2 -q ${map_thresh} -u ${merged_bam_root}.bam | \
+            samtools sort -@ $nthreads -m 6G -n -f - ${filtered_bam_root}_tmp.sam
+    samtools view -hb ${filtered_bam_root}_tmp.sam > ${filtered_bam_root}_tmp.bam
+    samtools fixmate -r ${filtered_bam_root}_tmp.bam -O sam - | \
             samtools view -F 780 -f 2 -u - | \
-            samtools sort -@ $nthreads -m 6G -f - ${bam_filtered_root}.sam
-    samtools view -hb ${bam_filtered_root}.sam > ${bam_filtered_root}.bam
-    samtools index ${bam_filtered_root}.bam
+            samtools sort -@ $nthreads -m 6G -f - ${filtered_bam_root}.sam
+    samtools view -hb ${filtered_bam_root}.sam > ${filtered_bam_root}.bam
+    samtools index ${filtered_bam_root}.bam
     rm *.sam
     set +x
 
-    echo "* Collect filtered bam stats..."
+    echo "* Collect bam stats..."
     set -x
-    samtools flagstat ${bam_filtered_root}.bam > ${bam_filtered_root}_flagstat.txt
-    samtools stats ${bam_filtered_root}.bam > ${bam_filtered_root}_samstats.txt
-    head -3 ${bam_filtered_root}_samstats.txt
-    grep ^SN ${bam_filtered_root}_samstats.txt | cut -f 2- > ${bam_filtered_root}_samstats_summary.txt
+    samtools flagstat ${merged_bam_root}.bam > ${merged_bam_root}_flagstat.txt
+    samtools flagstat ${filtered_bam_root}.bam > ${filtered_bam_root}_flagstat.txt
+    samtools stats ${filtered_bam_root}.bam > ${filtered_bam_root}_samstats.txt
+    head -3 ${filtered_bam_root}_samstats.txt
+    grep ^SN ${filtered_bam_root}_samstats.txt | cut -f 2- > ${filtered_bam_root}_samstats_summary.txt
     set +x
 
     echo "* Prepare metadata for filtered bam..."
     qc_filtered=''
-    reads=0
+    prefiltered_all_reads=0
+    prefiltered_mapped_reads=0
+    #filtered_all_reads=0
+    filtered_mapped_reads=0
     read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_filtered=`qc_metrics.py -n samtools_flagstats -f ${bam_filtered_root}_flagstat.txt`
-        reads=`qc_metrics.py -n samtools_flagstats -f ${bam_filtered_root}_flagstat.txt -k total`
-        meta=`qc_metrics.py -n samtools_stats -d ':' -f ${bam_filtered_root}_samstats_summary.txt`
-        read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${bam_filtered_root}_samstats_summary.txt -k "average length"`
+        qc_filtered=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt`
+        prefiltered_all_reads=`qc_metrics.py -n samtools_flagstats -f ${merged_bam_root}_flagstat.txt -k total`
+        prefiltered_mapped_reads=`qc_metrics.py -n samtools_flagstats -f ${merged_bam_root}_flagstat.txt -k mapped`
+        #filtered_all_reads=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt -k total`
+        filtered_mapped_reads=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt -k mapped`
+        meta=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt`
+        read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         qc_filtered=`echo $qc_filtered, $meta`
     fi
     # All qc to one file per target file:
-    echo "===== samtools flagstat ====="   > ${bam_filtered_root}_qc.txt
-    cat ${bam_filtered_root}_flagstat.txt >> ${bam_filtered_root}_qc.txt
-    echo " "                              >> ${bam_filtered_root}_qc.txt
-    echo "===== samtools stats ====="     >> ${bam_filtered_root}_qc.txt
-    cat ${bam_filtered_root}_samstats.txt >> ${bam_filtered_root}_qc.txt
+    echo "===== samtools flagstat ====="   > ${filtered_bam_root}_qc.txt
+    cat ${filtered_bam_root}_flagstat.txt >> ${filtered_bam_root}_qc.txt
+    echo " "                              >> ${filtered_bam_root}_qc.txt
+    echo "===== samtools stats ====="     >> ${filtered_bam_root}_qc.txt
+    cat ${filtered_bam_root}_samstats.txt >> ${filtered_bam_root}_qc.txt
     
     echo "* Upload results..."
-    bam_filtered=$(dx upload ${bam_filtered_root}.bam --details "{ $qc_filtered }" --property SW="$versions" \
-                                                      --property reads="$reads" --property read_length="$read_len" --brief)
-    bam_filtered_qc=$(dx upload ${bam_filtered_root}_qc.txt --details "{ $qc_filtered }" --property SW="$versions" --brief)
+    bam_filtered=$(dx upload ${filtered_bam_root}.bam --details "{ $qc_filtered }" --property SW="$versions" \
+                                                      --property prefiltered_all_reads="$prefiltered_all_reads" \
+                                                      --property prefiltered_mapped_reads="$prefiltered_mapped_reads" \
+                                                      --property filtered_mapped_reads="$filtered_mapped_reads" \
+                                                      --property read_length="$read_len" --brief)
+    bam_filtered_qc=$(dx upload ${filtered_bam_root}_qc.txt --details "{ $qc_filtered }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file
     dx-jobutil-add-output bam_filtered_qc "$bam_filtered_qc" --class=file
 
-    dx-jobutil-add-output reads "$reads" --class=string
+    dx-jobutil-add-output prefiltered_all_reads "$prefiltered_all_reads" --class=string
+    dx-jobutil-add-output prefiltered_mapped_reads "$prefiltered_mapped_reads" --class=string
+    dx-jobutil-add-output filtered_mapped_reads "$filtered_mapped_reads" --class=string
     dx-jobutil-add-output metadata "$versions" --class=string
 
     echo "* Finished."

@@ -1,9 +1,9 @@
 {
   "name": "dnase-merge-bams-alt",
-  "title": "Merge bams (virtual-0.2.4)",
+  "title": "Merge bams (virtual-1.0.0)",
   "summary": "Merge two or more bams for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.4",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {

@@ -1,17 +1,17 @@
 {
   "name": "dnase-merge-bams",
-  "title": "Merge bams (v0.2.4)",
+  "title": "Merge bams (v1.0.0)",
   "summary": "Merge two or more bams for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.4",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
       "name": "bam_set",
-      "label": "Two or more tech_rep bam files to merge",
+      "label": "Two or more tech_rep level bam files to merge",
       "class": "array:file",
       "optional": false,
-      "patterns": ["*_techrep.bam", "*_bwa.bam"]
+      "patterns": ["*_bwa_techrep.bam", "*_bwa.bam"]
     },
     {
       "name": "nthreads",
@@ -26,17 +26,17 @@
       "name": "bam_biorep",
       "label": " Bam file of merged technical replicates",
       "class": "file",
-      "patterns": ["*_biorep.bam"]
+      "patterns": ["*_bwa_biorep.bam"]
     },
     {
       "name": "bam_biorep_qc",
       "label": "Text file with samtools flagstat/stats results",
       "class": "file",
-      "patterns": ["*_biorep_qc.txt"]
+      "patterns": ["*_bwa_biorep_qc.txt"]
     },
     {
       "name": "reads",
-      "label": "Count of reads in the merged biorep bam",
+      "label": "Count of mapped reads in the merged biorep bam",
       "optional": true,
       "class": "string"
     },

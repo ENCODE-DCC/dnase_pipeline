@@ -1,17 +1,17 @@
 {
   "name": "dnase-filter-pe",
-  "title": "Filter bam - pe (v0.2.4)",
-  "summary": "Filter bam (paired-end) for the ENCODE DNase-seq pipeline",
+  "title": "Merge and filter pe bams (v1.0.0)",
+  "summary": "Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.4",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
-      "name": "bam_bwa",
-      "label": "Raw bam (paired-end) to be filtered",
-      "class": "file",
+      "name": "bam_set",
+      "label": "Two or more tech_rep level bam files to merge",
+      "class": "array:file",
       "optional": false,
-      "patterns": ["*_biorep.bam", "*_bwa.bam"]
+      "patterns": ["*_bwa_techrep.bam", "*_bwa.bam"]
     },
     {
       "name": "map_thresh",
@@ -42,8 +42,20 @@
       "patterns": ["*_filtered_qc.txt"]
     },
     {
-      "name": "reads",
-      "label": "Count of reads in the filtered bam",
+      "name": "prefiltered_all_reads",
+      "label": "Count of all reads before filtering",
+      "optional": true,
+      "class": "string"
+    },
+    {
+      "name": "prefiltered_mapped_reads",
+      "label": "Count of mapped reads before filtering",
+      "optional": true,
+      "class": "string"
+    },
+    {
+      "name": "filtered_mapped_reads",
+      "label": "Count of mapped reads in the filtered bam",
       "optional": true,
       "class": "string"
     },
