@@ -252,6 +252,10 @@ class DnaseLaunch(Launch):
                         "hg19": {
                                 "female":   "hg19_female_bwa_index.tgz",
                                 "male":     "hg19_male_bwa_index.tgz"
+                                },
+                        "mm10": {
+                                "female":   "mm10_female_bwa_index.tgz",
+                                "male":     "mm10_male_bwa_index.tgz"
                                 }
                         },
         "chrom_sizes":   {
@@ -377,29 +381,30 @@ class DnaseLaunch(Launch):
                 print "DEBUG: biorep: " + river_id + " tributaries: " + str(len(river['tributaries']))
 
         # Finally a pair of bio_reps are merged and processing finishes up
-        #if len(bio_reps) == 2:
-        #    self.combined_reps = True  # More than one bio_rep so combining will be done!
-        #    sea = {} # SEA is the final branch into which all tributaries flow
-        #    sea['branch_id'] = 'COMBINED_REPS'
-        #    sea['tributaries'] = []
-        #    sea['rep_tech'] = 'reps'
-        #    for tributary_id in sorted( reps.keys() ):
-        #        if len(tributary_id) == 1:  # ignore the simple reps
-        #            continue 
-        #        tributary = reps[tributary_id]
-        #        if len(sea['tributaries']) > 0:
-        #            sea['rep_tech'] += '-'
-        #        sea['rep_tech'] += tributary['rep_tech'][4:]
-        #        sea['tributaries'].append(tributary_id)
-        #
-        #    psv['rep_tech'] = sea['rep_tech']
-        #    reps[self.SEA_ID] = sea
-        #    # Special case of 2 allows for designating sisters
-        #    reps[sea['tributaries'][0]]['sister'] = sea['tributaries'][1]
-        #    reps[sea['tributaries'][1]]['sister'] = sea['tributaries'][0]
-        ##else:
-        ##    print "Found " + str(len(bio_reps)) + " bio_reps.  If exactly two, they would be combined."
-        ##print json.dumps(reps,indent=4,sort_keys=True)
+        if 'COMBINED_REPS' in self.PIPELINE_BRANCH_ORDER:
+            if len(bio_reps) == 2:
+                self.combined_reps = True  # More than one bio_rep so combining will be done!
+                sea = {} # SEA is the final branch into which all tributaries flow
+                sea['branch_id'] = 'COMBINED_REPS'
+                sea['tributaries'] = []
+                sea['rep_tech'] = 'reps'
+                for tributary_id in sorted( reps.keys() ):
+                    if len(tributary_id) == 1:  # ignore the simple reps
+                        continue 
+                    tributary = reps[tributary_id]
+                    if len(sea['tributaries']) > 0:
+                        sea['rep_tech'] += '-'
+                    sea['rep_tech'] += tributary['rep_tech'][4:]
+                    sea['tributaries'].append(tributary_id)
+            
+                psv['rep_tech'] = sea['rep_tech']
+                reps[self.SEA_ID] = sea
+                # Special case of 2 allows for designating sisters
+                reps[sea['tributaries'][0]]['sister'] = sea['tributaries'][1]
+                reps[sea['tributaries'][1]]['sister'] = sea['tributaries'][0]
+            #else:
+            #    print "Found " + str(len(bio_reps)) + " bio_reps.  If exactly two, they would be combined."
+            #print json.dumps(reps,indent=4,sort_keys=True)
 
     #######################
 
