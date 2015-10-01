@@ -12,7 +12,17 @@ main() {
     # By not having caTools and snow in execDepends, we can at least show which versions are used
     echo "install.packages(c('caTools','snow'),dependencies=TRUE,repos='http://cran.cnr.berkeley.edu/')" > installPkgs.R
     echo "install.packages('spp_1.10.1.tar.gz')" >> installPkgs.R
+    cat installPkgs.R
     sudo Rscript installPkgs.R >> install.log 2>&1
+    grep DONE install.log
+    set +x
+    done_count=`grep -c DONE install.log`
+    if [ "$done_count" != "6" ]; then
+        set -x
+        cat install.log
+        set -x
+    fi
+    set -x
     cd ..
     # additional executables in resources/usr/bin
     set +x
@@ -105,7 +115,7 @@ main() {
     dx-jobutil-add-output bam_sample_qc "$bam_sample_qc" --class=file
 
     dx-jobutil-add-output sampled_reads "$reads_sampled" --class=string
-    dx-jobutil-add-output metadata "$versions" --class=string
+    dx-jobutil-add-output metadata "{ $qc_sampled }" --class=string
 
     echo "* Finished."
 }

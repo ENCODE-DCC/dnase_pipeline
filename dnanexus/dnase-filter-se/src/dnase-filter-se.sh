@@ -68,10 +68,14 @@ main() {
     # At this point there is a 'sofar.bam' with one or more input bams
     if [ "${merged}" == "" ]; then
         merged_bam_root="${file_root}_bwa_biorep"
+        set -x
         mv sofar.bam ${merged_bam_root}.bam
+        set +x
         echo "* Only one input file, no merging required."
     else
+        set -x
         mv sofar.bam ${merged_bam_root}.bam
+        set +x
         echo "* Files merged into '${merged_bam_root}.bam'"
     fi 
 
@@ -90,8 +94,9 @@ main() {
     samtools index ${filtered_bam_root}.bam
     set +x
 
-    echo "* Collect filtered bam stats..."
+    echo "* Collect bam stats..."
     set -x
+    samtools flagstat ${merged_bam_root}.bam > ${merged_bam_root}_flagstat.txt
     samtools flagstat ${filtered_bam_root}.bam > ${filtered_bam_root}_flagstat.txt
     samtools stats ${filtered_bam_root}.bam > ${filtered_bam_root}_samstats.txt
     head -3 ${filtered_bam_root}_samstats.txt
@@ -136,7 +141,7 @@ main() {
     dx-jobutil-add-output prefiltered_all_reads "$prefiltered_all_reads" --class=string
     dx-jobutil-add-output prefiltered_mapped_reads "$prefiltered_mapped_reads" --class=string
     dx-jobutil-add-output filtered_mapped_reads "$filtered_mapped_reads" --class=string
-    dx-jobutil-add-output metadata "$versions" --class=string
+    dx-jobutil-add-output metadata "{ $qc_filtered }" --class=string
 
     echo "* Finished."
 }
