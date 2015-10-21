@@ -254,7 +254,7 @@ class DnaseLaunch(Launch):
                                 "male":     "hg19_male_bwa_index.tgz"
                                 },
                         "mm10": {
-                                "female":   "mm10_female_bwa_index.tgz",
+                                "female":   "mm10_male_bwa_index.tgz",
                                 "male":     "mm10_male_bwa_index.tgz"
                                 }
                         },
@@ -264,7 +264,7 @@ class DnaseLaunch(Launch):
                                 "male":     "male.hg19.chrom.sizes"
                                 },
                         "mm10": {
-                                "female":   "female.mm10.chrom.sizes",
+                                "female":   "male.mm10.chrom.sizes",
                                 "male":     "male.mm10.chrom.sizes"
                                 }
                         }
