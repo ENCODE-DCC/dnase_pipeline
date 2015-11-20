@@ -5,12 +5,17 @@
 #       but all other applet contents are temporary symlinks to the true applets's contents.  This script handles the symlinks.
 
 applets="dnase-index-bwa dnase-align-bwa-pe dnase-align-bwa-se dnase-filter-pe dnase-filter-se"
-applets="$applets dnase-size-bam dnase-eval-bam-pe dnase-eval-bam-se dnase-hotspot-qc dnase-call-hotspots dnase-pool-bioreps"
+applets="$applets dnase-eval-bam-pe dnase-eval-bam-se"
+# Expecting to add:
+#applets="$applets dnase-hotspot-qc dnase-call-hotspots"
+# No longer expecting:
+#applets="$applets dnase-size-bam dnase-pool-bioreps"
 #extra_apps='dnase-install fastq-stats bam-filter-pe bam-filter-se'
 
 tools="tool_versions.py qc_metrics.py parse_property.py"
 virtual_pairs="dnase-call-hotspots:dnase-call-hotspots-alt dnase-hotspot-qc:dnase-hotspot-qc-alt"
-virtual_pairs="$virtual_pairs dnase-pool-bioreps:dnase-pool-bioreps-alt"
+# No longer expecting:
+#virtual_pairs="$virtual_pairs dnase-pool-bioreps:dnase-pool-bioreps-alt"
 virtual_links="src resources Readme.developer.md Readme.md"
 
 applet_dest=`cat ~/.dnanexus_config/DX_PROJECT_CONTEXT_NAME`

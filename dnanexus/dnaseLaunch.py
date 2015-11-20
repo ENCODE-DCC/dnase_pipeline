@@ -4,9 +4,8 @@
 import argparse,os, sys, json
 
 import dxpy
-#from dxencode import dxencode as dxencode
-import dxencode as dxencode
 from launch import Launch
+#from template import Launch # (does not use dxencode at all)
 
 class DnaseLaunch(Launch):
     '''Descendent from Launch class with 'rampage' methods'''
@@ -244,7 +243,6 @@ class DnaseLaunch(Launch):
         "pr_bam_hotspot_qc":        "/*_pooled_hotspot_qc.txt",         
     }
 
-    REF_PROJECT_DEFAULT = "scratchPad"  # TODO: move all ref files to ref project!
     REFERENCE_FILES = {
         # For looking up reference file names.
         # TODO: should use ACCESSION based fileNames
@@ -312,23 +310,23 @@ class DnaseLaunch(Launch):
     def find_ref_files(self,priors):
         '''Locates all reference files based upon organism and gender.'''
         # TODO:  move all ref files to ref project and replace "/ref/" and self.REF_PROJECT_DEFAULT
-        #bwaIx = self.psv['refLoc']+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
-        base_dir = "/ref/" + self.psv['genome'] + "/dnase/"
-        bwaIx = base_dir+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
-        #bwaIxFid = dxencode.find_file(bwaIx,dxencode.REF_PROJECT_DEFAULT)
-        bwaIxFid = dxencode.find_file(bwaIx,self.REF_PROJECT_DEFAULT)
-        if bwaIxFid == None:
-            sys.exit("ERROR: Unable to locate BWA index file '" + bwaIx + "'")
+        bwa_path = self.psv['refLoc']+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
+        #base_dir = "/ref/" + self.psv['genome'] + "/dnase/"
+        #bwa_path = base_dir+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
+        bwa_fid = self.find_file(bwa_path,self.REF_PROJECT_DEFAULT)
+        if bwa_fid == None:
+            sys.exit("ERROR: Unable to locate BWA index file '" + self.REF_PROJECT_DEFAULT + ':' + bwa_path + "'")
         else:
-            priors['bwa_index'] = bwaIxFid
+            priors['bwa_index'] = bwa_fid
 
-        chromSizes = self.psv['refLoc']+self.REFERENCE_FILES['chrom_sizes'][self.psv['genome']][self.psv['gender']]
-        chromSizesFid = dxencode.find_file(chromSizes,dxencode.REF_PROJECT_DEFAULT)
-        if chromSizesFid == None:
-            sys.exit("ERROR: Unable to locate Chrom Sizes file '" + chromSizes + "'")
+        chrom_sizes = self.psv['refLoc']+self.REFERENCE_FILES['chrom_sizes'][self.psv['genome']][self.psv['gender']]
+        chrom_sizes_fid = self.find_file(chrom_sizes,self.REF_PROJECT_DEFAULT)
+        if chrom_sizes_fid == None:
+            sys.exit("ERROR: Unable to locate Chrom Sizes file '" + chrom_sizes + "'")
         else:
-            priors['chrom_sizes'] = chromSizesFid
+            priors['chrom_sizes'] = chrom_sizes_fid
         self.psv['ref_files'] = self.REFERENCE_FILES.keys()
+        return priors
     
 
     def add_combining_reps(self, psv):
