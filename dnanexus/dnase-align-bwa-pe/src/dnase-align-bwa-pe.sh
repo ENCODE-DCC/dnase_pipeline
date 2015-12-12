@@ -72,7 +72,7 @@ main() {
     ls -l ${reads2_root}.fq.gz
     bam_root="${reads1_root}_${reads2_root}_bwa_techrep"
     if [ -f /usr/bin/parse_property.py ]; then
-        new_root=`parse_property.py -f "'${reads1[0]}'" --project "${DX_PROJECT_CONTEXT_ID}" --root_name`
+        new_root=`parse_property.py --job "${DX_JOB_ID}" --root_name --quiet`
         if [ "$new_root" != "" ]; then
             bam_root="${new_root}_pe_bwa_techrep"
         fi
