@@ -59,14 +59,14 @@ main() {
     dnase_align_bwa_se.sh ${bwa_ix_root}.tgz ${reads_root}.fq.gz $nthreads $bam_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
-    bam_root="${bam_root}_se_bwa"
+    scripted_root="${bam_root}_se_bwa"
+    bam_root="${scripted_root}_techrep"
     # Add DX/encodeD specific _techrep qualifier
     set -x
-    mv ${bam_root}.bam ${bam_root}_techrep.bam 
-    mv ${bam_root}_flagstat.txt ${bam_root}_techrep_flagstat.txt 
-    mv ${bam_root}_edwBamStats.txt ${bam_root}_techrep_edwBamStats.txt 
+    mv ${scripted_root}.bam ${bam_root}.bam 
+    mv ${scripted_root}_flagstat.txt ${bam_root}_flagstat.txt 
+    mv ${scripted_root}_edwBamStats.txt ${bam_root}_edwBamStats.txt 
     set +x
-    bam_root="${bam_root}_techrep"
     echo "-- The named results..."
     ls -l ${bam_root}*
 

@@ -23,21 +23,21 @@ APP_TOOLS = {
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
     "dnase-merge-bams":   [ "samtools" ],
-    "dnase-hotspot-qc":   [
-                            "edwBamStats","hotspot","hotspot.py (GCAP)","samtools",
+    "dnase-qc-hotspot":   [
+                            "dnase_qc_hotspot.sh","edwBamStats","hotspot","hotspot.py","samtools",
                             "bedops","bedmap (bedops)","sort-bed (bedops)",
                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
                             "bedtools","bamToBed (bedtools)","shuffleBed (bedtools)"
                           ],
     "dnase-call-hotspots": [
-                            "hotspot","hotspot.py (GCAP)","samtools",
+                            "dnase_hotspot.sh", "hotspot","hotspot.py","samtools",
                             "bedops","bedmap (bedops)","sort-bed (bedops)",
                             "starch (bedops)","starchcat (bedops)","unstarch (bedops)",
                             "bedtools","bamToBed (bedtools)","intersectBed (bedtools)","shuffleBed (bedtools)",
                             "bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
                           ],
     "dnase-pool-bioreps": [ 
-                            "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
+                            "dnase_pool_reps.sh", "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
                             "edwComparePeaks", "edwBamStats" 
                           ],
     #"bam-filter-pe":      [
@@ -55,7 +55,7 @@ APP_TOOLS = {
 VIRTUAL_APPS = {
     "dnase-merge-bams-alt":      "dnase-merge-bams",
     "dnase-size-bam-alt":        "dnase-size-bam",
-    "dnase-hotspot-qc-alt":      "dnase-hotspot-qc",   
+    "dnase-qc-hotspot-alt":      "dnase-qc-hotspot",   
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
     "dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
     "dnase-final-hotspots":      "dnase-call-hotspots",
@@ -81,7 +81,7 @@ ALL_TOOLS = {
             "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
             "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
             "hotspot":                  "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
-            "hotspot.py (GCAP)":        "python2.7 /usr/bin/hotspot.py -h | grep Version | awk '{print $8}'",
+            "hotspot.py":               "hotspot.py -h | grep Version | awk '{print $8}'",
             "intersectBed (bedtools)":  "intersectBed 2>&1 | grep Version | awk '{print $2}'",
             "phantompeakqualtools":     "grep Version phantompeakqualtools/README.txt | awk '{print $2}'",
             "R":                        "R --version | grep 'R version' | awk '{print $3,$4}'",
@@ -101,6 +101,9 @@ ALL_TOOLS = {
             "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_eval_pe.sh":         "dnase_eval_pe.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_eval_se.sh":         "dnase_eval_se.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_qc_hotspot.sh":      "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_pool_reps.sh":       "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
             }
 
 def parse_dxjson(dxjson):

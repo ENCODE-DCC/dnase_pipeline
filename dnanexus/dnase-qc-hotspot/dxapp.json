@@ -1,9 +1,9 @@
 {
-  "name": "dnase-hotspot-qc-alt",
-  "title": "QC bam sample with hotspot (virtual-0.2.2)",
+  "name": "dnase-qc-hotspot",
+  "title": "QC bam sample with hotspot (v0.2.3)",
   "summary": "Calls hotspots on a sample for qc for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -64,7 +64,7 @@
   ],
   "runSpec": {
     "interpreter": "bash",
-    "file": "src/dnase-hotspot-qc.sh",
+    "file": "src/dnase-qc-hotspot.sh",
     "systemRequirements": {
       "main": {
         "instanceType": "mem3_hdd2_x8"
