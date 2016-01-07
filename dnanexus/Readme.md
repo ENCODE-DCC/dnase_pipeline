@@ -29,7 +29,7 @@ be repurposed for a non-dnanexus environment.
                         reads and generates evaluation data. This step produces a sample bam and a QC metrics file.
 - dnase-eval-bam-se   - Takes one single-ended bam produced by '`dnase-filter-se`', excludes mappings to chrM, sub-samples
                         reads and generates evaluation data. This step produces a sample bam and a QC metrics file.
-- dnase-hotspot-qc    - Takes the bam filtered from either paired or single ended datasets.
+- dnase-qc-hotspot    - Takes the bam filtered from either paired or single ended datasets.
                         This step runs hotspot on a 5 million read sample of the bam in order to produce QC metrics.
 - dnase-call-hotspots - Takes a filtered bam and runs hotspots.  This step produces narrowPeaks (hotspots) and broadPeaks
                         (regions) in both bed and bigBed format.  The step also produces signals in bigWig format and
@@ -59,7 +59,7 @@ INPUTS:  read1.fq.gz            n*tech-pe.bam(b)  filtered-pe.bam(c)  filtered-p
          bwa_index.tgz(a)             |                   |                  |                   |             2*hs_signal.bw(e)
               |                       |                   |                  |                   |                      |
               V                       V                   V                  V                   V                      V
-STEPS:   dnase-align-bwa-pe ==> bam-filter-pe ==> dnase-eval-bam ==> dnase-hotspot-qc ==> dnase-call-hotspots ==> dnase-pool-bioreps
+STEPS:   dnase-align-bwa-pe ==> bam-filter-pe ==> dnase-eval-bam ==> dnase-qc-hotspot ==> dnase-call-hotspots ==> dnase-pool-bioreps
               |                       |                   |                  |                   |                      |
               V                       V                   V                  V                   V                      V
 OUTPUTS: tech-pe.bam(b)         filtered-pe.bam(c)  sampled-pe.bam     sample_5M.bam      hs_narrowPeak.bb,bed(d)  pooled.bam
@@ -76,7 +76,7 @@ INPUTS:  reads.fq.gz            n*tech-se.bam(f)  filtered-se.bam(g)  filtered-s
               |                       |                   |                  |                   |                2*hs_signal.bw(i)
               |                       |                   |                  |                   |                      |
               V                       V                   V                  V                   V                      V
-STEPS:   dnase-align-bwa-se ==> bam-filter-se ==> dnase-eval-bam ==> dnase-hotspot-qc ==> dnase-call-hotspots ==> dnase-pool-bioreps
+STEPS:   dnase-align-bwa-se ==> bam-filter-se ==> dnase-eval-bam ==> dnase-qc-hotspot ==> dnase-call-hotspots ==> dnase-pool-bioreps
               |                       |                   |                  |                   |                      |
               V                       V                   V                  V                   V                      V
 OUTPUTS: tech-se.bam(f)         filtered-se.bam(g)  sampled-se.bam     sample_5M.bam      hs_narrowPeak.bb,bed(h)  pooled.bam(q)
