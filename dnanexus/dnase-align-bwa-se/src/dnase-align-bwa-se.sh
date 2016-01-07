@@ -40,38 +40,35 @@ main() {
     gzip ${outfile_name}.fq
     echo "* Fastq${concat} file: '${outfile_name}.fq.gz'"
     reads_root=${outfile_name}
-    bam_root="${reads_root}_bwa_techrep"
+    bam_root="${reads_root}"
     if [ -f /usr/bin/parse_property.py ]; then
         new_root=`parse_property.py --job "${DX_JOB_ID}" --root_name --quiet`
         if [ "$new_root" != "" ]; then
-            bam_root="${new_root}_se_bwa_techrep"
+            bam_root="${new_root}"
         fi
     fi
-    echo "* Alignments file will be: '${bam_root}.bam'"
 
     bwa_ix_root=`dx describe "$bwa_index" --name`
     bwa_ix_root=${bwa_ix_root%.tar.gz}
     bwa_ix_root=${bwa_ix_root%.tgz}
-    ref_id=${bwa_ix_root%_bwa_index}
-    echo "* Downloading and extracting ${bwa_ix_root}.tgz file..."
+    echo "* Downloading ${bwa_ix_root}.tgz file..."
     dx download "$bwa_index" -o ${bwa_ix_root}.tgz
-    tar zxvf ${bwa_ix_root}.tgz
-    echo "* Reference fasta: ${ref_id}.fa"
 
-    echo "* Aligning with bwa..."
+    echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    bwa aln -q 5 -l 32 -k 2 -t $nthreads ${ref_id} ${reads_root}.fq.gz > tmp.sai
-    bwa samse ${ref_id} tmp.sai ${reads_root}.fq.gz | samtools view -Shu - | samtools sort -@ $nthreads -m 5G -f - tmp.sam
-    samtools view -hb tmp.sam > ${bam_root}.bam
-    samtools index ${bam_root}.bam
-    #samtools view -H ${bam_root}.bam
+    dnase_align_bwa_se.sh ${bwa_ix_root}.tgz ${reads_root}.fq.gz $nthreads $bam_root
     set +x
-
-    echo "* Collect bam stats..."
+    echo "* ===== Returned from dnanexus and encodeD independent script ====="
+    bam_root="${bam_root}_se_bwa"
+    # Add DX/encodeD specific _techrep qualifier
     set -x
-    samtools flagstat ${bam_root}.bam > ${bam_root}_flagstat.txt
-    edwBamStats ${bam_root}.bam ${bam_root}_edwBamStats.txt
+    mv ${bam_root}.bam ${bam_root}_techrep.bam 
+    mv ${bam_root}_flagstat.txt ${bam_root}_techrep_flagstat.txt 
+    mv ${bam_root}_edwBamStats.txt ${bam_root}_techrep_edwBamStats.txt 
     set +x
+    bam_root="${bam_root}_techrep"
+    echo "-- The named results..."
+    ls -l ${bam_root}*
 
     echo "* Prepare metadata json..."
     qc_aligned=''

@@ -61,13 +61,11 @@ main() {
     if [ "$exp_id" != "" ] && [ "$tech_reps" != "" ]; then
         merged_bam_root="${exp_id}_${tech_reps}_se_bwa_biorep"
     fi
-    filtered_bam_root="${merged_bam_root}_filtered"
     echo "* Merged alignments file will be: '${merged_bam_root}.bam'"
-    echo "* Filtered alignments file will be: '${filtered_bam_root}.bam'"
     
     # At this point there is a 'sofar.bam' with one or more input bams
     if [ "${merged}" == "" ]; then
-        merged_bam_root="${file_root}_bwa_biorep"
+        merged_bam_root="${file_root}_se_bwa_biorep"
         set -x
         mv sofar.bam ${merged_bam_root}.bam
         set +x
@@ -79,29 +77,12 @@ main() {
         echo "* Files merged into '${merged_bam_root}.bam'"
     fi 
 
-    echo "* Filter on threashold..."
-    # -F 1804 means not:  0111 0000 1100
-    #       4 read unmapped
-    #       8 mate unmapped
-    #     256 not primary alignment
-    #     512 read fails platform/vendor quality checks
-    #    1024 read is PCR or optical duplicate
-    # -F 780 means:  0011 0000 1100 not: 4,8,256,512
+    echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    samtools view -F 780 -q ${map_thresh} -u ${merged_bam_root}.bam | \
-            samtools sort -@ $nthreads -m 6G -f - ${filtered_bam_root}.sam
-    samtools view -hb ${filtered_bam_root}.sam > ${filtered_bam_root}.bam
-    samtools index ${filtered_bam_root}.bam
+    dnase_filter_se.sh ${merged_bam_root}.bam $map_thresh $nthreads
     set +x
-
-    echo "* Collect bam stats..."
-    set -x
-    samtools flagstat ${merged_bam_root}.bam > ${merged_bam_root}_flagstat.txt
-    samtools flagstat ${filtered_bam_root}.bam > ${filtered_bam_root}_flagstat.txt
-    samtools stats ${filtered_bam_root}.bam > ${filtered_bam_root}_samstats.txt
-    head -3 ${filtered_bam_root}_samstats.txt
-    grep ^SN ${filtered_bam_root}_samstats.txt | cut -f 2- > ${filtered_bam_root}_samstats_summary.txt
-    set +x
+    echo "* ===== Returned from dnanexus and encodeD independent script ====="
+    filtered_bam_root="${merged_bam_root}_filtered"
 
     echo "* Prepare metadata for filtered bam..."
     qc_filtered=''

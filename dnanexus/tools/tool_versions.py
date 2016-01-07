@@ -8,18 +8,18 @@ import sys, os, argparse, json, commands
 
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
 APP_TOOLS = { 
-    "dnase-index-bwa":    [ "bwa", "samtools" ],
-    "dnase-align-bwa-pe": [ "bwa", "samtools", "edwBamStats" ],
-    "dnase-align-bwa-se": [ "bwa", "samtools", "edwBamStats" ],
-    "dnase-filter-pe":    [ "samtools" ],
-    "dnase-filter-se":    [ "samtools" ],
+    "dnase-index-bwa":    [ "dnase_index_bwa.sh", "bwa" ],
+    "dnase-align-bwa-pe": [ "dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats" ],
+    "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats" ],
+    "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools" ],
+    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools" ],
     "dnase-size-bam":     [ "edwBamStats" ],
     "dnase-eval-bam-pe":  [
-                            "samtools","edwBamFilter","edwBamStats",#"R",
+                            "dnase_eval_pe.sh","samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
     "dnase-eval-bam-se":  [
-                            "samtools","edwBamFilter","edwBamStats",#"R",
+                            "dnase_eval_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
     "dnase-merge-bams":   [ "samtools" ],
@@ -94,6 +94,13 @@ ALL_TOOLS = {
             "starch (bedops)":          "starch --version 2>&1 | grep version | awk '{print $3}'",
             "starchcat (bedops)":       "starchcat --version 2>&1 | grep version | awk '{print $3}'",
             "unstarch (bedops)":        "unstarch --version 2>&1 | grep version | awk '{print $3}'"
+            "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_filter_pe.sh":       "dnase_filter_pe.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_eval_pe.sh":         "dnase_eval_pe.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_eval_se.sh":         "dnase_eval_se.sh | grep usage | awk '{print $2}' | tr -d :",
             }
 
 def parse_dxjson(dxjson):

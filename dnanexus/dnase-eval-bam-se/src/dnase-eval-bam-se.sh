@@ -52,37 +52,12 @@ main() {
     bam_no_chrM_root="${bam_input_root}_no_chrM"
     bam_sample_root="${bam_input_root}_${sample_size}_sample"
     
-    echo "* Filter out chrM..."
-    # Note, unlike in pe there is no sort by name
+    echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    edwBamFilter -sponge -chrom=chrM ${bam_input_root}.bam ${bam_no_chrM_root}.bam  ## qc based on bam without chrm
-    samtools index ${bam_no_chrM_root}.bam
+    dnase_eval_se.sh ${bam_input_root}.bam $sample_size $nthreads
     set +x
-
-    echo "* Generating stats on $sample_size reads..."
-    set -x
-    edwBamStats -sampleBamSize=${sample_size} -u4mSize=${sample_size} -sampleBam=${bam_sample_root}.bam \
-                                              ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_sampling_edwBamStats.txt
-    edwBamStats ${bam_sample_root}.bam ${bam_sample_root}_edwBamStats.txt
-    samtools index ${bam_sample_root}.bam
-    set +x
-
-    echo "* Running spp..."
-    set -x
-    # awk didn't work, so use gawk and pre-create the tagAlign 
-    samtools view -F 0x0204 -o - ${bam_sample_root}.bam | \
-       gawk 'BEGIN{OFS="\t"}{if (and($2,16) > 0) {print $3,($4-1),($4-1+length($10)),"N","1000","-"} else {print $3,($4-1),($4-1+length($10)),"N","1000","+"} }' \
-       | gzip -c > ${bam_sample_root}.tagAlign.gz
-    Rscript phantompeakqualtools/run_spp.R -x=-500:-1 -s=-500:5:1500 -rf -c=${bam_sample_root}.tagAlign.gz \
-                                        -out=${bam_sample_root}_spp.txt > ${bam_sample_root}_spp_out.txt
-    set +x
-
-    echo "* Running pbc..."
-    set -x
-    bedtools bamtobed -i ${bam_sample_root}.bam | awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$6}' | sort | uniq -c \
-        | awk 'BEGIN{mt=0;m0=0;m1=0;m2=0} ($1==1){m1=m1+1} ($1==2){m2=m2+1} {m0=m0+1} {mt=mt+$1} END{printf "%d\t%d\t%d\t%d\t%f\t%f\t%f\n",mt,m0,m1,m2,m0/mt,m1/m0,m1/m2}' \
-        > ${bam_sample_root}_pbc.txt
-    set +x
+    echo "* ===== Returned from dnanexus and encodeD independent script ====="
+    bam_sample_root="${bam_input_root}_${sample_size}_sample"
 
     echo "* Prepare metadata for sampled bam..."
     qc_sampled=''

@@ -30,30 +30,20 @@ main() {
     echo "* ${source_msg} gender: '$gender'"
 
     index_id="${genome}_${gender}"
-    index_file="${index_id}_bwa_index.tgz"
-    echo "* Index file will be: '$index_file'"
 
     echo "* Download files..."
     dx download "$reference" -o "$index_id".fa.gz
-    gunzip "$index_id".fa.gz 
-    ref="$index_id".fa
 
     echo "* Reference file: '$ref'"
 
-    echo "* Build index..."
+    echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    bwa index -p $index_id -a bwtsw $ref
-    ls 
-    ls -l ${index_id}.*
+    dnase_index_bwa.sh "$index_id".fa.gz $genome $gender
     set +x
-    
-    echo "* tar and gzip index..."
-    set -x
-    tar -czf $index_file ${index_id}.*
-    set +x
-    
+    echo "* ===== Returned from dnanexus and encodeD independent script ====="
+    index_file="${index_id}_bwa_index.tgz"
+
     echo "* Upload Results..."
-    bwa_version=`bwa 2>&1 | grep Version | awk '{print $2}'`
     bwa_index=$(dx upload $index_file --property genome="$genome" --property gender="$gender" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bwa_index $bwa_index --class=file
