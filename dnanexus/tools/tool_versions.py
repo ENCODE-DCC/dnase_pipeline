@@ -11,8 +11,8 @@ APP_TOOLS = {
     "dnase-index-bwa":    [ "dnase_index_bwa.sh", "bwa" ],
     "dnase-align-bwa-pe": [ "dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats" ],
     "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats" ],
-    "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools" ],
-    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools" ],
+    "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools", "filter_reads.py" ],
+    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools", "filter_reads.py" ],
     "dnase-size-bam":     [ "edwBamStats" ],
     "dnase-eval-bam-pe":  [
                             "dnase_eval_pe.sh","samtools","edwBamFilter","edwBamStats",#"R",
@@ -93,7 +93,8 @@ ALL_TOOLS = {
             "sort-bed (bedops)":        "sort-bed --version 2>&1 | grep version | awk '{print $2}'",
             "starch (bedops)":          "starch --version 2>&1 | grep version | awk '{print $3}'",
             "starchcat (bedops)":       "starchcat --version 2>&1 | grep version | awk '{print $3}'",
-            "unstarch (bedops)":        "unstarch --version 2>&1 | grep version | awk '{print $3}'"
+            "unstarch (bedops)":        "unstarch --version 2>&1 | grep version | awk '{print $3}'",
+            "filter_reads.py":          "echo unversioned",
             "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",

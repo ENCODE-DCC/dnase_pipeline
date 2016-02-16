@@ -2,18 +2,43 @@
 # dnase-filter-se.sh - Merge and filter bams (single-end) for the ENCODE DNase-seq pipeline.
 
 main() {
-    # executables in resources/usr/bin
+    echo "* Installing Anaconda3-2.2.0 (python3.4.3)..."
+    set -x
+    wget https://repo.continuum.io/archive/Anaconda3-2.2.0-Linux-x86_64.sh >> install.log 2>&1
+    bash Anaconda3-2.2.0-Linux-x86_64.sh -b >> install.log 2>&1
+    set -x
+    #echo "* Patchup for two pythons..."
+    ### python symlink will interfere with python2.7
+    ##set -x
+    ana_home="/home/dnanexus/anaconda3"
+    OLDPATH=$PATH
+    OLDPYTHONPATH=$PYTHONPATH
+    export PATH=${ana_home}/bin:$OLDPATH
+    PYTHONPATH=${ana_home}/lib/python3.4/site-packages/:$OLDPYTHONPATH
     set +x
-    
+    echo "* Installing pysam for python3..."
+    set -x
+    pip install pysam >> install.log 2>&1
+    ln -sf /usr/bin/python2.7 ${ana_home}/bin/python 
+    PYTHONPATH=$OLDPYTHONPATH:${ana_home}/lib/python3.4/site-packages/
+    set +x
+
+    #echo "* Installing gawk..."
+    #set -x
+    #sudo apt-get install gawk
+    #set +x
+    # gawk is installed using dxapp.json
+        
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
         versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
 
-    echo "* Value of bam_set: '$bam_set'"
+    echo "* Value of bam_set:    '$bam_set'"
     echo "* Value of map_thresh: '$map_thresh'"
-    echo "* Value of nthreads: '$nthreads'"
+    echo "* Value of umi:        '$umi'"
+    echo "* Value of nthreads:   '$nthreads'"
 
     merged_bam_root=""
     merged=""
@@ -79,7 +104,9 @@ main() {
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_filter_se.sh ${merged_bam_root}.bam $map_thresh $nthreads
+    #PYTHONPATH=${ana_home}/lib/python3.4/site-packages/:$OLDPYTHONPATH
+    dnase_filter_se.sh ${merged_bam_root}.bam $map_thresh $nthreads $umi
+    #PYTHONPATH=$OLDPYTHONPATH:${ana_home}/lib/python3.4/site-packages/
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     filtered_bam_root="${merged_bam_root}_filtered"

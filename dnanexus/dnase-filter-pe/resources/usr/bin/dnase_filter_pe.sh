@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-if [ $# -ne 3 ]; then
-    echo "usage v1: dnase_filter_pe.sh <unfiltered.bam> <map_threshold> <ncpus>"
+if [ $# -ne 4 ]; then
+    echo "usage v1: dnase_filter_pe.sh <unfiltered.bam> <map_threshold> <ncpus> <umi>"
     echo "Filters paired-end aligned reads for DNase.  Is independent of DX and encodeD."
     echo "Requires samtools on path."
     exit -1; 
@@ -9,25 +9,73 @@ fi
 unfiltered_bam=$1  # unfiltered bam file.
 map_thresh=$2      # Mapping threshold (e.g. 10)
 ncpus=$3           # Number of cpus available
+umi=$4             # Whether reads in bam contain UMI ids (only 'yes' means yes).
 
 unfiltered_bam_root=${unfiltered_bam%.bam}
 filtered_bam_root="${unfiltered_bam_root}_filtered"
 echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
-echo "-- Filter on threashold..."
-# -F 1804 means not: 0111 0000 1100
-#       4 read unmapped
-#       8 mate unmapped
-#     256 not primary alignment
-#     512 read fails platform/vendor quality checks
-#    1024 read is PCR or optical duplicate
-# -F 780 means:  0011 0000 1100 not: 4,8,256,512
+# Still want to know if the following would work:
+#echo "-- Detect UMI with filter_reads.py."
+#set -x
+#python3 /usr/bin/filter_reads.py $unfiltered_bam $post_umi_bam
+#set +x
+#md5_unfiltered=`md5sum $unfiltered_bam`
+#md5_post_umi=`md5sum $post_umi_bam`
+#umi="yes"
+#if [ "$md5_unfiltered" == "$md5_post_umi" ]; then
+#    umi="no"
+#fi
+
+#    1 read paired
+#    2 read mapped in proper pair
+#    4 read unmapped
+#    8 mate unmapped
+#   16 read reverse strand
+#   32 mate reverse strand
+#   64 first in pair
+#  128 second in pair
+#  256 not primary alignment
+#  512 read fails platform/vendor quality checks
+# 1024 read is PCR or optical duplicate
+# 2048 supplementary alignment
+
+if [ "$umi" == "yes" ]; then
+    echo "-- UMI filtering will be performed."
+    flagged_root="${unfiltered_bam_root}_post_umi"
+    flagged_file="${flagged_root}.sam"
+    filter_flags=`expr 512 + 8 + 4`
+    echo "-- Sort bam by name."
+    set -x
+    samtools sort -@ $ncpus -m 6G -n -O sam -T sorted $unfiltered_bam > sorted.sam
+    set +x
+    echo "-- Detect UMI with filter_reads.py."
+    set -x
+    python3 /usr/bin/filter_reads.py sorted.sam ${flagged_root}.sam
+    #### Trying to work out if filter_reads is a NOP on non-UMI bams
+    ls -l sorted.sam
+    ls -l ${flagged_root}.sam
+    md5sum sorted.sam
+    md5sum ${flagged_root}.sam
+    #### Trying to work out if filter_reads is a NOP on non-UMI bams
+    set +x
+else
+    echo "-- non-UMI filtering will be performed."
+    flagged_file=$unfiltered_bam
+    filter_flags=`expr 1024 + 512 + 8 + 4`
+fi
+
+echo "-- Filter on flags and threashold..."
+# Simple version from Richard
+#samtools view -F $filter_flags -b $flagged_file > ${filtered_bam_root}.bam
+
+# More complex "pair aware" version
 set -x
-samtools view -F 780 -f 2 -q ${map_thresh} -u $unfiltered_bam | \
+samtools view -F $filter_flags -f 2 -q ${map_thresh} -u $flagged_file | \
         samtools sort -@ $ncpus -m 6G -n -f - ${filtered_bam_root}_tmp.sam
 samtools view -hb ${filtered_bam_root}_tmp.sam > ${filtered_bam_root}_tmp.bam
 samtools fixmate -r ${filtered_bam_root}_tmp.bam -O sam - | \
-        samtools view -F 780 -f 2 -u - | \
+        samtools view -F $filter_flags -f 2 -u - | \
         samtools sort -@ $ncpus -m 6G -f - ${filtered_bam_root}.sam
 samtools view -hb ${filtered_bam_root}.sam > ${filtered_bam_root}.bam
 samtools index ${filtered_bam_root}.bam

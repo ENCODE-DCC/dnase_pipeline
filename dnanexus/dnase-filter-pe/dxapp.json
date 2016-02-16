@@ -21,6 +21,13 @@
       "default": 10
     },
     {
+      "name": "umi",
+      "label": "UMI ids in reads.",
+      "class": "string",
+      "optional": true,
+      "default": "yes"
+    },
+    {
       "name": "nthreads",
       "label": "Number of threads to use",
       "class": "int",
@@ -68,17 +75,9 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-filter-pe.sh",
-    "systemRequirements": {
-      "main": {
-        "instanceType": "mem3_hdd2_x8"
-      },
-      "myEntryPoint": {
-        "instanceType": "mem3_hdd2_x8"
-      }
-    },
-    "execDepends": [
-        { "name": "gawk" }
-    ]
+    "distribution": "Ubuntu", "release": "12.04",
+    "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x8" } },
+    "execDepends": [ { "name": "gawk" } ]
   },
   "access": {
     "network": [
