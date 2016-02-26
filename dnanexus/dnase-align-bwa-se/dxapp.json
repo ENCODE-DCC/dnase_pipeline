@@ -1,9 +1,9 @@
 {
   "name": "dnase-align-bwa-se",
-  "title": "Align with bwa - se (v1.0.1)",
+  "title": "Align with bwa - se (v1.0.2)",
   "summary": "Alignment by bwa of single-end fastq for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -19,6 +19,13 @@
       "class": "file",
       "optional": false,
       "patterns": ["*_bwa_index.tar.gz","*_bwa_index.tgz"]
+    },
+    {
+      "name": "umi",
+      "label": "UMI ids in reads.",
+      "class": "string",
+      "choices": [ "yes", "no" ],
+      "optional": false
     },
     {
       "name": "nthreads",

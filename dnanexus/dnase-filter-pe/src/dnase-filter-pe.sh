@@ -2,32 +2,32 @@
 # dnase-filter-pe.sh - Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline.
 
 main() {
-    echo "* Installing Anaconda3-2.2.0 (python3.4.3)..."
-    set -x
-    wget https://repo.continuum.io/archive/Anaconda3-2.2.0-Linux-x86_64.sh >> install.log 2>&1
-    bash Anaconda3-2.2.0-Linux-x86_64.sh -b >> install.log 2>&1
-    set -x
+    #echo "* Installing Anaconda3-2.2.0 (python3.4.3)..."
+    #set -x
+    #wget https://repo.continuum.io/archive/Anaconda3-2.2.0-Linux-x86_64.sh >> install.log 2>&1
+    #bash Anaconda3-2.2.0-Linux-x86_64.sh -b >> install.log 2>&1
+    #set -x
     #echo "* Patchup for two pythons..."
     ### python symlink will interfere with python2.7
     ##set -x
-    ana_home="/home/dnanexus/anaconda3"
-    OLDPATH=$PATH
-    OLDPYTHONPATH=$PYTHONPATH
-    export PATH=${ana_home}/bin:$OLDPATH
-    PYTHONPATH=${ana_home}/lib/python3.4/site-packages/:$OLDPYTHONPATH
-    set +x
-    echo "* Installing pysam for python3..."
-    set -x
-    pip install pysam >> install.log 2>&1
-    ln -sf /usr/bin/python2.7 ${ana_home}/bin/python 
-    PYTHONPATH=$OLDPYTHONPATH:${ana_home}/lib/python3.4/site-packages/
-    set +x
-
+    #ana_home="/home/dnanexus/anaconda3"
+    #OLDPATH=$PATH
+    #OLDPYTHONPATH=$PYTHONPATH
+    #export PATH=${ana_home}/bin:$OLDPATH
+    #PYTHONPATH=${ana_home}/lib/python3.4/site-packages/:$OLDPYTHONPATH
+    #set +x
+    #echo "* Installing pysam for python3..."
+    #set -x
+    #pip install pysam >> install.log 2>&1
+    #ln -sf /usr/bin/python2.7 ${ana_home}/bin/python 
+    #PYTHONPATH=$OLDPYTHONPATH:${ana_home}/lib/python3.4/site-packages/
+    #set +x
     #echo "* Installing gawk..."
     #set -x
     #sudo apt-get install gawk
     #set +x
-    # gawk is installed using dxapp.json
+    #
+    # gawk and pysam are installed using dxapp.json
     
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
@@ -37,12 +37,13 @@ main() {
  
     echo "* Value of bam_set:    '$bam_set'"
     echo "* Value of map_thresh: '$map_thresh'"
-    echo "* Value of umi:        '$umi'"
+    echo "* Value of UMI:        '$umi'"
     echo "* Value of nthreads:   '$nthreads'"
 
     merged_bam_root=""
     merged=""
     tech_reps=""
+    found_umi=""
     rm -f concat.fq
     for ix in ${!bam_set[@]}
     do
@@ -64,6 +65,12 @@ main() {
             fi
         fi
         if [ -f /usr/bin/parse_property.py ]; then
+            bam_umi=`parse_property.py -f "'${bam_set[$ix]}'" -p "UMI" --quiet`
+            if [ "$found_umi" != "" ] && [ "$found_umi" != "$bam_umi" ]; then
+                echo "ERROR: bams must all have the same UMI state."
+                exit 1
+            fi
+            found_umi=$bam_umi
             if [ "$exp_id" == "" ]; then
                 exp_id=`parse_property.py -f "'${bam_set[$ix]}'" --project "${DX_PROJECT_CONTEXT_ID}" --exp_id`
             fi
@@ -93,6 +100,25 @@ main() {
     fi
     echo "* Merged alignments file will be: '${merged_bam_root}.bam'"
     
+    # Discovering UMI state
+    if [ "$found_umi" != "" ]; then
+        if [ "$umi" != "yes" ] && [ "$umi" != "no" ]; then 
+            echo "* UMI state discovered to be '$found_umi'."
+            umi=$found_umi
+        elif [ "$found_umi" == "$umi" ]; then 
+            echo "* UMI state confirmed to be '$found_umi'."
+        else 
+            echo "* UMI state discovered to be '$found_umi' but running as requested: UMI='$umi'."
+        fi
+    elif [ "$umi" == "discover" ]; then
+        echo "ERROR: UMI state count not be discovered and must be set."
+        exit 1
+    fi
+    if [ "$umi" != "yes" ] && [ "$umi" != "no" ]; then 
+        echo "ERROR: UMI state must be either 'yes' or 'no'."
+        exit 1
+    fi
+    
     # At this point there is a 'sofar.bam' with one or more input bams
     if [ "${merged}" == "" ]; then
         merged_bam_root="${file_root}_pe_bwa_biorep"
@@ -116,9 +142,7 @@ main() {
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    #PYTHONPATH=${ana_home}/lib/python3.4/site-packages/:$OLDPYTHONPATH
     dnase_filter_pe.sh ${merged_bam_root}.bam $map_thresh $nthreads $umi
-    #PYTHONPATH=$OLDPYTHONPATH:${ana_home}/lib/python3.4/site-packages/
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     filtered_bam_root="${merged_bam_root}_filtered"
@@ -152,7 +176,7 @@ main() {
                                                       --property prefiltered_all_reads="$prefiltered_all_reads" \
                                                       --property prefiltered_mapped_reads="$prefiltered_mapped_reads" \
                                                       --property filtered_mapped_reads="$filtered_mapped_reads" \
-                                                      --property read_length="$read_len" --brief)
+                                                      --property read_length="$read_len" --property from_UMI="$umi" --brief)
     bam_filtered_qc=$(dx upload ${filtered_bam_root}_qc.txt --details "{ $qc_filtered }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file

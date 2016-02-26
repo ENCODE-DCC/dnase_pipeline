@@ -12,7 +12,8 @@ main() {
 
     echo "* Value of reads: '$reads'"
     echo "* Value of bwa_index: '$bwa_index'"
-    echo "* Value of nthreads: '$nthreads'"
+    echo "* Value of UMI:       '$umi'"
+    echo "* Value of nthreads:  '$nthreads'"
 
     #echo "* Download files..."
     outfile_name=""
@@ -93,7 +94,7 @@ main() {
     echo "* Upload results..."
     bam_bwa=$(dx upload ${bam_root}.bam --details "{ $qc_aligned }" --property SW="$versions" \
                                         --property mapped_reads="$mapped_reads" --property all_reads="$all_reads" \
-                                        --property read_length="$read_len" --brief)
+                                        --property read_length="$read_len" --property UMI="$umi" --brief)
     bam_qc=$(dx upload ${bam_root}_qc.txt --details "{ $qc_aligned }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file

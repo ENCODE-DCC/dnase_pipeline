@@ -15,18 +15,6 @@ unfiltered_bam_root=${unfiltered_bam%.bam}
 filtered_bam_root="${unfiltered_bam_root}_filtered"
 echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
-# Still want to know if the following would work:
-#echo "-- Detect UMI with filter_reads.py."
-#set -x
-#python3 /usr/bin/filter_reads.py $unfiltered_bam $post_umi_bam
-#set +x
-#md5_unfiltered=`md5sum $unfiltered_bam`
-#md5_post_umi=`md5sum $post_umi_bam`
-#umi="yes"
-#if [ "$md5_unfiltered" == "$md5_post_umi" ]; then
-#    umi="no"
-#fi
-
 #    1 read paired
 #    2 read mapped in proper pair
 #    4 read unmapped
@@ -40,24 +28,20 @@ echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 # 1024 read is PCR or optical duplicate
 # 2048 supplementary alignment
 
-if [ "$umi" == "yes" ]; then
+if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" == "t" ] || [ "$umi" == "umi" ]; then
     echo "-- UMI filtering will be performed."
     flagged_root="${unfiltered_bam_root}_post_umi"
     flagged_file="${flagged_root}.sam"
     filter_flags=`expr 512 + 8 + 4`
-    echo "-- Sort bam by name."
-    set -x
-    samtools sort -@ $ncpus -m 6G -n -O sam -T sorted $unfiltered_bam > sorted.sam
-    set +x
+    # Don't think sorting by name is needed for se
+    #echo "-- Sort bam by name."
+    #set -x
+    #samtools sort -@ $ncpus -m 6G -n -O sam -T sorted $unfiltered_bam > sorted.sam
+    #set +x
     echo "-- Detect UMI with filter_reads.py."
+    # NOTE script written for python3 works just as well for python2.7 as long as pysam works
     set -x
-    python3 /usr/bin/filter_reads.py sorted.sam ${flagged_root}.sam
-    #### Trying to work out if filter_reads is a NOP on non-UMI bams
-    ls -l sorted.sam
-    ls -l ${flagged_root}.sam
-    md5sum sorted.sam
-    md5sum ${flagged_root}.sam
-    #### Trying to work out if filter_reads is a NOP on non-UMI bams
+    python2.7 /usr/bin/filter_reads.py $unfiltered_bam ${flagged_root}.sam
     set +x
 else
     echo "-- non-UMI filtering will be performed."

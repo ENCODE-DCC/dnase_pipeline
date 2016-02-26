@@ -1,9 +1,9 @@
 {
   "name": "dnase-filter-se",
-  "title": "Merge and filter se bams (v1.0.1)",
+  "title": "Merge and filter se bams (v1.0.2)",
   "summary": "Merge and filter bams (single-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -24,8 +24,9 @@
       "name": "umi",
       "label": "UMI ids in reads.",
       "class": "string",
-      "optional": true,
-      "default": "yes"
+      "choices": [ "yes", "no", "discover" ],
+      "default": "discover",
+      "optional": true
     },
     {
       "name": "nthreads",
@@ -77,7 +78,10 @@
     "file": "src/dnase-filter-se.sh",
     "distribution": "Ubuntu", "release": "12.04",
     "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x8" } },
-    "execDepends": [ { "name": "gawk" } ]
+    "execDepends": [ 
+        { "name": "gawk" }, 
+        { "name": "pysam", "package_manager": "pip" } 
+    ]
   },
   "access": {
     "network": [
