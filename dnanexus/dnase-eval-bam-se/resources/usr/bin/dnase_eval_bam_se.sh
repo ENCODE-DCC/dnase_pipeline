@@ -1,14 +1,13 @@
 #!/bin/bash -e
 
-if [ $# -ne 3 ]; then
-    echo "usage v1: dnase_eval_se.sh <filtered.bam> <sample_size> <ncpus>"
+if [ $# -ne 2 ]; then
+    echo "usage v1: dnase_eval_se.sh <filtered.bam> <sample_size>"
     echo "Evaluates filtered single-end aligned reads for DNase.  Is independent of DX and encodeD."
     echo "Requires edwBamFilter,edwBamStats,samtools,Rscript,phantompeakqualtools,caTools,snow,spp,gawk,bedtools on path."
     exit -1; 
 fi
 filtered_bam=$1  # filtered bam file.
 sample_size=$2   # number of sample reads to evaluate (e.g. 15000000)
-ncpus=$3         # Number of cpus available
 
 bam_input_root=${filtered_bam%.bam}
 bam_no_chrM_root="${bam_input_root}_no_chrM"

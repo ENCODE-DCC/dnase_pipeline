@@ -11,7 +11,7 @@
       "label": "Bam to call hotspots from",
       "class": "file",
       "optional": false,
-      "patterns": ["*_no_chrM.bam","*_pooled.bam"]
+      "patterns": ["*_filtered.bam","*.bam"]
     },
     {
       "name": "chrom_sizes",
@@ -19,54 +19,20 @@
       "class": "file",
       "optional": false,
       "patterns": ["*chrom.sizes"]
-    },
-    {
-      "name": "read_length",
-      "label": "Length of reads in bam file",
-      "class": "int",
-      "optional": true,
-      "choices": [32, 36, 40, 50, 58, 72, 76, 100],
-      "default": 100
-    },
-    {
-      "name": "genome",
-      "label": "Genome this is for",
-      "class": "string",
-      "optional": true,
-      "choices": ["hg19","hg38","mm10"],
-      "default": "hg19"
     }
   ],
   "outputSpec": [
     {
-      "name": "bed_hotspot_narrowPeak",
+      "name": "bed_hotspots",
       "label": "Hotspot peaks in narrowPeak format",
       "class": "file",
-      "patterns": ["*_narrowPeak_hotspot.bed"]
+      "patterns": ["*_hotspots.bed.gz"]
     },
     {
-      "name": "bed_hotspot_broadPeak",
-      "label": "Hotspot peaks in broadPeak format",
-      "class": "file",
-      "patterns": ["*_broadPeak_hotspot.bed"]
-    },
-    {
-      "name": "bb_hotspot_narrowPeak",
+      "name": "bb_hotspots",
       "label": "Hotspot peaks bigBed in narrowPeak format",
       "class": "file",
-      "patterns": ["*_narrowPeak_hotspot.bb"]
-    },
-    {
-      "name": "bb_hotspot_broadPeak",
-      "label": "Hotspot peaks bigBed in broadPeak format",
-      "class": "file",
-      "patterns": ["*_broadPeak_hotspot.bb"]
-    },
-    {
-      "name": "bw_hotspot_signal",
-      "label": "Hotspot signal as a bigWig",
-      "class": "file",
-      "patterns": ["*_signal_hotspot.bw"]
+      "patterns": ["*_hotspot.bb"]
     },
     {
       "name": "bam_hotspot_qc",

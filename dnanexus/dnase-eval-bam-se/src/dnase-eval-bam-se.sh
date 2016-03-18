@@ -54,7 +54,7 @@ main() {
     
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_eval_se.sh ${bam_input_root}.bam $sample_size $nthreads
+    dnase_eval_bam_se.sh ${bam_input_root}.bam $sample_size
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     bam_sample_root="${bam_input_root}_${sample_size}_sample"

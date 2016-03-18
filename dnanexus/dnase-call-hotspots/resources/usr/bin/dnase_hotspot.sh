@@ -1,89 +1,118 @@
 #!/bin/bash -e
 
-if [ $# -ne 5 ]; then
-    echo "usage v1: dnase_hotspot.sh <aligned.bam> <chrom.sizes> <genome> <read_length> <hotspot_dir>"
-    echo "Calls peaks and regions with hotspot.  Is independent of DX and encodeD."
-    echo "Requires hotspot, hotspot.py (GCAP), samtools, bedToBigBed, bedGraphToBigWig, bedGraphPack, edwBamStats"
-    echo "         bedops (bedmap,sort-bed,starch,starchcat,unstarch), and bedtools (bamToBed,intersectBed,shuffleBed) on path."
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+    echo "usage v1: dnase_hotspot.sh <aligned.bam> <chrom.sizes> <blacklist.bed>"
+    echo "Calls peaks hotspot2.  Is independent of DX and encodeD."
+    echo "Requires hotspot2 (hotspot2,hotspot2.sh,tallyCountsInSmallWindows,cutcounts.bash,density-peaks.bash), "
+    echo "         gawk, samtools, modwt, bedops (bam2bed,bedmap,sort-bed,starch,unstarch) on path."
     exit -1; 
 fi
 bam_file=$1     # Bam file on which hotspot will be run.
 chrom_sizes=$2  # Chrom sizes file that matches the reference genome which bam reads were aligned to.
-genome=$3       # Genome assembly matching chrom.sizes and bam.
-read_length=$4  # Length of reads to match hotspot Kmer size (must be 32, 36, 40, 50, 58, 72, 76, or 100).
-hotspot_dir=$5  # Directory where hotpot is installed 
-#                 (e.g. if "/usr/local/hotspot" then "/usr/local/hotspot/hotspot-distr/hotspot-deploy/bin" should be in path)
-
-if [ "$read_length" != "32" ] && [ "$read_length" != "36" ] && [ "$read_length" != "40" ] && [ "$read_length" != "50" ] \
-&& [ "$read_length" != "58" ] && [ "$read_length" != "72" ] && [ "$read_length" != "76" ] && [ "$read_length" != "100" ]; then
-    echo "* ERROR: Read length ($read_length) must be one of 32, 36, 40, 50, 58, 72, 76, or 100."
-    exit 1
+if [ $# -eq 3 ]; then
+    blacklist_bed=$3  # List of regions to exclude from hotspot calling.
+    blacklist="-e $blacklist_bed"
+else
+    blacklist=""
 fi
 
 bam_root=${bam_file%.bam}
-narrowPeak_root="${bam_root}_narrowPeak_hotspot"
-broadPeak_root="${bam_root}_broadPeak_hotspot"
-signal_root="${bam_root}_signal_hotspot"
-echo "-- output: '${narrowPeak_root}.bed/.bb', '${broadPeak_root}.bed/.bb', '${signal_root}.bw'"
+hotspot_root="${bam_root}_hotspots"
+peaks_root="${bam_root}_peaks"
+density_root="${bam_root}_density"
+### Temporary for debugging
+cutcounts_root="${bam_root}_cutcounts"
+allcalls_root="${bam_root}_allcalls"
+### Temporary for debugging
+echo "-- output: '${hotspot_root}.bed', '${peaks_root}.bed', and '${density_root}.bed'"
 
-echo "-- Creating chromInfo.bed from ${chrom_sizes}..."
-grep -w chr[1-9] $chrom_sizes > min_chrom.sizes
-grep -w chr[1-2][0-9] $chrom_sizes >> min_chrom.sizes
-grep -w chr[X,Y] $chrom_sizes >> min_chrom.sizes
-# sort-bed is important!
-cat min_chrom.sizes | awk '{printf "%s\t0\t%s\t%s\n",$1,$2,$1}' | sort-bed - > ${genome}.chromInfo.bed
+echo "-- Convert chrom.sizes to bed format..."
+cat $chrom_sizes | awk '{printf "%s\t0\t%s\n",$1,$2}' > chrom_sizes.bed
 
-if [ ! -f ${full_bam}.bai ]; then
-    echo "-- Indexing bam..."
+echo "-- Running hotspot2.sh..."
+set -x
+hotspot2.sh -s 12345 $blacklist -c chrom_sizes.bed $bam_file out/
+set +x
+
+if [ -s out/*.hotspots.fdr*.starch ]; then
+    echo "-- Converting hotspots to bed and bigBed..."
     set -x
-    samtools index $full_bam
+    mv out/*.hotspots.fdr*.starch ${hotspot_root}.starch
+    unstarch ${hotspot_root}.starch > ${hotspot_root}.bed
+    touch ${hotspot_root}.bb  # First round don't press your luck
+    #bedToBigBed -as=/usr/bin/narrowPeak.as -type=bed6+4 ${hotspot_root}.bed $chrom_sizes ${hotspot_root}.bb
+    ### currently: 'chr1    10249   10451   id-1    3.14448'
+    grep "^chr" ${hotspot_root}.bed | wc -l > ${hotspot_root}_count.txt
     set +x
+else
+    ### Temporary for debugging
+    touch ${hotspot_root}.bed
+    touch ${hotspot_root}.bb
+    wc -l ${hotspot_root}.bed > ${hotspot_root}_count.txt
 fi
-    
-echo "-- Running hotspot.py..."
-set -x
-mkdir tmp
-mkdir out
-cp ${genome}.chromInfo.bed ${hotspot_dir}/hotspot-distr/data/
-# May also need to do something about "Satellite.${genome}.bed"
-#cp /usr/bin/Satellite.${genome}.bed ${hotspot_dir}/hotspot-distr/data   # hg19 version already there!
-mappable=${genome}.K${read_length}.mappable_only
-wget http://www.uwencode.org/proj/hotspot/${mappable}.bed -O ${hotspot_dir}/hotspot-distr/data/${mappable}.bed
-hotspot.py ${hotspot_dir}/hotspot-distr/ ${bam_root}.bam $genome DNase-seq $read_length tmp out
-cp tmp/${bam_root}.spot.out ${bam_root}_hotspot_out.txt
-set +x
 
-echo "-- Generating narrowPeaks..."
-set -x
-# Convert output into ENCODE formats,
-# Convert narrowPeaks.bed and several stray columns to narrowPeaks.bigBed in $4
-paste out/narrowPeaks.bed out/narrowPeaks.dens out/narrowPeaks.pval | \
-    awk 'BEGIN {OFS="\t"} {print $1, $2, $3, "p" NR, 0, ".", $4, $5, -1, -1}' - | \
-    sort -k1,1 -k2,2n - > ${narrowPeak_root}.bed
-bedToBigBed -as=/usr/bin/narrowPeak.as -type=bed6+4 ${narrowPeak_root}.bed $chrom_sizes ${narrowPeak_root}.bb
-wc -l ${narrowPeak_root}.bed > ${narrowPeak_root}_qc.txt
-set +x
+if [ -s out/*.peaks.starch ]; then
+    echo "-- Converting peaks to bed and bigBed..."
+    set -x
+    mv out/*.peaks.starch ${peaks_root}.starch
+    unstarch ${peaks_root}.starch > ${peaks_root}.bed
+    touch ${peaks_root}.bb  # First round don't press your luck
+    #bedToBigBed -as=/usr/bin/narrowPeak.as -type=bed6+4 ${peaks_root}.bed $chrom_sizes ${peaks_root}.bb
+    grep "^chr" ${peaks_root}.bed | wc -l > ${peaks_root}_count.txt
+    set +x
+else
+    ### Temporary for debugging
+    touch ${peaks_root}.bed
+    touch ${peaks_root}.bb
+    wc -l ${peaks_root}.bed > ${peaks_root}_count.txt
+fi
 
-echo "-- Generating broadPeaks..."
-set -x
-# Convert broadPeaks.bed and broadPeaks.pVal to broadPeaks.bigBed in $5
-paste out/broadPeaks.bed out/broadPeaks.pval | \
-    awk 'BEGIN {OFS="\t"} {print $1, $2, $3, "hot" NR, 0, ".", $5, $6, -1}' - | \
-    sort -k1,1 -k2,2n - > ${broadPeak_root}.bed
-bedToBigBed -as=/usr/bin/broadPeak.as -type=bed6+3 ${broadPeak_root}.bed $chrom_sizes ${broadPeak_root}.bb
-wc -l ${broadPeak_root}.bed > ${broadPeak_root}_qc.txt
-set +x
+# TODO: Expect bedGraph?
+if [ -s out/*.density.starch ]; then
+    echo "-- Converting density to bedGrah and bigWig..."
+    set -x
+    mv out/*.density.starch ${density_root}.starch
+    unstarch ${density_root}.starch > ${density_root}.bed
+    touch ${density_root}.bw  # First round don't press your luck
+    #bedGraphToBigWig ${density_root}.bed $chrom_sizes ${density_root}.bw
+    grep "^chr" ${density_root}.bed | wc -l > ${density_root}_count.txt  ### Temporary should be bigWig?
+    set +x
+else
+    ### Temporary for debugging
+    touch ${density_root}.bed
+    touch ${density_root}.bw
+    wc -l ${density_root}.bed > ${density_root}_count.txt
+fi
 
-echo "-- Generating signal..."
-set -x
-# Convert starched bedGraph to mappable-only bigWig in $6
-unstarch out/density.bed.starch > tmp/tmp.bed
-intersectBed -a tmp/tmp.bed -b ${hotspot_dir}/hotspot-distr/data/${genome}.K${read_length}.mappable_only.bed -f 1.00 | \
-    cut -f 1,2,3,5 | bedGraphPack stdin ${signal_root}.bedGraph
-bedGraphToBigWig ${signal_root}.bedGraph $chrom_sizes ${signal_root}.bw
-set +x
+### Temporary for debugging
+if [ -s out/*.cutcounts.starch ]; then
+    echo "-- Saving cutcounts..."
+    set -x
+    mv out/*.cutcounts.starch ${cutcounts_root}.starch
+    unstarch ${cutcounts_root}.starch | grep "^chr" | wc -l > ${cutcounts_root}_count.txt
+    set +x
+else
+    touch ${cutcounts_root}.starch
+    wc -l ${cutcounts_root}.starch > ${cutcounts_root}_count.txt
+fi
 
+### Temporary for debugging
+if [ -s out/*.allcalls.starch ]; then
+    echo "-- Saving allcalls..."
+    set -x
+    mv out/*.allcalls.starch ${allcalls_root}.starch
+    unstarch ${allcalls_root}.starch | grep "^chr" | wc -l > ${allcalls_root}_count.txt
+    set +x
+else
+    touch ${allcalls_root}.starch
+    wc -l ${allcalls_root}.starch > ${allcalls_root}_count.txt
+fi
 echo "-- The results..."
-ls -l ${bam_root}_hotspot_out.txt ${narrowPeak_root}* ${broadPeak_root}* ${signal_root}*
+ls -l ${hotspot_root}*
+ls -l ${peaks_root}*
+ls -l ${density_root}*
+ls -l ${cutcounts_root}* ### Temporary for debugging
+ls -l ${allcalls_root}* ### Temporary for debugging
 df -k .
+
 

@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots",
-  "title": "Call hotspots (v0.2.3)",
+  "title": "Call hotspots (v0.3.0)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -11,7 +11,7 @@
       "label": "Bam to call hotspots from",
       "class": "file",
       "optional": false,
-      "patterns": ["*_no_chrM.bam","*_pooled.bam"]
+      "patterns": ["*_filtered.bam","*.bam"]
     },
     {
       "name": "chrom_sizes",
@@ -21,58 +21,67 @@
       "patterns": ["*chrom.sizes"]
     },
     {
-      "name": "read_length",
-      "label": "Length of reads in bam file",
-      "class": "int",
+      "name": "blacklist",
+      "label": "Blacklisted regions to exclude from hotspot calling",
+      "class": "file",
       "optional": true,
-      "choices": [32, 36, 40, 50, 58, 72, 76, 100],
-      "default": 100
-    },
-    {
-      "name": "genome",
-      "label": "Genome this is for",
-      "class": "string",
-      "optional": true,
-      "choices": ["hg19","hg38","mm10"],
-      "default": "hg19"
+      "patterns": ["*.bed.gz"]
     }
   ],
   "outputSpec": [
     {
-      "name": "bed_hotspot_narrowPeak",
-      "label": "Hotspot peaks in narrowPeak format",
+      "name": "bed_hotspots",
+      "label": "Hotspots bed in broadPeak format",
       "class": "file",
-      "patterns": ["*_narrowPeak_hotspot.bed.gz"]
+      "patterns": ["*_hotspots.bed.gz"]
     },
     {
-      "name": "bed_hotspot_broadPeak",
-      "label": "Hotspot peaks in broadPeak format",
+      "name": "bb_hotspots",
+      "label": "Hotspots bigBed in broadPeak format",
       "class": "file",
-      "patterns": ["*_broadPeak_hotspot.bed.gz"]
+      "patterns": ["*_hotspots.bb"]
     },
     {
-      "name": "bb_hotspot_narrowPeak",
-      "label": "Hotspot peaks bigBed in narrowPeak format",
+      "name": "bed_peaks",
+      "label": "Peaks bed in narrowPeak format",
       "class": "file",
-      "patterns": ["*_narrowPeak_hotspot.bb"]
+      "patterns": ["*_peaks.bed.gz"]
     },
     {
-      "name": "bb_hotspot_broadPeak",
-      "label": "Hotspot peaks bigBed in broadPeak format",
+      "name": "bb_peaks",
+      "label": "Peaks bigBed in narrowPeak format",
       "class": "file",
-      "patterns": ["*_broadPeak_hotspot.bb"]
+      "patterns": ["*_peaks.bb"]
     },
     {
-      "name": "bw_hotspot_signal",
-      "label": "Hotspot signal as a bigWig",
+      "name": "bed_density",
+      "label": "Density bed in bedGraph format?",
       "class": "file",
-      "patterns": ["*_signal_hotspot.bw"]
+      "patterns": ["*_density.bed.gz"]
     },
     {
-      "name": "bam_hotspot_qc",
+      "name": "bw_density",
+      "label": "Density bed in bigWig format?",
+      "class": "file",
+      "patterns": ["*_density.bw"]
+    },
+    {
+      "name": "hotspots_qc",
       "label": "Hotspot qc: hotspot output",
       "class": "file",
-      "patterns": ["*_hotspot_qc.txt"]
+      "patterns": ["*_hotspots_qc.txt"]
+    },
+    {
+      "name": "starch_cutcounts",
+      "label": "Cutcounts in starch of bed 6 format",
+      "class": "file",
+      "patterns": ["*_cutcounts.starch"]
+    },
+    {
+      "name": "starch_allcalls",
+      "label": "Cutcounts in starch of bed 6 format",
+      "class": "file",
+      "patterns": ["*_allcalls.starch"]
     },
     {
       "name": "metadata",
@@ -83,14 +92,9 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-call-hotspots.sh",
-    "systemRequirements": {
-      "main": {
-        "instanceType": "mem3_hdd2_x8"
-      },
-      "myEntryPoint": {
-        "instanceType": "mem3_hdd2_x8"
-      }
-    }
+    "systemRequirements": {  "main": { "instanceType": "mem3_hdd2_x8" } },
+    "execDepends": [ { "name": "gawk" },
+                     { "name": "pigz" } ]
   },
   "access": {
     "network": [

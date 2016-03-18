@@ -8,7 +8,7 @@
   "inputSpec": [
     {
       "name": "bam_filtered",
-      "label": "Paired-end filtered bam",
+      "label": "Single-end filtered bam",
       "class": "file",
       "optional": false,
       "patterns": [ "*_filtered.bam", "*_filtered_sized.bam" ]
