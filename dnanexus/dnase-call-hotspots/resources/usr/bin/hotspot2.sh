@@ -123,8 +123,10 @@ echo "Cutting..."
 bash "$CUTCOUNT_EXE" "$BAM" "$CUTCOUNTS"
 
 # don't unstarch $CUTCOUNTS and feed to $COUNTING_EXE since things like chrM may be in $CUTCOUNTS but not $CHROM_SIZES
+# run $CHROM_SIZES through bedops --ec -u for error checking
 echo "Running hotspot2..."
-bedops -e 1 "$CUTCOUNTS" "$CHROM_SIZES" \
+bedops --ec -u "$CHROM_SIZES" \
+    | bedops -e 1 "$CUTCOUNTS" - \
     | "$COUNTING_EXE" "$SITE_NEIGHBORHOOD_HALF_WINDOW_SIZE" "$OVERLAPPING_OR_NOT" "reportEachUnit" "$CHROM_SIZES" \
     | bedops -n 1 - "$EXCLUDE_THESE_REGIONS" \
     | "$HOTSPOT_EXE" "$BACKGROUND_WINDOW_SIZE" "$PVAL_DISTN_SIZE" $SEED \

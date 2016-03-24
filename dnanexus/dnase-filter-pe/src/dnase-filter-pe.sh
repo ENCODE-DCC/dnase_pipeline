@@ -121,7 +121,7 @@ main() {
     
     # At this point there is a 'sofar.bam' with one or more input bams
     if [ "${merged}" == "" ]; then
-        merged_bam_root="${file_root}_pe_bwa_biorep"
+        merged_bam_root="${file_root}_bwa_biorep"
         set -x
         mv sofar.bam ${merged_bam_root}.bam
         set +x

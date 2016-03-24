@@ -27,7 +27,7 @@ allcalls_root="${bam_root}_allcalls"
 echo "-- output: '${hotspot_root}.bed', '${peaks_root}.bed', and '${density_root}.bed'"
 
 echo "-- Convert chrom.sizes to bed format..."
-cat $chrom_sizes | awk '{printf "%s\t0\t%s\n",$1,$2}' > chrom_sizes.bed
+cat $chrom_sizes | awk '{printf "%s\t0\t%s\n",$1,$2}' | sort-bed - > chrom_sizes.bed
 
 echo "-- Running hotspot2.sh..."
 set -x
@@ -67,21 +67,16 @@ else
     wc -l ${peaks_root}.bed > ${peaks_root}_count.txt
 fi
 
-# TODO: Expect bedGraph?
 if [ -s out/*.density.starch ]; then
     echo "-- Converting density to bedGrah and bigWig..."
     set -x
     mv out/*.density.starch ${density_root}.starch
-    unstarch ${density_root}.starch > ${density_root}.bed
-    touch ${density_root}.bw  # First round don't press your luck
-    #bedGraphToBigWig ${density_root}.bed $chrom_sizes ${density_root}.bw
-    grep "^chr" ${density_root}.bed | wc -l > ${density_root}_count.txt  ### Temporary should be bigWig?
+    unstarch ${density_root}.starch | grep "^chr" | awk '{printf "%s\t%s\t%s\t%s\n",$1,$2,$3,$5}' > ${density_root}.bedGraph
+    bedGraphToBigWig ${density_root}.bedGraph $chrom_sizes ${density_root}.bw
     set +x
 else
     ### Temporary for debugging
-    touch ${density_root}.bed
     touch ${density_root}.bw
-    wc -l ${density_root}.bed > ${density_root}_count.txt
 fi
 
 ### Temporary for debugging
