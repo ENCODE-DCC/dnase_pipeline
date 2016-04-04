@@ -32,59 +32,46 @@ main() {
         blacklist_file="${blacklist}.bed"
         echo "* blacklist file: '$blacklist_file'"
     else
-        blacklist_file=""
+        blacklist_file="na" # No blacklist file
     fi
     
+    hotspot_root="${bam_root}_hotspots"  # Put hotspot results into ${hotspot_root}.bed.gz, ${hotspot_root}.bb, ${hotspot_root}_count.txt, and ${hotspot_root}_SPOT.txt
+    peaks_root="${bam_root}_peaks"       # Put peak results into ${peaks_root}.bed.gz, ${peaks_root}.bb, and ${peaks_root}_count.txt
+    density_root="${bam_root}_density"   # Put density results into ${density_root}.bw
+    allcalls_root="${bam_root}_allcalls" # (optional) Put all_calls results into ${allcalls_root}.bed.gz and ${allcalls_root}_count.txt
+
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $blacklist_file
+    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $blacklist_file $hotspot_root $peaks_root $density_root $allcalls_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
-    hotspot_root="${bam_root}_hotspots"
-    peaks_root="${bam_root}_peaks"
-    density_root="${bam_root}_density"
-    ### Temporary for debugging
-    cutcounts_root="${bam_root}_cutcounts"
-    allcalls_root="${bam_root}_allcalls"
-    ### Temporary for debugging
     
-    echo "* Compressing bed file..."
-    set -x
-    pigz ${hotspot_root}.bed
-    pigz ${peaks_root}.bed
-    set +x
-
     echo "* Prepare metadata..."
     qc_hotspot=''
     if [ -f /usr/bin/qc_metrics.py ]; then
-        ###    qc_hotspot=`qc_metrics.py -n hotspot -f ${bam_root}_hotspot_out.txt`
+        spot_score=`qc_metrics.py -n singleton -f ${hotspot_root}_SPOT.txt -k "SPOT score" --keypair "SPOT score"`
         hotspot_count=`qc_metrics.py -n singleton -f ${hotspot_root}_count.txt -k "hotspot count" --keypair "hotspot count"`
         peaks_count=`qc_metrics.py -n singleton -f ${peaks_root}_count.txt -k "peaks count" --keypair "peaks count"`
-        qc_peaks=`echo $hotspot_count, $peaks_count`
+        qc_peaks=`echo $spot_score, $hotspot_count, $peaks_count`
         hotspot_count=`cat ${hotspot_root}_count.txt`
         peaks_count=`cat ${peaks_root}_count.txt`
-        ### Temporary for debugging
-        cut_count=`qc_metrics.py -n singleton -f ${cutcounts_root}_count.txt -k "cut count" --keypair "cut count"`  
-        allcalls_count=`qc_metrics.py -n singleton -f ${allcalls_root}_count.txt -k "all calls" --keypair "all calls"`  
+        allcalls_count=`qc_metrics.py -n singleton -f ${allcalls_root}_count.txt -k "all calls count" --keypair "all calls count"`  
         qc_peaks=`echo $qc_peaks, $cut_count, $allcalls_count`
-        cut_count=`cat ${cutcounts_root}_count.txt`  
-        allcalls_count=`cat ${allcalls_root}_count.txt`  
-        ### Temporary for debugging
-        #qc_hotspot=`echo $qc_hotspot, \"peak_counts\": { $qc_spots, $qc_regions }`
-        qc_hotspot=`echo \"peak_counts\": { $qc_peaks }`
+        qc_hotspot=`echo \"hotspot\": { $qc_peaks }`
     fi
+    
     #### All qc to one file:
-    echo "===== hotspot count ====="    > ${hotspot_root}_qc.txt
+    echo "===== SPOT score ====="       > ${hotspot_root}_qc.txt
+    cat ${hotspot_root}_SPOT.txt       >> ${hotspot_root}_qc.txt
+    echo " "                           >> ${hotspot_root}_qc.txt
+    echo "===== hotspot count ====="   >> ${hotspot_root}_qc.txt
     cat ${hotspot_root}_count.txt      >> ${hotspot_root}_qc.txt
     echo " "                           >> ${hotspot_root}_qc.txt
     echo "===== peaks count ====="     >> ${hotspot_root}_qc.txt
     cat ${peaks_root}_count.txt        >> ${hotspot_root}_qc.txt
-    echo " "                           >> ${hotspot_root}_qc.txt    ### Temporary for debugging
-    echo "===== allcalls count ====="  >> ${hotspot_root}_qc.txt    ### Temporary for debugging
-    cat ${allcalls_root}_count.txt     >> ${hotspot_root}_qc.txt    ### Temporary for debugging
-    echo " "                           >> ${hotspot_root}_qc.txt    ### Temporary for debugging
-    echo "===== cut count ====="       >> ${hotspot_root}_qc.txt    ### Temporary for debugging
-    cat ${cutcounts_root}_count.txt    >> ${hotspot_root}_qc.txt    ### Temporary for debugging
+    echo " "                           >> ${hotspot_root}_qc.txt
+    echo "===== allcalls count ====="  >> ${hotspot_root}_qc.txt
+    cat ${allcalls_root}_count.txt     >> ${hotspot_root}_qc.txt
     
     echo "* Upload results..."
     bed_hotspots=$(dx upload ${hotspot_root}.bed.gz  --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
@@ -93,24 +80,25 @@ main() {
     bb_peaks=$(dx upload ${peaks_root}.bb            --details "{ $qc_hotspot }" --property SW="$versions" --property peaks_count="$peaks_count" --brief)
     bw_density=$(dx upload ${density_root}.bw        --details "{ $qc_hotspot }" --property SW="$versions" --brief)
     hotspots_qc=$(dx upload ${hotspot_root}_qc.txt   --details "{ $qc_hotspot }" --property SW="$versions" --brief)
-      ### Temporary for debugging
-    starch_cutcounts=$(dx upload ${cutcounts_root}.starch --details "{ $qc_hotspot }" --property SW="$versions" --property cut_count="$cut_count" --brief)
-      ### Temporary for debugging
-    starch_allcalls=$(dx upload ${allcalls_root}.starch   --details "{ $qc_hotspot }" --property SW="$versions" --property allcalls_count="$allcalls_count" --brief)
 
     dx-jobutil-add-output bed_hotspots "$bed_hotspots" --class=file
     dx-jobutil-add-output bb_hotspots "$bb_hotspots" --class=file
     dx-jobutil-add-output bed_peaks "$bed_peaks" --class=file
     dx-jobutil-add-output bb_peaks "$bb_peaks" --class=file
     dx-jobutil-add-output bw_density "$bw_density" --class=file
-    echo "* Add hotspots_qc to output..."
     dx-jobutil-add-output hotspots_qc "$hotspots_qc" --class=file
-    echo "* Add starch_cutcounts to output..."
-    dx-jobutil-add-output starch_cutcounts "$starch_cutcounts" --class=file  ### Temporary for debugging
-    echo "* Add starch_allcalls to output..."
-    dx-jobutil-add-output starch_allcalls "$starch_allcalls" --class=file  ### Temporary for debugging
-    echo "* Add metadata to output..."
     dx-jobutil-add-output metadata "{ $qc_hotspot }" --class=string
+    
+    # NOTE: We could save allcalls but that is a step too far.
+    #{
+    #  "name": "bed_allcalls",
+    #  "label": "Cutcounts in starch of bed 6 format",
+    #  "class": "file",
+    #  "patterns": ["*_allcalls.bed.gz"]
+    #},
+    #allcalls_count=`cat ${allcalls_root}_count.txt`  
+    #bed_allcalls=$(dx upload ${allcalls_root}.bed.gz   --details "{ $qc_hotspot }" --property SW="$versions" --property allcalls_count="$allcalls_count" --brief)
+    #dx-jobutil-add-output bed_allcalls "$bed_allcalls" --class=file
 
     echo "* Finished."
 }

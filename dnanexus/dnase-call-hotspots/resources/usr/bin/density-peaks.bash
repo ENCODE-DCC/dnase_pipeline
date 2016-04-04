@@ -29,6 +29,9 @@ waveletlvl=3
 filter_type=Haar
 boundary_type=reflected
 
+# Prefer mawk, if installed
+AWK_EXE=$(which mawk 2>/dev/null || which awk)
+
 echo "calculating densities and peak-finding..."
 pkouts=""
 densouts=""
@@ -39,7 +42,7 @@ do
   ## Tag density, 150bp window, sliding every 20bp, used for peak-finding and display
   ##  --sweep-all used to prevent a possible broken pipe
   bedops --ec -u --chrom $chr $chrfile \
-    | awk -v b=$bins -v s=$step \
+    | "$AWK_EXE" -v b=$bins -v s=$step \
        'BEGIN {OFS="\t"; hs=s/2; hb=b/2} ; { \
          for ( start = $2+hb-hs; start < $3-hb-hs; start+=s) { \
            print $1, start, start+s, "."; \
@@ -61,7 +64,7 @@ do
   ##   bedops -n uses --ec to prevent possible broken pipe
   unstarch $tmpdir/.dens.$chr.starch \
     | paste - $tmpdir/.waves \
-    | awk 'BEGIN{incr=0} ; {
+    | "$AWK_EXE" 'BEGIN{incr=0} ; {
             if ( NR > 0 ) {
               if ( incr == 1 ) {
                 if ( $6-lastv < 0 ) {
@@ -92,9 +95,15 @@ done
 
 echo "finalizing peaks..."
 cat $pkouts \
-  | awk -v h=$halfbin '{m=($2+$3)/2; left=m-h; if(left < 0) left=0; print $1"\t"left"\t"m+h"\t"$4"\t"$5}' - \
+  | "$AWK_EXE" -v h=$halfbin '{m=($2+$3)/2; left=m-h; if(left < 0) left=0; print $1"\t"left"\t"m+h"\t"$4"\t"$5}' - \
+  | bedmap --echo --skip-unmapped --sweep-all --fraction-either 0.25 - $hotspots \
   | starch - \
   > $pk
+
+unstarch $pk \
+  | awk -v h=$halfbin 'BEGIN {OFS="\t"} ; { print $1, $2, $3, ".", "0", ".", $5, "-1", "-1", h }' \
+  | starch - \
+  > ${pk/.starch/.narrowpeaks.starch}
 
 echo "finalizing density..."
 starchcat $densouts \

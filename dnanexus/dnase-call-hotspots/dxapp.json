@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots",
-  "title": "Call hotspots (v0.3.1)",
+  "title": "Call hotspots (v0.4.1)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -64,18 +64,6 @@
       "label": "Hotspot qc: hotspot output",
       "class": "file",
       "patterns": ["*_hotspots_qc.txt"]
-    },
-    {
-      "name": "starch_cutcounts",
-      "label": "Cutcounts in starch of bed 6 format",
-      "class": "file",
-      "patterns": ["*_cutcounts.starch"]
-    },
-    {
-      "name": "starch_allcalls",
-      "label": "Cutcounts in starch of bed 6 format",
-      "class": "file",
-      "patterns": ["*_allcalls.starch"]
     },
     {
       "name": "metadata",

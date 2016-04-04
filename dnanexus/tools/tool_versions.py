@@ -21,7 +21,7 @@ APP_TOOLS = {
                             "dnase_eval_bam_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
-    "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt" ],
+    "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bigBedToBed","bedGraphToBigWig"  ],
     # Questionable:
     "dnase-qc-hotspot":   [
                             "dnase_qc_hotspot.sh","edwBamStats","hotspot","hotspot.py","samtools",
@@ -67,6 +67,7 @@ ALL_TOOLS = {
             "bedops":                   "bedops --version 2>&1 | grep version | awk '{print $2}'",
             #  "bam2bed (bedops)":         "bedops --version 2>&1 | grep version | awk '{print $2}'", # Note: no version.. subsituting bedops
             #  "bedmap (bedops)":          "bedmap --version 2>&1 | grep version | awk '{print $2}'",
+            #  "convert2bed (bedops)":     "convert2bed --version 2>&1 | grep version | awk '{print $2}'",
             #  "sort-bed (bedops)":        "sort-bed --version 2>&1 | grep version | awk '{print $2}'",
             #  "starch (bedops)":          "starch --version 2>&1 | grep version | awk '{print $3}'",
             #  "starchcat (bedops)":       "starchcat --version 2>&1 | grep version | awk '{print $3}'",
@@ -85,6 +86,7 @@ ALL_TOOLS = {
             "edwComparePeaks":          "echo unversioned", #"edwComparePeaks 2>&1 | grep 'edwComparePeaks -' | awk '{print $3,$4,$5,$6}'",
             "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
             "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
+            "mawk":                     "mawk -W version 2>&1 | grep mawk | awk '{print $2}'",
             #old "hotspot":                  "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
             #old "hotspot.py":               "hotspot.py -h | grep Version | awk '{print $8}'",
             "phantompeakqualtools":     "grep Version phantompeakqualtools/README.txt | awk '{print $2}'",
@@ -99,7 +101,8 @@ ALL_TOOLS = {
             #  "tallyCountsInSmallWindows (hotspot2)":"hotspot2 --version | awk '{print $3}'",
             #  "cutcounts.bash (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
             #  "density-peaks.bash (hotspot2)":       "hotspot2 --version | awk '{print $3}'",
-            "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %s\",$1}'",
+            #  "bed_exclude.py (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
+            "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %s\",$1}'", # From https://github.com/StamLab/modwt
             "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
