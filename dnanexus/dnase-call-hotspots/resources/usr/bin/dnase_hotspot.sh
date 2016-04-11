@@ -38,11 +38,10 @@ ls -l out
 
 echo "-- Converting hotspots to bed.gz and bigBed..."
 set -x
-mv out/*.hotspots.fdr*.starch ${hotspot_root}.starch
+mv out/*.hotspots.fdr*.broadpeaks.starch ${hotspot_root}.starch
 unstarch ${hotspot_root}.starch > ${hotspot_root}.bed
-head ${hotspot_root}.bed # FOR DEBUGGING
-touch ${hotspot_root}.bb  # First round don't press your luck
-#bedToBigBed -as=/usr/bin/broadPeak.as -type=bed6+3 ${hotspot_root}.bed $chrom_sizes ${hotspot_root}.bb
+#touch ${hotspot_root}.bb  # First round don't press your luck
+bedToBigBed -as=/usr/bin/broadPeak.as -type=bed6+3 ${hotspot_root}.bed $chrom_sizes ${hotspot_root}.bb
 grep "^chr" ${hotspot_root}.bed | wc -l > ${hotspot_root}_count.txt
 pigz ${hotspot_root}.bed
 set +x
@@ -51,7 +50,6 @@ echo "-- Converting narrowpeaks to bed.gz and bigBed..."
 set -x
 mv out/*.peaks.narrowpeaks.starch ${peaks_root}.starch
 unstarch ${peaks_root}.starch > ${peaks_root}.bed
-#head ${peaks_root}.bed # FOR DEBUGGING
 bedToBigBed -as=/usr/bin/narrowPeak.as -type=bed6+4 ${peaks_root}.bed $chrom_sizes ${peaks_root}.bb
 grep "^chr" ${peaks_root}.bed | wc -l > ${peaks_root}_count.txt
 pigz ${peaks_root}.bed

@@ -226,6 +226,11 @@ unstarch "$OUTFILE" \
      | starch - \
      > "$HOTSPOT_OUTFILE"
 
+unstarch "$HOTSPOT_OUTFILE" \
+  | awk 'BEGIN {OFS="\t"} { if ( $5 > 1000 ) { $5 = 1000 } print; }' \
+  | starch - \
+  > ${HOTSPOT_OUTFILE/.starch/.broadpeaks.starch}
+
 echo "Calculating SPOT score..."
 num_cleaves=$(cat "$TOTALCUTS_OUTFILE")
 cleaves_in_hotspots=$(bedops --ec -e -1 "$CUTCOUNTS" "$HOTSPOT_OUTFILE" | awk 'BEGIN{s=0} {s+=$5} END {print s}')

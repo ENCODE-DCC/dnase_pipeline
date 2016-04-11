@@ -56,7 +56,7 @@ main() {
         hotspot_count=`cat ${hotspot_root}_count.txt`
         peaks_count=`cat ${peaks_root}_count.txt`
         allcalls_count=`qc_metrics.py -n singleton -f ${allcalls_root}_count.txt -k "all calls count" --keypair "all calls count"`  
-        qc_peaks=`echo $qc_peaks, $cut_count, $allcalls_count`
+        qc_peaks=`echo $qc_peaks, $allcalls_count`
         qc_hotspot=`echo \"hotspot\": { $qc_peaks }`
     fi
     
