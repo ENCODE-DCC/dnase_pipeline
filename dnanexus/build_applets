@@ -5,7 +5,7 @@
 #       but all other applet contents are temporary symlinks to the true applets's contents.  This script handles the symlinks.
 
 applets="dnase-index-bwa dnase-align-bwa-pe dnase-align-bwa-se dnase-filter-pe dnase-filter-se"
-applets="$applets dnase-eval-bam-pe dnase-eval-bam-se"
+applets="$applets dnase-eval-bam-pe dnase-eval-bam-se dnase-call-hotspots"
 # Expecting to add:
 #applets="$applets dnase-qc-hotspot dnase-call-hotspots"
 # No longer expecting:

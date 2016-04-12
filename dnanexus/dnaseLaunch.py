@@ -31,7 +31,7 @@ class DnaseLaunch(Launch):
                             "dnase-align-bwa-se": {
                                 "inputs": { "reads": "reads", "bwa_index": "bwa_index" },
                                 "app": "dnase-align-bwa-se", 
-                                "params": {"nthreads": "nthreads"}, 
+                                "params": {"nthreads": "nthreads", "umi": "umi" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -41,7 +41,7 @@ class DnaseLaunch(Launch):
                             "dnase-align-bwa-pe": {
                                 "inputs": { "reads1": "reads1", "reads2": "reads2", "bwa_index": "bwa_index" }, 
                                 "app": "dnase-align-bwa-pe", 
-                                "params": { "nthreads": "nthreads" }, 
+                                "params": { "nthreads": "nthreads", "umi": "umi" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -53,19 +53,17 @@ class DnaseLaunch(Launch):
         "BIO_REP":  {
                 "ORDER": { "se": [  "dnase-filter-se", 
                                     "dnase-eval-bam-se", 
-                                    #"dnase-call-hotspots-alt", 
-                                    #"dnase-hotspot-qc-alt",
+                                    "dnase-call-hotspots-alt", 
                                  ],
                            "pe": [  "dnase-filter-pe", 
                                     "dnase-eval-bam-pe", 
-                                    #"dnase-call-hotspots", 
-                                    #"dnase-hotspot-qc",
+                                    "dnase-call-hotspots", 
                                  ] },
                 "STEPS": {
                             "dnase-filter-pe": {
                                 "inputs": { "bam_ABC":    "bam_set" },
                                 "app": "dnase-filter-pe", 
-                                "params": { "map_thresh": "map_thresh", "nthreads": "nthreads" }, 
+                                "params": { "map_thresh": "map_thresh", "nthreads": "nthreads", "umi": "umi" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
                                     "bam_filtered_qc":      "bam_filtered_qc", 
@@ -75,7 +73,7 @@ class DnaseLaunch(Launch):
                             "dnase-filter-se": {
                                 "inputs": { "bam_ABC":    "bam_set" },
                                 "app": "dnase-filter-se", 
-                                "params": { "map_thresh": "map_thresh", "nthreads": "nthreads" }, 
+                                "params": { "map_thresh": "map_thresh", "nthreads": "nthreads", "umi": "umi" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
                                     "bam_filtered_qc":      "bam_filtered_qc", 
@@ -104,52 +102,32 @@ class DnaseLaunch(Launch):
                                 },
                                 #"output_values": { "sampled_": "sampled_reads" },
                             }, 
-                            #"dnase-call-hotspots": {
-                            #    "inputs": { "bam_no_chrM": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
-                            #    "app": "dnase-call-hotspots", 
-                            #    "params": { "read_length": "read_length", "genome": "genome" }, 
-                            #    "results": {
-                            #         "br_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
-                            #        "br_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
-                            #         "br_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
-                            #        "br_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
-                            #         "br_bw_hotspot_signal":      "bw_hotspot_signal", 
-                            #        "br_bam_hotspot_qc":         "bam_hotspot_qc"
-                            #    },
-                            #}, 
-                            #"dnase-call-hotspots-alt": {
-                            #    "inputs": { "bam_no_chrM": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
-                            #    "app": "dnase-call-hotspots-alt", 
-                            #    "params": { "read_length": "read_length", "genome": "genome" }, 
-                            #    "results": {
-                            #         "br_bb_hotspot_broadPeak":   "bb_hotspot_broadPeak", 
-                            #        "br_bed_hotspot_broadPeak":  "bed_hotspot_broadPeak", 
-                            #         "br_bb_hotspot_narrowPeak":  "bb_hotspot_narrowPeak",
-                            #        "br_bed_hotspot_narrowPeak": "bed_hotspot_narrowPeak", 
-                            #         "br_bw_hotspot_signal":      "bw_hotspot_signal", 
-                            #        "br_bam_hotspot_qc":         "bam_hotspot_qc"
-                            #    },
-                            #}, 
-                            #"dnase-hotspot-qc": {
-                            #    "inputs": { "bam_no_chrM": "bam_to_sample", "chrom_sizes": "chrom_sizes" }, 
-                            #    "app": "dnase-hotspot-qc", 
-                            #    "params": { "read_length": "read_length", "genome": "genome"}, 
-                            #    "results": {
-                            #        "bam_sample_5M":        "bam_sample_5M",
-                            #        "bam_sample_5M_qc":     "bam_sample_5M_qc", 
-                            #    },
-                            #    #"output_values": { "reads_sample_5M": "reads" },
-                            #},
-                            #"dnase-hotspot-qc-alt": {
-                            #    "inputs": { "bam_no_chrM": "bam_to_sample", "chrom_sizes": "chrom_sizes" }, 
-                            #    "app": "dnase-hotspot-qc-alt", 
-                            #    "params": { "read_length": "read_length", "genome": "genome"}, 
-                            #    "results": {
-                            #        "bam_sample_5M":        "bam_sample_5M",
-                            #        "bam_sample_5M_qc":     "bam_sample_5M_qc", 
-                            #    },
-                            #    #"output_values": { "reads_sample_5M": "reads" },
-                            #},
+                            "dnase-call-hotspots": {
+                                "inputs": { "bam_filtered": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
+                                "app": "dnase-call-hotspots", 
+                                #"params": {  }, 
+                                "results": {
+                                    "bed_hotspots":  "bed_hotspots", 
+                                     "bb_hotspots":   "bb_hotspots", 
+                                    "bed_peaks":     "bed_peaks", 
+                                     "bb_peaks":      "bb_peaks",
+                                     "bw_density":     "bw_density", 
+                                    "hotspots_qc":    "hotspots_qc"
+                                },
+                            }, 
+                            "dnase-call-hotspots-alt": {
+                                "inputs": { "bam_filtered": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
+                                "app": "dnase-call-hotspots-alt", 
+                                #"params": {  }, 
+                                "results": {
+                                    "bed_hotspots":  "bed_hotspots", 
+                                     "bb_hotspots":   "bb_hotspots", 
+                                    "bed_peaks":     "bed_peaks", 
+                                     "bb_peaks":      "bb_peaks",
+                                     "bw_density":    "bw_density", 
+                                    "hotspots_qc":   "hotspots_qc"
+                                },
+                            }, 
                 }
         },
         #"COMBINED_REPS": {
@@ -201,52 +179,51 @@ class DnaseLaunch(Launch):
         # dnase-align-pe/se results:
         "bam_techrep":              "/*_bwa_techrep.bam", 
         "bam_techrep_qc":           "/*_bwa_techrep_qc.txt",
-        # dnase-filter-pe/se results:
+        # dnase-filter-pe/se input/results:
         "bam_ABC":                  "/*_bwa_techrep.bam", 
         "bam_filtered":             "/*_filtered.bam", 
         "bam_filtered_qc":          "/*_filtered_qc.txt", 
-        #### dnase-size-bam results:
-        ###"bam_sized":                "/*_sized.bam", 
-        ###"bam_sized_qc":             "/*_sized_qc.txt", 
-        # dnase-eval-bam-pe/se results:
+        # dnase-eval-bam-pe/se input/results:
+        #"bam_filtered": {"bam_filtered": "/*_filtered.bam"}, 
         "bam_sample":               "/*_sample.bam", 
         "bam_sample_qc":            "/*_sample_qc.txt",
         # biorep-call-hotspots input/results:
-        #"bam_to_call":              "/*_no_chrM.bam", 
-        "br_bb_hotspot_broadPeak":  "/*_no_chrM_broadPeak_hotspot.bb", 
-        "br_bed_hotspot_broadPeak": "/*_no_chrM_broadPeak_hotspot.bed", 
-        "br_bed_hotspot_narrowPeak":"/*_no_chrM_narrowPeak_hotspot.bed", 
-        "br_bb_hotspot_narrowPeak": "/*_no_chrM_narrowPeak_hotspot.bb",
-        "br_bw_hotspot_signal":     "/*_no_chrM_signal_hotspot.bw", 
-        "br_bam_hotspot_qc":        "/*_no_chrM_hotspot_qc.txt", 
-        # dnase-hotspot-qc results:
-        "bam_sample_5M":            "/*_sample_5M.bam", 
-        "bam_sample_5M_qc":         "/*_sample_5M_qc.txt", 
+        #"bam_to_call": {"bam_filtered": "/*_filtered.bam"}, 
+        "bed_hotspots":             "/*_hotspots.bed.gz", 
+        "bb_hotspots":              "/*_hotspots.bb", 
+        "bed_peaks":                "/*_peaks.bed.gz", 
+        "bb_peaks":                 "/*_peaks.bb",
+        "bw_density":               "/*_density.bw", 
+        "hotspots_qc":              "/*_hotspots_qc.txt", 
         # dnase-pool-bioreps input/results:
-        "bam_A":                    "/*_filtered.bam",
-        "bam_B":                    "/*_filtered.bam",
-        "signal_A":                 "/*_no_chrM_signal_hotspot.bw",
-        "signal_B":                 "/*_no_chrM_signal_hotspot.bw",
-        "peaks_A":                  "/*_no_chrM_narrowPeak_hotspot.bb",
-        "peaks_B":                  "/*_no_chrM_narrowPeak_hotspot.bb",
-        "bam_pooled":               "/*_pooled.bam", 
-        "bed_merged":               "/*_merged_narrowPeak.bed", 
-        "bb_merged":                "/*_merged_narrowPeak.bb", 
-        "pooled_qc":                "/*_pooled_qc.txt", 
-        # biorep-call-hotspots input/results:
+        #"bam_A":                    "/*_filtered.bam",
+        #"bam_B":                    "/*_filtered.bam",
+        #"signal_A":                 "/*_no_chrM_signal_hotspot.bw",
+        #"signal_B":                 "/*_no_chrM_signal_hotspot.bw",
+        #"peaks_A":                  "/*_no_chrM_narrowPeak_hotspot.bb",
+        #"peaks_B":                  "/*_no_chrM_narrowPeak_hotspot.bb",
+        #"bam_pooled":               "/*_pooled.bam", 
+        #"bed_merged":               "/*_merged_narrowPeak.bed", 
+        #"bb_merged":                "/*_merged_narrowPeak.bb", 
+        #"pooled_qc":                "/*_pooled_qc.txt", 
+        # pooled-call-hotspots input/results:
         #"bam_to_call":              "/*_pooled.bam", 
-        "pr_bb_hotspot_broadPeak":  "/*_pooled_broadPeak_hotspot.bb", 
-        "pr_bed_hotspot_broadPeak": "/*_pooled_broadPeak_hotspot.bed", 
-        "pr_bed_hotspot_narrowPeak":"/*_pooled_narrowPeak_hotspot.bed", 
-        "pr_bb_hotspot_narrowPeak": "/*_pooled_narrowPeak_hotspot.bb",
-        "pr_bw_hotspot_signal":     "/*_pooled_signal_hotspot.bw", 
-        "pr_bam_hotspot_qc":        "/*_pooled_hotspot_qc.txt",         
+        #"pr_bb_hotspot_broadPeak":  "/*_pooled_broadPeak_hotspot.bb", 
+        #"pr_bed_hotspot_broadPeak": "/*_pooled_broadPeak_hotspot.bed", 
+        #"pr_bed_hotspot_narrowPeak":"/*_pooled_narrowPeak_hotspot.bed", 
+        #"pr_bb_hotspot_narrowPeak": "/*_pooled_narrowPeak_hotspot.bb",
+        #"pr_bw_hotspot_signal":     "/*_pooled_signal_hotspot.bw", 
+        #"pr_bam_hotspot_qc":        "/*_pooled_hotspot_qc.txt",         
     }
 
     REFERENCE_FILES = {
         # For looking up reference file names.
         # TODO: should use ACCESSION based fileNames
         "bwa_index":   {
+                        "GRCh38": {
+                                "female":   "GRCh38_XY_bwa_index.tgz",
+                                "male":     "GRCh38_XY_bwa_index.tgz"
+                                },
                         "hg19": {
                                 "female":   "hg19_female_bwa_index.tgz",
                                 "male":     "hg19_male_bwa_index.tgz"
@@ -257,6 +234,10 @@ class DnaseLaunch(Launch):
                                 }
                         },
         "chrom_sizes":   {
+                        "GRCh38": {
+                                "female":   "GRCh38_EBV.chrom.sizes",
+                                "male":     "GRCh38_EBV.chrom.sizes"
+                                },
                         "hg19": {
                                 "female":   "female.hg19.chrom.sizes",
                                 "male":     "male.hg19.chrom.sizes"
@@ -271,6 +252,7 @@ class DnaseLaunch(Launch):
 
     def __init__(self):
         Launch.__init__(self)
+        self.detect_umi = True     # Only in DNase is there a umi setting buried in the fastq metadata.
         
     def get_args(self):
         '''Parse the input arguments.'''
@@ -281,6 +263,11 @@ class DnaseLaunch(Launch):
                         type=int,
                         choices=['32', '36', '40', '50', '58', '72', '76', '100'],
                         default='100',
+                        required=False)
+
+        ap.add_argument('--umi',
+                        help='Treat fastqs as having UMI flags embedded.',
+                        action='store_true',
                         required=False)
 
         # NOTE: Could override get_args() to have this non-generic control message
@@ -299,6 +286,10 @@ class DnaseLaunch(Launch):
         psv['map_thresh']  = 3
         psv['sample_size'] = 15000000
         psv['read_length'] = args.read_length
+        if args.umi:
+            psv['umi'] = "yes"
+        #else:
+        #    psv['umi'] = "no"
         psv['upper_limit'] = 0
         
         if verbose:
@@ -363,6 +354,11 @@ class DnaseLaunch(Launch):
                 if len(tributary_id) == 1:
                     tributary = reps[tributary_id]
                     if tributary['br'] == bio_rep:
+                        if river.get('umi') == None:  # for DNase: bioreps should combine tech_reps of the same umi setting!
+                            river['umi'] = tributary.get('umi')
+                        elif river['umi'] != tributary.get('umi'):
+                            print >> sys.stderr, "ERROR: mixed UMI setting on tech_reps for bio_rep %s." % river['br']
+                            sys.exit(1)
                         if len(river['tributaries']) > 0:
                             river['rep_tech'] += '.'
                         river['rep_tech'] += tributary['rep_tech'][5:]
