@@ -21,7 +21,7 @@ APP_TOOLS = {
                             "dnase_eval_bam_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
-    "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bigBedToBed","bedGraphToBigWig"  ],
+    "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bedToBigBed","bedGraphToBigWig"  ],
     "dnase-idr":           [ "dnase_idr.sh", "Anaconda3", "idr", "bedToBigBed", "pigz" ],
     # Obsolete:
     #"dnase-merge-bams":   [ "samtools" ],
@@ -74,7 +74,7 @@ ALL_TOOLS = {
             #  "starch (bedops)":          "starch --version 2>&1 | grep version | awk '{print $3}'",
             #  "starchcat (bedops)":       "starchcat --version 2>&1 | grep version | awk '{print $3}'",
             #  "unstarch (bedops)":        "unstarch --version 2>&1 | grep version | awk '{print $3}'",
-            "bedToBigBed":              "bedToBigBed 2>&1 | grep 'bedToBigBed v' | awk '{print $2$3}'",
+            "bedToBigBed":              "bedToBigBed 2>&1 | grep 'bedToBigBed v' | awk '{print $3}'",
             "bedtools":                 "bedtools --version 2>&1 | awk '{print $2}'",
             #  "bamToBed (bedtools)":      "bamToBed -h 2>&1 | grep Version | awk '{print $2}'",
             #  "intersectBed (bedtools)":  "intersectBed 2>&1 | grep Version | awk '{print $2}'",
