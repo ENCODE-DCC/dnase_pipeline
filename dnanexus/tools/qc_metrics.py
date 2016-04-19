@@ -14,10 +14,11 @@ EXPECTED_PARSING = {
     "edwComparePeaks":        {"type": "edwComparePeaks"},
     "fastqStatsAndSubsample": {"type": "fastqstats"},
     "hotspot":                {"type": "hotspot"},
+    "IDR_summary":            {"type": "idr"},
     "samtools_flagstats":     {"type": "flagstats"},
     "samtools_stats":         {"type": "samstats"},
     "phantompeaktools_spp":   {"type": "spp"},
-    "pbc":                    {"type": "pbc"}
+    "pbc":                    {"type": "pbc"},
 }
 
 def strip_comments(line,ws_too=False):
@@ -413,7 +414,51 @@ def read_hotspot(filePath,verbose=False):
 
     return pairs
     
-    
+def read_idr(filePath,verbose=False):
+    '''
+    SPECIAL CASE for NBoley's IDR summary. 
+    '''
+    pairs = {}
+
+    fh = open(filePath, 'r')
+    while True:
+        line = readline_may_continue( fh )
+        if line == None:
+            break
+        if verbose:
+            print "["+line+"]"
+        line = strip_comments(line,True)
+        if line == '':
+            continue
+        
+        #          Initial parameter values: [0.10 1.00 0.20 0.50]
+        #          Final parameter values: [0.09 0.20 0.10 0.99]
+        key, val = parse_pair(line,delimit=':',verbose=verbose)
+        if key in ["Initial parameter values","Final parameter values"]: 
+            values = val[1:-1].split()
+            numbers = []
+            for num in values:
+                numbers.append(string_or_number(num))
+            pairs[key + " (mu, sigma, rho, and mix)"] = numbers
+        else:
+            #          Number of reported peaks - 53/53 (100.0%)
+            #          Number of peaks passing IDR cutoff of 0.05 - 41/53 (77.4%)
+            key, val = parse_pair(line,delimit='-',verbose=verbose)
+            if key == "Number of reported peaks" or key.startswith("Number of peaks passing IDR cutoff of"):
+                parts = val.split()
+                numerator = parts[0].split('/')[0]
+                percent = parts[1][1:-2]
+                if key.startswith("Number of peaks passing IDR cutoff of"):
+                    parts = key.split()
+                    pairs["IDR cutoff"] = string_or_number(parts[len(parts) - 1])
+                    key = " ".join(parts[:-2])
+                pairs[key] = string_or_number(numerator)
+                percentKey = "Percent" + key[9:]
+                pairs[percentKey] = string_or_number(percent)
+
+    fh.close()
+    return pairs
+
 def read_samstats(filePath,verbose=False):
     '''
     SPECIAL CASE of samtools stats 
@@ -611,6 +656,8 @@ def main():
         metrics = read_flagstats(args.file,args.verbose)
     elif parsing["type"] == 'hotspot':
         metrics = read_hotspot(args.file,args.verbose)
+    elif parsing["type"] == 'idr':
+        metrics = read_idr(args.file,args.verbose)
     elif parsing["type"] == 'samstats':
         metrics = read_samstats(args.file,args.verbose)
     elif parsing["type"] == 'spp':

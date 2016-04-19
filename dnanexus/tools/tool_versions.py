@@ -22,16 +22,7 @@ APP_TOOLS = {
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
     "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bigBedToBed","bedGraphToBigWig"  ],
-    # Questionable:
-    "dnase-qc-hotspot":   [
-                            "dnase_qc_hotspot.sh","edwBamStats","hotspot","hotspot.py","samtools",
-                            "bedops","bedtools"
-                          ],
-    "dnase-pool-bioreps": [ 
-                            "dnase_pool_reps.sh", "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
-                            "edwComparePeaks", "edwBamStats" 
-                          ],
-    "dnase-size-bam":     [ "edwBamStats" ],
+    "dnase-idr":           [ "dnase_idr.sh", "Anaconda3", "idr", "bedToBigBed", "pigz" ],
     # Obsolete:
     #"dnase-merge-bams":   [ "samtools" ],
     #"bam-filter-pe":      [
@@ -47,21 +38,32 @@ APP_TOOLS = {
     #                        "dnase_hotspot.sh", "hotspot","hotspot.py","samtools",
     #                        "bedops","bedtools","bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
     #                      ],
+    #"dnase-qc-hotspot":   [
+    #                        "dnase_qc_hotspot.sh","edwBamStats","hotspot","hotspot.py","samtools",
+    #                        "bedops","bedtools"
+    #                      ],
+    #"dnase-pool-bioreps": [ 
+    #                        "dnase_pool_reps.sh", "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
+    #                        "edwComparePeaks", "edwBamStats" 
+    #                      ],
+    #"dnase-size-bam":     [ "edwBamStats" ],
     }
 
 # Virtual apps only differ from their parent by name/version. 
 VIRTUAL_APPS = {
-    "dnase-merge-bams-alt":      "dnase-merge-bams",
-    "dnase-size-bam-alt":        "dnase-size-bam",
-    "dnase-qc-hotspot-alt":      "dnase-qc-hotspot",   
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
-    "dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
-    "dnase-final-hotspots":      "dnase-call-hotspots",
-    "dnase-final-hotspots-alt":  "dnase-call-hotspots",
+    "dnase-idr-alt":             "dnase-idr",
+    #"dnase-merge-bams-alt":      "dnase-merge-bams",
+    #"dnase-size-bam-alt":        "dnase-size-bam",
+    #"dnase-qc-hotspot-alt":      "dnase-qc-hotspot",   
+    #"dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
+    #"dnase-final-hotspots":      "dnase-call-hotspots",
+    #"dnase-final-hotspots-alt":  "dnase-call-hotspots",
     }
 
 # ALL_TOOLS contains the printable tool name (key) and the command that is used to determine the version.
 ALL_TOOLS = { 
+            "Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - -f 2",
             "bedGraphPack":             "bedGraphPack 2>&1 | grep 'bedGraphPack v' | awk '{print $2}'",
             "bedGraphToBigWig":         "bedGraphToBigWig 2>&1 | grep 'bedGraphToBigWig v' | awk '{print $2$3}'",
             "bedops":                   "bedops --version 2>&1 | grep version | awk '{print $2}'",
@@ -86,6 +88,7 @@ ALL_TOOLS = {
             "edwComparePeaks":          "echo unversioned", #"edwComparePeaks 2>&1 | grep 'edwComparePeaks -' | awk '{print $3,$4,$5,$6}'",
             "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
             "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
+            "idr":                      "idr/bin/idr --version 2>&1 | grep IDR | awk '{print $2}'",
             "mawk":                     "mawk -W version 2>&1 | grep mawk | awk '{print $2}'",
             #old "hotspot":                  "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
             #old "hotspot.py":               "hotspot.py -h | grep Version | awk '{print $8}'",
@@ -103,6 +106,7 @@ ALL_TOOLS = {
             #  "density-peaks.bash (hotspot2)":       "hotspot2 --version | awk '{print $3}'",
             #  "bed_exclude.py (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
             "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %s\",$1}'", # From https://github.com/StamLab/modwt
+            "pigz":                      "pigz --version 2>&1 | awk '{print $2}'",
             "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
@@ -110,9 +114,10 @@ ALL_TOOLS = {
             "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_eval_bam_pe.sh":     "dnase_eval_bam_pe.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_eval_bam_se.sh":     "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_qc_hotspot.sh":      "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_pool_reps.sh":       "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_idr.sh":             "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
+            #"dnase_qc_hotspot.sh":      "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
+            #"dnase_pool_reps.sh":       "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
             }
 
 def parse_dxjson(dxjson):

@@ -19,7 +19,7 @@ class DnaseLaunch(Launch):
     RESULT_FOLDER_DEFAULT = '/dnase/'
     ''' This the default location to place results folders for each experiment.'''
     
-    PIPELINE_BRANCH_ORDER = [ "TECH_REP", "BIO_REP" ] #, "COMBINED_REPS" ]
+    PIPELINE_BRANCH_ORDER = [ "TECH_REP", "BIO_REP", "COMBINED_REPS" ]
     '''A pipeline is frequently made of branches that flow into each other, such as replicate level to combined replicate.'''
     
     PIPELINE_BRANCHES = {
@@ -130,10 +130,34 @@ class DnaseLaunch(Launch):
                             }, 
                 }
         },
-        #"COMBINED_REPS": {
-        #        "ORDER": { "se": [ "dnase-pool-bioreps-alt" ],
-        #                   "pe": [ "dnase-pool-bioreps",    ] },
-        #        "STEPS": {
+        "COMBINED_REPS": {
+                "ORDER": { "se": [ "dnase-idr-alt" ],
+                          "pe": [ "dnase-idr",    ] },
+                "STEPS": {
+                            "dnase-idr": {
+                                "inputs": {
+                                    "peaks_a":    "peaks_a",    "peaks_b":    "peaks_b", 
+                                    "chrom_sizes": "chrom_sizes" 
+                                }, 
+                                "app": "dnase-idr", 
+                                "params": {}, 
+                                "results": { "idr_png": "idr_png",
+                                             "idr_bb":  "idr_bb",
+                                             "idr_bed": "idr_bed",
+                                },
+                            },
+                            "dnase-idr-alt": {
+                                "inputs": {
+                                    "peaks_a":    "peaks_a",    "peaks_b":    "peaks_b", 
+                                    "chrom_sizes": "chrom_sizes" 
+                                }, 
+                                "app": "dnase-idr-alt", 
+                                "params": {}, 
+                                "results": { "idr_png": "idr_png",
+                                             "idr_bb":  "idr_bb",
+                                             "idr_bed": "idr_bed",
+                                },
+                            },
         #                    "dnase-pool-bioreps": {
         #                        "inputs": {
         #                               "bam_A":    "bam_A",    "bam_B":    "bam_B", 
@@ -168,8 +192,8 @@ class DnaseLaunch(Launch):
         #                        },
         #                        #"output_values": { "reads_pooled": "reads" },
         #                    },
-        #        }
-        #}
+                }
+        }
     }
 
     FILE_GLOBS = {
@@ -195,6 +219,12 @@ class DnaseLaunch(Launch):
         "bb_peaks":                 "/*_peaks.bb",
         "bw_density":               "/*_density.bw", 
         "hotspots_qc":              "/*_hotspots_qc.txt", 
+        # dnase-idr input/results:
+        "peaks_a":                  "/*_peaks.bed.gz", # "/*_bwa_biorep_filtered_peaks.bed.gz",
+        "peaks_b":                  "/*_peaks.bed.gz", # "/*_bwa_biorep_filtered_peaks.bed.gz",
+        "idr_bed":                  "/*_idr.bed.gz",
+        "idr_bb":                   "/*_idr.bb",
+        "idr_png":                  "/*_idr.png",
         # dnase-pool-bioreps input/results:
         #"bam_A":                    "/*_filtered.bam",
         #"bam_B":                    "/*_filtered.bam",
@@ -396,8 +426,10 @@ class DnaseLaunch(Launch):
                 # Special case of 2 allows for designating sisters
                 reps[sea['tributaries'][0]]['sister'] = sea['tributaries'][1]
                 reps[sea['tributaries'][1]]['sister'] = sea['tributaries'][0]
-            #else:
-            #    print "Found " + str(len(bio_reps)) + " bio_reps.  If exactly two, they would be combined."
+                if debug:
+                    print "DEBUG: experiment: " + self.SEA_ID + " tributaries: " + str(len(sea['tributaries']))
+            elif debug:
+                print "DEBUG: Found " + str(len(bio_reps)) + " bio_reps.  If exactly two, they would be combined."
             #print json.dumps(reps,indent=4,sort_keys=True)
 
     #######################

@@ -1,0 +1,77 @@
+{
+  "name": "dnase-idr",
+  "title": "IDR on DNase peaks (v0.2.0)",
+  "summary": "Compares two sets of peaks and generates an Irreproducible Discovery Rate report",
+  "dxapi": "1.0.0",
+  "version": "0.2.0",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "peaks_a",
+      "label": "Peaks produced from one biological replicate",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_bwa_biorep_filtered_peaks.bed.gz"]
+    },
+    {
+      "name": "peaks_b",
+      "label": "Peaks produced from another biological replicate",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_bwa_biorep_filtered_peaks.bed.gz"]
+    },
+    {
+      "name": "chrom_sizes",
+      "label": "chomosome/name length file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*chrom.sizes","*.txt"]
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "idr_bed",
+      "label": "Gzipped bed file of dnase idr peaks",
+      "class": "file",
+      "patterns": ["*_idr.bed.gz"]
+    },
+    {
+      "name": "idr_bb",
+      "label": "BigBed file of dnase idr peaks",
+      "class": "file",
+      "patterns": ["*_idr.bb"]
+    },
+    {
+      "name": "idr_png",
+      "label": "Plot of dnase idr results",
+      "class": "file",
+      "patterns": ["*_idr.png"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/dnase-idr.sh",
+    "execDepends": [{"name": "pigz"}],
+    "systemRequirements": {
+      "main": {
+        "instanceType": "mem3_hdd2_x8"
+      },
+      "myEntryPoint": {
+        "instanceType": "mem3_hdd2_x8"
+      }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}

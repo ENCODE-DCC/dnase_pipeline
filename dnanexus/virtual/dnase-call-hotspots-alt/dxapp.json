@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots-alt",
-  "title": "Call hotspots (virtual-0.2.3)",
+  "title": "Call hotspots (virtual-1.0.0)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.2.3",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -19,26 +19,51 @@
       "class": "file",
       "optional": false,
       "patterns": ["*chrom.sizes"]
+    },
+    {
+      "name": "blacklist",
+      "label": "Blacklisted regions to exclude from hotspot calling",
+      "class": "file",
+      "optional": true,
+      "patterns": ["*.bed.gz"]
     }
   ],
   "outputSpec": [
     {
       "name": "bed_hotspots",
-      "label": "Hotspot peaks in narrowPeak format",
+      "label": "Hotspots bed in broadPeak format",
       "class": "file",
       "patterns": ["*_hotspots.bed.gz"]
     },
     {
       "name": "bb_hotspots",
-      "label": "Hotspot peaks bigBed in narrowPeak format",
+      "label": "Hotspots bigBed in broadPeak format",
       "class": "file",
-      "patterns": ["*_hotspot.bb"]
+      "patterns": ["*_hotspots.bb"]
     },
     {
-      "name": "bam_hotspot_qc",
+      "name": "bed_peaks",
+      "label": "Peaks bed in narrowPeak format",
+      "class": "file",
+      "patterns": ["*_peaks.bed.gz"]
+    },
+    {
+      "name": "bb_peaks",
+      "label": "Peaks bigBed in narrowPeak format",
+      "class": "file",
+      "patterns": ["*_peaks.bb"]
+    },
+    {
+      "name": "bw_density",
+      "label": "Density bed in bigWig format?",
+      "class": "file",
+      "patterns": ["*_density.bw"]
+    },
+    {
+      "name": "hotspots_qc",
       "label": "Hotspot qc: hotspot output",
       "class": "file",
-      "patterns": ["*_hotspot_qc.txt"]
+      "patterns": ["*_hotspots_qc.txt"]
     },
     {
       "name": "metadata",
@@ -49,14 +74,9 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-call-hotspots.sh",
-    "systemRequirements": {
-      "main": {
-        "instanceType": "mem3_hdd2_x8"
-      },
-      "myEntryPoint": {
-        "instanceType": "mem3_hdd2_x8"
-      }
-    }
+    "systemRequirements": {  "main": { "instanceType": "mem3_hdd2_x8" } },
+    "execDepends": [ { "name": "gawk" },
+                     { "name": "pigz" } ]
   },
   "access": {
     "network": [
