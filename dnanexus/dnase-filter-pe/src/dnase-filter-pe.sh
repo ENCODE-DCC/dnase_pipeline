@@ -2,33 +2,8 @@
 # dnase-filter-pe.sh - Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline.
 
 main() {
-    #echo "* Installing Anaconda3-2.2.0 (python3.4.3)..."
-    #set -x
-    #wget https://repo.continuum.io/archive/Anaconda3-2.2.0-Linux-x86_64.sh >> install.log 2>&1
-    #bash Anaconda3-2.2.0-Linux-x86_64.sh -b >> install.log 2>&1
-    #set -x
-    #echo "* Patchup for two pythons..."
-    ### python symlink will interfere with python2.7
-    ##set -x
-    #ana_home="/home/dnanexus/anaconda3"
-    #OLDPATH=$PATH
-    #OLDPYTHONPATH=$PYTHONPATH
-    #export PATH=${ana_home}/bin:$OLDPATH
-    #PYTHONPATH=${ana_home}/lib/python3.4/site-packages/:$OLDPYTHONPATH
-    #set +x
-    #echo "* Installing pysam for python3..."
-    #set -x
-    #pip install pysam >> install.log 2>&1
-    #ln -sf /usr/bin/python2.7 ${ana_home}/bin/python 
-    #PYTHONPATH=$OLDPYTHONPATH:${ana_home}/lib/python3.4/site-packages/
-    #set +x
-    #echo "* Installing gawk..."
-    #set -x
-    #sudo apt-get install gawk
-    #set +x
-    #
-    # gawk and pysam are installed using dxapp.json
-    
+    # executables in resources/usr/bin
+
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
@@ -151,18 +126,22 @@ main() {
     qc_filtered=''
     prefiltered_all_reads=0
     prefiltered_mapped_reads=0
-    #filtered_all_reads=0
     filtered_mapped_reads=0
     read_len=0
     if [ -f /usr/bin/qc_metrics.py ]; then
         qc_filtered=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt`
         prefiltered_all_reads=`qc_metrics.py -n samtools_flagstats -f ${merged_bam_root}_flagstat.txt -k total`
         prefiltered_mapped_reads=`qc_metrics.py -n samtools_flagstats -f ${merged_bam_root}_flagstat.txt -k mapped`
-        #filtered_all_reads=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt -k total`
+        filtered_all_reads=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt -k total`
         filtered_mapped_reads=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt -k mapped`
         meta=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt`
         read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         qc_filtered=`echo $qc_filtered, $meta`
+        qc_filtering=`echo \"pre-filter all reads\": $prefiltered_all_reads`
+        qc_filtering=`echo qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
+        qc_filtering=`echo qc_filtering, \"post-filter all reads\": $filtered_all_reads`
+        qc_filtering=`echo qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
+        qc_filtered=`echo $qc_filtered, \"read_filtering\": { $qc_filtering } `
     fi
     # All qc to one file per target file:
     echo "===== samtools flagstat ====="   > ${filtered_bam_root}_qc.txt

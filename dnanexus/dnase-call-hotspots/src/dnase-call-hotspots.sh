@@ -38,11 +38,10 @@ main() {
     hotspot_root="${bam_root}_hotspots"  # Put hotspot results into ${hotspot_root}.bed.gz, ${hotspot_root}.bb, ${hotspot_root}_count.txt, and ${hotspot_root}_SPOT.txt
     peaks_root="${bam_root}_peaks"       # Put peak results into ${peaks_root}.bed.gz, ${peaks_root}.bb, and ${peaks_root}_count.txt
     density_root="${bam_root}_density"   # Put density results into ${density_root}.bw
-    allcalls_root="${bam_root}_allcalls" # (optional) Put all_calls results into ${allcalls_root}.bed.gz and ${allcalls_root}_count.txt
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $blacklist_file $hotspot_root $peaks_root $density_root $allcalls_root
+    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $blacklist_file $hotspot_root $peaks_root $density_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     
@@ -55,8 +54,6 @@ main() {
         qc_peaks=`echo $spot_score, $hotspot_count, $peaks_count`
         hotspot_count=`cat ${hotspot_root}_count.txt`
         peaks_count=`cat ${peaks_root}_count.txt`
-        allcalls_count=`qc_metrics.py -n singleton -f ${allcalls_root}_count.txt -k "all calls count" --keypair "all calls count"`  
-        qc_peaks=`echo $qc_peaks, $allcalls_count`
         qc_hotspot=`echo \"hotspot\": { $qc_peaks }`
     fi
     
@@ -69,9 +66,6 @@ main() {
     echo " "                           >> ${hotspot_root}_qc.txt
     echo "===== peaks count ====="     >> ${hotspot_root}_qc.txt
     cat ${peaks_root}_count.txt        >> ${hotspot_root}_qc.txt
-    echo " "                           >> ${hotspot_root}_qc.txt
-    echo "===== allcalls count ====="  >> ${hotspot_root}_qc.txt
-    cat ${allcalls_root}_count.txt     >> ${hotspot_root}_qc.txt
     
     echo "* Upload results..."
     bed_hotspots=$(dx upload ${hotspot_root}.bed.gz  --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
@@ -89,16 +83,5 @@ main() {
     dx-jobutil-add-output hotspots_qc "$hotspots_qc" --class=file
     dx-jobutil-add-output metadata "{ $qc_hotspot }" --class=string
     
-    # NOTE: We could save allcalls but that is a step too far.
-    #{
-    #  "name": "bed_allcalls",
-    #  "label": "Cutcounts in starch of bed 6 format",
-    #  "class": "file",
-    #  "patterns": ["*_allcalls.bed.gz"]
-    #},
-    #allcalls_count=`cat ${allcalls_root}_count.txt`  
-    #bed_allcalls=$(dx upload ${allcalls_root}.bed.gz   --details "{ $qc_hotspot }" --property SW="$versions" --property allcalls_count="$allcalls_count" --brief)
-    #dx-jobutil-add-output bed_allcalls "$bed_allcalls" --class=file
-
     echo "* Finished."
 }

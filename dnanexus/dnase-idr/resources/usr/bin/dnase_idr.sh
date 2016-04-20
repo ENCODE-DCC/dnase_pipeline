@@ -43,13 +43,6 @@ sort -k1,1 -k2,2n < idrValues.txt > ${idr_root}.bed
 mv idrValues.txt.png ${idr_root}.png
 set +x
 
-# For debuging...
-echo "-- --------------"
-set -x
-head ${idr_root}.bed
-set +x
-echo "-- --------------"
-
 if [ "$format" == "broadPeak" ]; then 
     echo "* Converting bed to 'broad_idr' bigBed..."
     set -x
