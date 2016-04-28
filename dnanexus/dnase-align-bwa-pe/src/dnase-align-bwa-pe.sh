@@ -86,7 +86,7 @@ main() {
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_align_bwa_pe.sh ${bwa_ix_root}.tgz ${reads1_root}.fq.gz ${reads2_root}.fq.gz $nthreads $bam_root
+    dnase_align_bwa_pe.sh ${bwa_ix_root}.tgz ${reads1_root}.fq.gz ${reads2_root}.fq.gz $nthreads $umi $bam_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     scripted_root="${bam_root}_pe_bwa"

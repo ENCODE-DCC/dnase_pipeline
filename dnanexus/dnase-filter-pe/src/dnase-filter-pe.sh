@@ -138,14 +138,24 @@ main() {
         read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         qc_filtered=`echo $qc_filtered, $meta`
         qc_filtering=`echo \"pre-filter all reads\": $prefiltered_all_reads`
-        qc_filtering=`echo qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
-        qc_filtering=`echo qc_filtering, \"post-filter all reads\": $filtered_all_reads`
-        qc_filtering=`echo qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
-        qc_filtered=`echo $qc_filtered, \"read_filtering\": { $qc_filtering } `
+        qc_filtering=`echo $qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
+        qc_filtering=`echo $qc_filtering, \"post-filter all reads\": $filtered_all_reads`
+        qc_filtering=`echo $qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
+        qc_filtered=`echo $qc_filtered, \"read_filtering\": { $qc_filtering }`
     fi
     # All qc to one file per target file:
     echo "===== samtools flagstat ====="   > ${filtered_bam_root}_qc.txt
     cat ${filtered_bam_root}_flagstat.txt >> ${filtered_bam_root}_qc.txt
+    if [ -e ${filtered_bam_root}_dup_qc.txt ]; then
+        echo " "                                 >> ${filtered_bam_root}_qc.txt
+        echo "===== picard MarkDuplicates =====" >> ${filtered_bam_root}_qc.txt
+        cat ${filtered_bam_root}_dup_qc.txt      >> ${filtered_bam_root}_qc.txt
+    fi
+    if [ -e ${filtered_bam_root}_umi_dups.txt ]; then
+        echo " "                              >> ${filtered_bam_root}_qc.txt
+        echo "===== UMI Duplicates ====="     >> ${filtered_bam_root}_qc.txt
+        cat ${filtered_bam_root}_umi_dups.txt >> ${filtered_bam_root}_qc.txt
+    fi
     echo " "                              >> ${filtered_bam_root}_qc.txt
     echo "===== samtools stats ====="     >> ${filtered_bam_root}_qc.txt
     cat ${filtered_bam_root}_samstats.txt >> ${filtered_bam_root}_qc.txt

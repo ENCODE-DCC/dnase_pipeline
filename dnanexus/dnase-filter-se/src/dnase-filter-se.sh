@@ -125,9 +125,9 @@ main() {
         read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         qc_filtered=`echo $qc_filtered, $meta`
         qc_filtering=`echo \"pre-filter all reads\": $prefiltered_all_reads`
-        qc_filtering=`echo qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
-        qc_filtering=`echo qc_filtering, \"post-filter all reads\": $filtered_all_reads`
-        qc_filtering=`echo qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
+        qc_filtering=`echo $qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
+        qc_filtering=`echo $qc_filtering, \"post-filter all reads\": $filtered_all_reads`
+        qc_filtering=`echo $qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
         qc_filtered=`echo $qc_filtered, \"read_filtering\": { $qc_filtering } `
     fi
     # All qc to one file per target file:

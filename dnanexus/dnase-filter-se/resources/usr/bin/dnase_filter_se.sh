@@ -32,7 +32,9 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
     echo "-- UMI filtering will be performed."
     flagged_root="${unfiltered_bam_root}_post_umi"
     flagged_file="${flagged_root}.sam"
-    filter_flags=`expr 512 + 8 + 4`
+    #filter_flags=`expr 512 + 8 + 4`
+    # Richard Sandstrom: UMI flags: 512 + 1024 = 1536   (both 8 and 4 are incorporated into 512 by the script.  1024 is set unambiguously by the UMI eval portion of the script)
+    filter_flags=`expr 512 + 1024` 
     # Don't think sorting by name is needed for se
     #echo "-- Sort bam by name."
     #set -x
@@ -46,7 +48,9 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
 else
     echo "-- non-UMI filtering will be performed."
     flagged_file=$unfiltered_bam
-    filter_flags=`expr 1024 + 512 + 8 + 4`
+    #filter_flags=`expr 1024 + 512 + 8 + 4` 
+    # Richard Sandstrom: non-UMI flags: 512 only (again, 8 and 4 are both criteria to set 512.  we don't filter dups for non UMI reads by convention).
+    filter_flags=512
 fi
  
 echo "-- Filter on flags and threashold..."
