@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-if [ $# -ne 6 ]; then
-    echo "usage v1: dnase_align_bwa_pe.sh <index.tgz> <reads1.fq.gz> <reads2.fq.gz> <ncpus> <umi> <bam_root>"
+if [ $# -ne 8 ]; then
+    echo "usage v1: dnase_align_bwa_pe.sh <index.tgz> <reads1.fq.gz> <reads2.fq.gz> <barcode> <umi> <adapters.tsv> <ncpus> <bam_root>"
     echo "Align paired-end reads with bwa.  Is independent of DX and encodeD."
     echo "Requires bwa, edwBamStats, and samtools on path."
     exit -1; 
@@ -9,9 +9,11 @@ fi
 index_tgz=$1  # BWA index archive including <ref_id>.fa (e.g. GRCh38.fa) and bwa index.
 reads1_fq_gz=$2  # fastq of of paired-end read1, which will be trimmed resulting in "read1_trimmed.fq.gz"
 reads2_fq_gz=$3  # fastq of of paired-end read2, which will be trimmed resulting in "read2_trimmed.fq.gz"
-ncpus=$4      # Number of cpus available.
-umi=$5             # Whether reads in bam contain UMI ids (only 'yes' means yes).
-bam_root="${6}_pe_bwa"   # root name for output bam (e.g. "out" will create "out_pe_bwa.bam" and "out_pe_bwa_flagstat.txt") 
+barcode=$4       # Barcode used in generating fastqs
+umi=$5           # Whether reads in bam contain UMI ids (only 'yes' means yes).
+adapters_tsv=$6  # Adapter file that contains <barcode>_P5 and <barcode>_P7 sequences that should be trimmed
+ncpus=$7         # Number of cpus available.
+bam_root="${8}_pe_bwa"   # root name for output bam (e.g. "out" will create "out_pe_bwa.bam" and "out_pe_bwa_flagstat.txt") 
 
 echo "-- Expect to create '${bam_root}.bam'"
 
@@ -26,19 +28,23 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
 fi
 
 echo "-- Adapter trimming..."
-# TODO: Get an all_adapters.txt file and learn adapter from encodeD
-echo -e "P7\tGATCGGAAGAGCACACGTCTGAACTCCAGTCACTCCGCGAAATCTCGTATGCCGTCTTCTGCTTG" > adapt.txt
-echo -e "P5\tGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNNNATCTCGTATGCCGTCTTCTGCTTG" >> adapt.txt
+#echo -e "P7\tGATCGGAAGAGCACACGTCTGAACTCCAGTCACTCCGCGAAATCTCGTATGCCGTCTTCTGCTTG" > adapt.txt
+#echo -e "P5\tGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNNNATCTCGTATGCCGTCTTCTGCTTG" >> adapt.txt
+#trim-adapters-illumina -f adapt.txt -1 P5 -2 P7 $reads1_fq_gz $reads2_fq_gz R1_trimmed.fq.gz R2_trimmed.fq.gz \
+#                                                                                                2> ${bam_root}_trim_stats.txt
 set -x
-trim-adapters-illumina -f adapt.txt -1 P5 -2 P7 $reads1_fq_gz $reads2_fq_gz R1_trimmed.fq.gz R2_trimmed.fq.gz \
-                                                                                                > ${bam_root}_trim_stats.txt
+trim-adapters-illumina -f $adapters_tsv -1 ${barcode}_P5 -2 ${barcode}_P7 $reads1_fq_gz $reads2_fq_gz \
+																R1_trimmed.fq.gz R2_trimmed.fq.gz 2> ${bam_root}_trim_stats.txt
 set +x
-#echo "-- Adapter trimming by trim_galore..."
-#set -x
-#trim_galore -o output --paired $reads1_fq_gz $reads2_fq_gz
-#set +x
 reads1_fq_gz=R1_trimmed.fq.gz
 reads2_fq_gz=R2_trimmed.fq.gz
+
+ --- Debug only
+echo "-- Trimming stats..."
+set -x
+cat ${bam_root}_trim_stats.txt 
+set +x
+echo "--------------------"
 
 echo "-- Uncompress index archive..."
 set -x

@@ -2,6 +2,7 @@
 
 """
 filter_reads.py - Set SAM flag 0x200 (QC-fail) for reads failing various criteria.
+
 Criteria:
  * Read must be end-to-end mapped without soft clipping or indels and meet cutoffs for MAPQ and NM
  * PE reads must have both reads present and meeting all above criteria. Additionally, they must
@@ -65,6 +66,7 @@ def validate_read(read, min_mapq = 1, max_mismatches = 2):
     if read.mapping_quality < min_mapq: raise read_exception("Read MAPQ < %d" % min_mapq)
     if read.is_unmapped: raise read_exception("Read not mapped")
     if read.get_tag("NM") > max_mismatches: raise read_exception("Read mismatches > %d" % max_mismatches)
+    if "S" in read.cigarstring: raise read_exception("Read is soft-clipped")
 
     return read
 
@@ -189,9 +191,9 @@ while(1):
 
             if read1.is_paired:
 
-                if not read.mate_is_unmapped:
+                if not read1.mate_is_unmapped:
 
-                    raise read_exception("No mate found (incongruant flag)!")
+                    raise read_exception("No mate found (incongruent flag)!")
 
                 else:
 
@@ -220,4 +222,5 @@ while(1):
 # clean-up and close files
 raw_alignment.close()
 filtered_alignment.close()
+
 

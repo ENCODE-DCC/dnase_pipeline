@@ -11,14 +11,12 @@ EXPECTED_PARSING = {
     "horizontal": {"type": "horizontal", "lines": "", "columns": "", "delimit": None},
     "singleton":  {"type": "singleton", "delimit": None},
     "edwBamStats":            {"type": "vertical",   "lines": "", "columns": "", "delimit": None},
-    "edwComparePeaks":        {"type": "edwComparePeaks"},
     "fastqStatsAndSubsample": {"type": "fastqstats"},
-    "hotspot":                {"type": "hotspot"},
     "IDR_summary":            {"type": "idr"},
     "samtools_flagstats":     {"type": "flagstats"},
     "samtools_stats":         {"type": "samstats"},
     "phantompeaktools_spp":   {"type": "spp"},
-    "pbc":                    {"type": "pbc"},
+    "duplicate_stats":        {"type": "dup_stats"},
 }
 
 def strip_comments(line,ws_too=False):
@@ -562,27 +560,109 @@ def read_pbc(filePath,verbose=False):
         if line == '':
             continue
         
+        # Actual content:
         # 2286836	2219898	2176268	37175	0.970729	0.980346	58.541170
+        # Seth interprets:
+        # TotalReadPairs \t DistinctReadPairs \t OneReadPair \t TwoReadPairs \t NRF=Distinct/Total \t PBC1=OnePair/Distinct \t PBC2=OnePair/TwoPair
         parts = line.split()
         if len(parts) > 0:
-            pairs["reads"] = string_or_number(parts[0])
+            pairs["TotalReadPairs"] = string_or_number(parts[0])
         if len(parts) > 1:
-            pairs["locations"] = string_or_number(parts[1])
+            pairs["DistinctReadPairs"] = string_or_number(parts[1])
         if len(parts) > 2:
-            pairs["mapped by 1 read"] = string_or_number(parts[2])
+            pairs["OneReadPair"] = string_or_number(parts[2])
         if len(parts) > 3:
-            pairs["mapped by 2 reads"] = string_or_number(parts[3])
+            pairs["TwoReadPairs"] = string_or_number(parts[3])
         if len(parts) > 4:
-            pairs["locations per read"] = string_or_number(parts[4])
+            pairs["NRF"] = string_or_number(parts[4])
         if len(parts) > 5:
-            pairs["proportion of 1 read locations"] = string_or_number(parts[5])
+            pairs["PBC1"] = string_or_number(parts[5])
         if len(parts) > 6:
-            pairs["ratio: 1 read over 2 read locations"] = string_or_number(parts[6])
+            pairs["PBC2"] = string_or_number(parts[6])
         break
     fh.close()
     return pairs
  
+def read_dup_stats(filePath,verbose=False):
+    '''
+    SPECIAL CASE customized for 'picard markDuplicates' output or umi duplicates. 
+    '''
+    pairs = {}
+    keys = None
+    values = None
+
+    fh = open(filePath, 'r')
+    while True:
+        line = readline_may_continue( fh )
+        if line == None:
+            break
+        if verbose:
+            print "["+line+"]"
+        line = strip_comments(line,True)
+        if line == '':
+            continue
+        # LIBRARY	UNPAIRED_READS_EXAMINED	READ_PAIRS_EXAMINED	UNMAPPED_READS	UNPAIRED_READ_DUPLICATES	READ_PAIR_DUPLICATES	READ_PAIR_OPTICAL_DUPLICATES	PERCENT_DUPLICATION	ESTIMATED_LIBRARY_SIZE
+        # Unknown Library	6237769	53020974	33514748	2217087	9489453	0	0.188778	129865490
+        if keys == None:
+            keys = parse_line(line.lower(),delimit='\t',verbose=verbose)
+            if verbose:
+                print keys
+            continue
             
+        if values == None:
+            values = parse_line(line,delimit='\t',verbose=verbose)
+            if verbose:
+                print values
+            break
+    fh.close()
+    
+    for ix, ugly_key in enumerate(keys):
+        if ix == 0: # Skip unknown library
+            continue
+        key = ugly_key.replace('_',' ').title()
+        if key.startswith("Umi "):
+            key="UMI " + key[4:]
+        if len(values) > ix:
+            pairs[key] = string_or_number(values[ix])
+        else:
+            pairs[key] = ''
+    # Match properties found for umi_dups
+    if "Reads Examined" not in pairs.keys():
+        pairs["Reads Examined"] = pairs.get("Read Pairs Examined",0) * 2 + pairs.get("Unpaired Reads Examined",0)
+    if "Read Duplicates" not in pairs.keys():
+        pairs["Read Duplicates"] = pairs.get("Read Pair Duplicates",0) * 2 + pairs.get("Unpaired Read Duplicates",0)
+
+    return pairs
+    
+def read_trim_illumina(filePath,verbose=False):
+    '''
+    SPECIAL CASE customized for 'trim-adapters-illumina' stderr output. 
+    '''
+    pairs = {}
+
+    fh = open(filePath, 'r')
+    while True:
+        line = readline_may_continue( fh )
+        if line == None:
+            break
+        if verbose:
+            print "line: ["+line+"]"
+        #line = strip_comments(line,True)
+        #if line == '':
+        #    continue
+        
+        # Total read-pairs processed: 27705275; Total read-pairs trimmed: 8909459
+        for part in line.split(';'):
+            if verbose:
+                print "part: ["+part+"]"
+            key,val = parse_pair(part,delimit=':')
+            pairs[key] = string_or_number(val)        	
+        break
+    fh.close()
+
+    return pairs
+    
+
 def main():
     parser = argparse.ArgumentParser(description =  "Creates a json string of qc_metrics for a given applet. " + \
                                                     "Returns string to stdout and formatted json to stderr.")
@@ -615,6 +695,10 @@ def main():
                         help='Delimiter to use.',
                         default=None,
                         required=False)
+    parser.add_argument('--value1',
+                        help='If another value is required.',
+                        default=None,
+                        required=False)
     parser.add_argument('-j', '--json', action="store_true", required=False, default=False, 
                         help="Prints pretty json.")
     parser.add_argument('-v', '--verbose', action="store_true", required=False, default=False, 
@@ -630,7 +714,7 @@ def main():
     if args.name in EXPECTED_PARSING:
         parsing = EXPECTED_PARSING[args.name]
     else: 
-        parsing = EXPECTED_PARSING["vertical"]
+        parsing = { "type": args.name }
         
     if args.lines != '':
         parsing["lines"] = args.lines
@@ -664,6 +748,13 @@ def main():
         metrics = read_spp(args.file,args.verbose)
     elif parsing["type"] == 'pbc':
         metrics = read_pbc(args.file,args.verbose)
+    elif parsing["type"] == 'dup_stats':
+        metrics = read_dup_stats(args.file,args.verbose)
+    elif parsing["type"] == 'trim_illumina':
+        metrics = read_trim_illumina(args.file,args.verbose)
+    else:
+        sys.stderr.write("Parsing unknown type: " + parsing["type"] + '\n')
+        sys.exit(1)
 
     # Print out the metrics
     if args.key != None and parsing["type"] != 'singleton':

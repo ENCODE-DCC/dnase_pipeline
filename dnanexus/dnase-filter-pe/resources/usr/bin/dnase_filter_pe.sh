@@ -58,9 +58,8 @@ set +x
 # 2048 supplementary alignment
 
 if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" == "t" ] || [ "$umi" == "umi" ]; then
-    echo "-- UMI filtering will be performed."
-    set -x
-    # DEBUG Temporary: Nothe this is not working when run AFTER mark_umi_dups.mk
+
+    # DEBUG Temporary: non-comparable (to non-UMI) and confusing.  Still we will start with this baseline
     echo "-- Running picard mark duplicates on UMI..."
     set -x
     time java -Xmx4G -jar /picard/MarkDuplicates.jar INPUT=flagged.bam OUTPUT=remarked.bam \
@@ -71,19 +70,26 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
 	cat ${filtered_bam_root}_dup_qc.txt
 	echo "-- -------------"
 	
-    echo "-- Counting UMI marked duplicates..."
+    echo "-- UMI filtering will be performed."
     set -x
-	samtools view -c -F 512 -f 1024 flagged.bam > ${filtered_bam_root}_umi_dups.txt
-    set +x
-	echo "-- ------------- umi_dups"
-	cat ${filtered_bam_root}_umi_dups.txt
-	echo "-- -------------"
-
     mkdir tmp
     make -f /usr/bin/mark_umi_dups.mk THREADS=$ncpus MAX_MEM=6 TMPDIR=tmp INPUT_BAM_FILE=flagged.bam OUTPUT_BAM_FILE=marked.bam
     set +x
+
+    echo "-- Counting UMI marked duplicates..."
+    set -x
+	all=`samtools view -c -F 512 marked.bam`
+	dups=`samtools view -c -F 512 -f 1024 marked.bam`
+	pct_dups=`awk '{printf("%.6f\n",$1/$2)}' <<<" ${dups} ${all}"`
+    set +x
+	# Match picard_MarkDuplicates formatting so that parsing works the same.
+	echo -e "From\tReads_Examined\tRead_Duplicates\tUMI_Read_Duplicates\tPercent_Duplication" > ${filtered_bam_root}_umi_dups.txt
+	echo -e "samtools view -c\t${all}\t${dup}\t${dup}\t${pct_dups}"                          >> ${filtered_bam_root}_umi_dups.txt
+
+	echo "-- ------------- umi_dups"
+	cat ${filtered_bam_root}_umi_dups.txt
+	echo "-- -------------"
     ls -l
-    ls -l tmp
     # Richard Sandstrom: UMI flags: 512 + 1024 = 1536 (both 8 and 4 are incorporated into 512 by the script. 1024 is set unambiguously by the UMI eval portion of the script)
     filter_flags=`expr 512 + 1024`
 

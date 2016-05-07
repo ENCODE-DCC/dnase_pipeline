@@ -13,6 +13,7 @@ main() {
     echo "* Value of reads1: '$reads1'"
     echo "* Value of reads2: '$reads2'"
     echo "* Value of bwa_index: '$bwa_index'"
+    echo "* Value of UMI:       '$barcode'"
     echo "* Value of UMI:       '$umi'"
     echo "* Value of nthreads:  '$nthreads'"
     
@@ -84,9 +85,24 @@ main() {
     echo "* Downloading ${bwa_ix_root}.tgz file..."
     dx download "$bwa_index" -o ${bwa_ix_root}.tgz
 
+	# From Jemma Nelson at UW:
+	# Actually, it’s probably easier for you if I simply attach a full dump of adapters we’re using. (/opt/data/adapters)
+	# I broke this set up by barcode “category” - that is, the prefix like AD, SSLIB, etc.  I know that not all of these
+	# categories apply to what we’re submitting to you - the AD0XX and the SSLIB0XX might be all you need, but I wanted to
+	# err on the side of sending you too much data rather than not enough.  These labels should match what you see in
+	# “flowcell_details.barcode” section of the metadata.
+	# Most libraries use only one barcode. For these, adapter P7 and P5 both come from that barcode, like AD004_P7 and AD004_P5.
+	# Dual-index libraries use two barcodes, e.g: barcode1=D702 and barcode2=D503. I don’t think that any of the data we’ve
+	# submitted to you are dual-index, but if they were, ADAPTER_P7= D702_P7, and ADAPTER_P5=D503_P7. (Yes, that’s a bit
+	# confusing, but that’s how the people naming the schema here wanted it labeled).
+	# When invoking trim-adapters-illumina, -1 is P5, and -2 is P7.
+
+	# TODO: Handle "dual-index" barcodes when they are seen. Could simplify adapter file from /opt/data/adapters.txt
+
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_align_bwa_pe.sh ${bwa_ix_root}.tgz ${reads1_root}.fq.gz ${reads2_root}.fq.gz $nthreads $umi $bam_root
+    dnase_align_bwa_pe.sh ${bwa_ix_root}.tgz ${reads1_root}.fq.gz ${reads2_root}.fq.gz $barcode $umi /opt/data/adapters.txt \
+    																									$nthreads $bam_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     scripted_root="${bam_root}_pe_bwa"
@@ -96,6 +112,7 @@ main() {
     mv ${scripted_root}.bam ${bam_root}.bam 
     mv ${scripted_root}_flagstat.txt ${bam_root}_flagstat.txt 
     mv ${scripted_root}_edwBamStats.txt ${bam_root}_edwBamStats.txt 
+    mv ${scripted_root}_trim_stats.txt ${bam_root}_trim_stats.txt 
     set +x
     echo "-- The named results..."
     ls -l ${bam_root}*
@@ -112,18 +129,23 @@ main() {
         read_len=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt -k readSizeMean`
         meta=`qc_metrics.py -n edwBamStats -f ${bam_root}_edwBamStats.txt`
         qc_aligned=`echo $qc_aligned, $meta`
+        meta=`qc_metrics.py -n trim_illumina -f ${bam_root}_trim_stats.txt`
+        qc_aligned=`echo $qc_aligned, $meta`
     fi
     # All qc to one file per target file:
-    echo "===== samtools flagstat =====" > ${bam_root}_qc.txt
-    cat ${bam_root}_flagstat.txt        >> ${bam_root}_qc.txt
-    echo " "                            >> ${bam_root}_qc.txt
-    echo "===== edwBamStats ====="      >> ${bam_root}_qc.txt
-    cat ${bam_root}_edwBamStats.txt     >> ${bam_root}_qc.txt
+    echo "===== samtools flagstat ====="       > ${bam_root}_qc.txt
+    cat ${bam_root}_flagstat.txt              >> ${bam_root}_qc.txt
+    echo " "                                  >> ${bam_root}_qc.txt
+    echo "===== edwBamStats ====="            >> ${bam_root}_qc.txt
+    cat ${bam_root}_edwBamStats.txt           >> ${bam_root}_qc.txt
+    echo " "                                  >> ${bam_root}_qc.txt
+    echo "===== trim-adapters-illumina =====" >> ${bam_root}_qc.txt
+    cat ${bam_root}_trim_stats.txt            >> ${bam_root}_qc.txt
 
     echo "* Upload results..."
     bam_bwa=$(dx upload ${bam_root}.bam --details "{ $qc_aligned }" --property SW="$versions" \
-                                        --property mapped_reads="$mapped_reads" --property all_reads="$all_reads" \
-                                        --property read_length="$read_len" --property UMI="$umi" --brief)
+                                --property mapped_reads="$mapped_reads" --property all_reads="$all_reads" \
+                                --property read_length="$read_len" --property UMI="$umi" --property barcode="$barcode" --brief)
     bam_qc=$(dx upload ${bam_root}_qc.txt --details "{ $qc_aligned }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file

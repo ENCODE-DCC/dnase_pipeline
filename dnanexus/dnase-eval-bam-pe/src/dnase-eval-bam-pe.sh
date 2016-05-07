@@ -77,6 +77,7 @@ main() {
     cat ${bam_sample_root}_spp_out.txt      >> ${bam_sample_root}_qc.txt
     echo " "                                >> ${bam_sample_root}_qc.txt
     echo "===== bedtools pbc  ====="        >> ${bam_sample_root}_qc.txt
+    echo -e "TotalReadPairs\tDistinctReadPairs\tOneReadPair\tTwoReadPairs\tNRF=Distinct/Total\tPBC1=OnePair/Distinct\tPBC2=OnePair/TwoPair" >> ${bam_sample_root}_qc.txt
     cat ${bam_sample_root}_pbc.txt          >> ${bam_sample_root}_qc.txt
         
     echo "* Upload results..."
