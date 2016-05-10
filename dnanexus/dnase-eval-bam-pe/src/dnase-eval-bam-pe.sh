@@ -68,6 +68,8 @@ main() {
         qc_sampled=`echo $qc_sampled, $meta`
         meta=`qc_metrics.py -n pbc -f ${bam_sample_root}_pbc.txt`
         qc_sampled=`echo $qc_sampled, $meta`
+        meta=`qc_metrics.py -n pbc_spp --string "{ $qc_sampled }"`
+        qc_sampled=`echo $qc_sampled, $meta`
     fi
     # All qc to one file per target file:
     echo "===== edwBamStats ====="           > ${bam_sample_root}_qc.txt
@@ -77,7 +79,7 @@ main() {
     cat ${bam_sample_root}_spp_out.txt      >> ${bam_sample_root}_qc.txt
     echo " "                                >> ${bam_sample_root}_qc.txt
     echo "===== bedtools pbc  ====="        >> ${bam_sample_root}_qc.txt
-    echo -e "TotalReadPairs\tDistinctReadPairs\tOneReadPair\tTwoReadPairs\tNRF=Distinct/Total\tPBC1=OnePair/Distinct\tPBC2=OnePair/TwoPair" >> ${bam_sample_root}_qc.txt
+    echo -e "Sampled Reads\tDistinct Locations Mapped\tSingle-read Locations\tMulti-read Locations\tNRF (Non-Redundant Fraction)=Distinct Locations/Sample Reads\tPBC1=Single-read Locations/Distinct Locations\tPBC2=Single-read Locations/Multi-read Locations" >> ${bam_sample_root}_qc.txt
     cat ${bam_sample_root}_pbc.txt          >> ${bam_sample_root}_qc.txt
         
     echo "* Upload results..."

@@ -564,28 +564,30 @@ def read_pbc(filePath,verbose=False):
         # 2286836	2219898	2176268	37175	0.970729	0.980346	58.541170
         # Seth interprets:
         # TotalReadPairs \t DistinctReadPairs \t OneReadPair \t TwoReadPairs \t NRF=Distinct/Total \t PBC1=OnePair/Distinct \t PBC2=OnePair/TwoPair
+        # Tim reinterprets:
+        # Sampled Reads \t Distinct Locations Mapped \t Single-read Locations \t Multi-read Locations \t NRF (Non-Redundant Fraction)=Distinct Locations/Sample Reads \t PBC1=Single-read Locations/Distinct Locations \t PBC2=Single-read Locations/Multi-read Locations
         parts = line.split()
         if len(parts) > 0:
-            pairs["TotalReadPairs"] = string_or_number(parts[0])
+            pairs["Sampled Reads"] = string_or_number(parts[0])
         if len(parts) > 1:
-            pairs["DistinctReadPairs"] = string_or_number(parts[1])
+            pairs["Distinct Locations Mapped"] = string_or_number(parts[1])
         if len(parts) > 2:
-            pairs["OneReadPair"] = string_or_number(parts[2])
+            pairs["Single-read Locations"] = string_or_number(parts[2])
         if len(parts) > 3:
-            pairs["TwoReadPairs"] = string_or_number(parts[3])
+            pairs["Multi-read Locations"] = string_or_number(parts[3])
         if len(parts) > 4:
-            pairs["NRF"] = string_or_number(parts[4])
+            pairs["NRF (Non-Redundant Fraction)"] = string_or_number(parts[4])
         if len(parts) > 5:
-            pairs["PBC1"] = string_or_number(parts[5])
+            pairs["PBC1 (PCR Bottlenecking coefficient 1)"] = string_or_number(parts[5])
         if len(parts) > 6:
-            pairs["PBC2"] = string_or_number(parts[6])
+            pairs["PBC2 (PCR Bottlenecking coefficient 2)"] = string_or_number(parts[6])
         break
     fh.close()
     return pairs
  
 def read_dup_stats(filePath,verbose=False):
     '''
-    SPECIAL CASE customized for 'picard markDuplicates' output or umi duplicates. 
+    SPECIAL CASE customized for 'picard markDuplicates' output or umi duplicates from 'samtools -c'. 
     '''
     pairs = {}
     keys = None
@@ -663,6 +665,58 @@ def read_trim_illumina(filePath,verbose=False):
     return pairs
     
 
+def parse_pbc_spp(string_json,verbose=False):
+    '''
+    SPECIAL CASE customized for combining 'pbc' and 'spp' into a single json object. 
+    '''
+    pairs = {}
+
+    #    "NSC": 1.02,
+    #    "RSC": 0.98,
+    #    "NRF": 0.926866,
+    #    "PBC1": 0.94,
+    #    "PBC2": 0.94,
+    #    "paired-end": True,
+    #    "read length": 180,
+    #    "sample size": 15000000,
+    try:
+        qc_json = json.loads(string_json)
+    except:
+        print "ERROR: unable to parse JSON: " + string_json
+        return {}
+
+    pbc = qc_json.get("pbc")
+    if pbc != None:
+        if "NRF (Non-Redundant Fraction)" in pbc:
+            pairs["NRF"] = pbc["NRF (Non-Redundant Fraction)"]
+        if "PBC1 (PCR Bottlenecking coefficient 1)" in pbc:
+            pairs["PBC1"] = pbc["PBC1 (PCR Bottlenecking coefficient 1)"]
+        if "PBC2 (PCR Bottlenecking coefficient 2)" in pbc:
+            pairs["PBC2"] = pbc["PBC2 (PCR Bottlenecking coefficient 2)"]
+        if "Sampled Reads" in pbc:
+            pairs["sample size"] = pbc["Sampled Reads"]
+        
+    spp = qc_json.get("phantompeaktools_spp")
+    if spp != None:
+        if "Normalized Strand cross-correlation coefficient (NSC)" in spp:
+            pairs["NSC"] = spp["Normalized Strand cross-correlation coefficient (NSC)"]
+        if "Relative Strand cross-correlation Coefficient (RSC)" in spp:
+            pairs["RSC"] = spp["Relative Strand cross-correlation Coefficient (RSC)"]
+        if "read length" not in pairs and "ChIP data read length":
+            pairs["read length"] = spp["ChIP data read length"]
+        
+    edw = qc_json.get("edwBamStats")
+    if edw != None:
+        if "isPaired" in edw:
+            pairs["paired-end"] = (edw["isPaired"] == 1)
+        if "read length" not in pairs and "readSizeMean" in edw:
+            pairs["read length"] = edw["readSizeMean"]
+        if "sample size" not in pairs and "readCount" in edw:
+            pairs["sample size"] = edw["readCount"]
+
+    return pairs
+    
+
 def main():
     parser = argparse.ArgumentParser(description =  "Creates a json string of qc_metrics for a given applet. " + \
                                                     "Returns string to stdout and formatted json to stderr.")
@@ -670,7 +724,7 @@ def main():
                         help="Name of metrics in file.")
     parser.add_argument('-f', '--file',
                         help='File containing QC metrics.',
-                        required=True)
+                        required=False)
     #parser.add_argument('-t', '--type',
     #                    help='Type of parsing to be done.',
     #                    choices=['pairs', 'horizontal'],
@@ -695,8 +749,8 @@ def main():
                         help='Delimiter to use.',
                         default=None,
                         required=False)
-    parser.add_argument('--value1',
-                        help='If another value is required.',
+    parser.add_argument('--string',
+                        help='String json which can be used to combine multiple metrics into one.',
                         default=None,
                         required=False)
     parser.add_argument('-j', '--json', action="store_true", required=False, default=False, 
@@ -752,6 +806,8 @@ def main():
         metrics = read_dup_stats(args.file,args.verbose)
     elif parsing["type"] == 'trim_illumina':
         metrics = read_trim_illumina(args.file,args.verbose)
+    elif parsing["type"] == 'pbc_spp':
+        metrics = parse_pbc_spp(args.string,args.verbose)
     else:
         sys.stderr.write("Parsing unknown type: " + parsing["type"] + '\n')
         sys.exit(1)

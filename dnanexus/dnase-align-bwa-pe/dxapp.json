@@ -1,9 +1,9 @@
 {
   "name": "dnase-align-bwa-pe",
-  "title": "Align with bwa - pe (v0.9.0)",
+  "title": "Align with bwa - pe (v0.9.1)",
   "summary": "Alignment by bwa of paired-end fastqs for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
