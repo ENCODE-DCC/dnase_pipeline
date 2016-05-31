@@ -39,7 +39,7 @@ set +x
 reads1_fq_gz=R1_trimmed.fq.gz
 reads2_fq_gz=R2_trimmed.fq.gz
 
- --- Debug only
+# --- Debug only
 echo "-- Trimming stats..."
 set -x
 cat ${bam_root}_trim_stats.txt 

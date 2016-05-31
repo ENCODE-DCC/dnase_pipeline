@@ -24,12 +24,18 @@ main() {
 
     dx download "$chrom_sizes" -o chrom.sizes
     
+    # TODO: When official blacklist arrives...
+    # 1) cat togther with k36mer.unmappable bed from UW (only the 0 lines from UWs GRCh38_no_alts.K36.mappability.starch)
+    # 2) ./dnase-call-hotspots/resources/usr/bin/sort-bed combined.bed | \
+    # 3)      awk '{printf "%s\t%d\t%d\n",$1,$2,$3}' > unmappable.bed
+    # 4) ~/tim/ubin/downloads/bedtools/bedtools-2.17.0/bin/mergeBed -i unmappable.bed > GRCh38_no_alts.DNase_excludeable.bed
+    # 5) gzip GRCh38_no_alts.DNase_excludeable.bed 
     if [ "$blacklist" != "" ]; then
         blacklist_root=`dx describe "$blacklist" --name`
         blacklist_root=${blacklist_root%.bed.gz}
-        dx download "$blacklist" -o ${blacklist}.bed.gz
-        gunzip ${blacklist}.bed.gz
-        blacklist_file="${blacklist}.bed"
+        dx download "$blacklist" -o ${blacklist_root}.bed.gz
+        gunzip ${blacklist_root}.bed.gz
+        blacklist_file="${blacklist_root}.bed"
         echo "* blacklist file: '$blacklist_file'"
     else
         blacklist_file="na" # No blacklist file

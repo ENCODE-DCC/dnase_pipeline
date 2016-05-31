@@ -60,15 +60,15 @@ set +x
 if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" == "t" ] || [ "$umi" == "umi" ]; then
 
     # DEBUG Temporary: non-comparable (to non-UMI) and confusing.  Still we will start with this baseline
-    echo "-- Running picard mark duplicates on UMI..."
-    set -x
-    time java -Xmx4G -jar /picard/MarkDuplicates.jar INPUT=flagged.bam OUTPUT=remarked.bam \
-	  METRICS_FILE=${filtered_bam_root}_dup_qc.txt ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
-		READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'
-    set +x
-	echo "-- ------------- picard MarkDuplicates"
-	cat ${filtered_bam_root}_dup_qc.txt
-	echo "-- -------------"
+    #echo "-- Running picard mark duplicates on UMI..."
+    #set -x
+    #time java -Xmx4G -jar /picard/MarkDuplicates.jar INPUT=flagged.bam OUTPUT=remarked.bam \
+    #    METRICS_FILE=${filtered_bam_root}_dup_qc.txt ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
+    #    READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'
+    #set +x
+	#echo "-- ------------- picard MarkDuplicates"
+	#cat ${filtered_bam_root}_dup_qc.txt
+	#echo "-- -------------"
 	
     echo "-- UMI filtering will be performed."
     set -x

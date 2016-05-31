@@ -658,6 +658,10 @@ def read_trim_illumina(filePath,verbose=False):
             if verbose:
                 print "part: ["+part+"]"
             key,val = parse_pair(part,delimit=':')
+            if key == 'Total read-pairs processed':
+                key = 'PE read-pairs processed'
+            elif key == 'Total read-pairs trimmed':
+                key = 'PE read-pairs trimmed'
             pairs[key] = string_or_number(val)        	
         break
     fh.close()

@@ -137,6 +137,7 @@ main() {
         meta=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt`
         read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         qc_filtered=`echo $qc_filtered, $meta`
+        # If UMI, then both may exist, but picard markDups is confusing: don't make qc metric
         if [ -e ${filtered_bam_root}_umi_dups.txt ]; then
             meta=`qc_metrics.py -n dup_stats -f ${filtered_bam_root}_umi_dups.txt`
             qc_filtered=`echo $qc_filtered, $meta`
@@ -149,7 +150,7 @@ main() {
         qc_filtering=`echo $qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
         qc_filtering=`echo $qc_filtering, \"post-filter all reads\": $filtered_all_reads`
         qc_filtering=`echo $qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
-        qc_filtered=`echo $qc_filtered, \"read_filtering\": { $qc_filtering }`
+        qc_filtered=`echo $qc_filtered, \"filtering\": { $qc_filtering }`
         if [ -e ${filtered_bam_root}_umi_dups.txt ]; then
             umi_dups=`cat ${filtered_bam_root}_umi_dups.txt`
             
@@ -163,6 +164,7 @@ main() {
         echo "===== UMI Duplicates ====="     >> ${filtered_bam_root}_qc.txt
         cat ${filtered_bam_root}_umi_dups.txt >> ${filtered_bam_root}_qc.txt
     fi
+    # If UMI, then picard markDups may exist but is confusing: don't make qc metric, but include in file
     if [ -e ${filtered_bam_root}_dup_qc.txt ]; then
         echo " "                                 >> ${filtered_bam_root}_qc.txt
         echo "===== picard MarkDuplicates =====" >> ${filtered_bam_root}_qc.txt

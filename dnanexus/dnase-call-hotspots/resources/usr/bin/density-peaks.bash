@@ -1,6 +1,10 @@
 #!/bin/bash
 set -x -e -o pipefail
 
+log(){
+  echo -e "$(date '+%Y-%m-%d %H:%M:%S')\t$*"
+}
+
 if [[ $# != 7 ]] ; then
   echo "Usage: $0 tmpdir wavelets-binary <tags.starch> <hotspots.starch> <chrom-sizes.starch> <density-out.starch> <peaks-out.starch>" >&2
   exit 2
@@ -14,8 +18,8 @@ chrfile=$5
 density=$6
 pk=$7
 
-if [ ! -d $tmpdir ] ; then
-  mkdir -p $tmpdir
+if [ ! -d "$tmpdir" ] ; then
+  mkdir -p "$tmpdir"
 fi
 
 ## density params
@@ -32,38 +36,38 @@ boundary_type=reflected
 # Prefer mawk, if installed
 AWK_EXE=$(which mawk 2>/dev/null || which awk)
 
-echo "calculating densities and peak-finding..."
+log "Calculating densities and peak-finding..."
 pkouts=""
 densouts=""
-for chr in $(unstarch --list-chr $hotspots)
+for chr in $(unstarch --list-chr "$hotspots")
 do
-  printf "\tprocessing $chr\n"
+  log "\tProcessing $chr"
 
   ## Tag density, 150bp window, sliding every 20bp, used for peak-finding and display
   ##  --sweep-all used to prevent a possible broken pipe
-  bedops --ec -u --chrom $chr $chrfile \
-    | "$AWK_EXE" -v b=$bins -v s=$step \
+  bedops --ec -u --chrom "$chr" "$chrfile" \
+    | "$AWK_EXE" -v "b=$bins" -v "s=$step" \
        'BEGIN {OFS="\t"; hs=s/2; hb=b/2} ; { \
          for ( start = $2+hb-hs; start < $3-hb-hs; start+=s) { \
            print $1, start, start+s, "."; \
          } \
        }' \
-    | bedmap --faster --sweep-all --chrom $chr --range $rangepad --delim "\t" --echo --count - $tags \
+    | bedmap --faster --sweep-all --chrom "$chr" --range "$rangepad" --delim "\t" --echo --count - "$tags" \
     | starch - \
-   > $tmpdir/.dens.$chr.starch
+   > "$tmpdir/.dens.$chr.starch"
 
   densouts="$densouts $tmpdir/.dens.$chr.starch"
 
-  unstarch $tmpdir/.dens.$chr.starch \
+  unstarch "$tmpdir/.dens.$chr.starch" \
     | cut -f5 \
     | $wavelets --level $waveletlvl --to-stdout --boundary $boundary_type --filter $filter_type - \
-    > $tmpdir/.waves
+    > "$tmpdir/.waves"
 
   ## changed from Bob's which printed out the wavelet smoothed value for a peak, instead
   ## print the density value so things match up with the forced peak-per-hotspots
   ##   bedops -n uses --ec to prevent possible broken pipe
-  unstarch $tmpdir/.dens.$chr.starch \
-    | paste - $tmpdir/.waves \
+  unstarch "$tmpdir/.dens.$chr.starch" \
+    | paste - "$tmpdir/.waves" \
     | "$AWK_EXE" 'BEGIN{incr=0} ; {
             if ( NR > 0 ) {
               if ( incr == 1 ) {
@@ -77,36 +81,36 @@ do
             lastv=$6; lastl=$0;
           }' \
     | cut -f1-5 \
-    | tee $tmpdir/.wave-pks.$chr \
-    | bedops --ec --chrom $chr -n 1 $hotspots - \
-    > $tmpdir/.hots-no-pks.$chr
+    | tee "$tmpdir/.wave-pks.$chr" \
+    | bedops --ec --chrom "$chr" -n 1 "$hotspots" - \
+    > "$tmpdir/.hots-no-pks.$chr"
 
   ## force a peak call in hotspots with no current peak calls ('peak-per-hotspot')
   ##   --sweep-all to prevent a possible broken pipe; --prec 1 shows decimals for peaks forced by hotspot calls
-  bedmap --faster --sweep-all --prec 1 --max-element $tmpdir/.hots-no-pks.$chr $tmpdir/.dens.$chr.starch \
+  bedmap --faster --sweep-all --prec 1 --max-element "$tmpdir/.hots-no-pks.$chr" "$tmpdir/.dens.$chr.starch" \
     | sort-bed - \
-    | bedops -u - $tmpdir/.wave-pks.$chr \
-    > $tmpdir/.full.pks.$chr
+    | bedops -u - "$tmpdir/.wave-pks.$chr" \
+    > "$tmpdir/.full.pks.$chr"
 
   pkouts="$pkouts $tmpdir/.full.pks.$chr"
 
-  rm -f $tmpdir/.waves $tmpdir/.wave-pks.$chr $tmpdir/.hots-no-pks.$chr
+  rm -f "$tmpdir/.waves" "$tmpdir/.wave-pks.$chr" "$tmpdir/.hots-no-pks.$chr"
 done
 
-echo "finalizing peaks..."
+log "Finalizing peaks..."
 cat $pkouts \
-  | "$AWK_EXE" -v h=$halfbin '{m=($2+$3)/2; left=m-h; if(left < 0) left=0; print $1"\t"left"\t"m+h"\t"$4"\t"$5}' - \
-  | bedmap --echo --skip-unmapped --sweep-all --fraction-either 0.25 - $hotspots \
+  | "$AWK_EXE" -v "h=$halfbin" '{m=($2+$3)/2; left=m-h; if(left < 0) left=0; print $1"\t"left"\t"m+h"\t"$4"\t"$5}' - \
+  | bedmap --echo --skip-unmapped --sweep-all --fraction-either 0.25 - "$hotspots" \
   | starch - \
-  > $pk
+  > "$pk"
 
-unstarch $pk \
-  | awk -v h=$halfbin 'BEGIN {OFS="\t"} ; { print $1, $2, $3, ".", "0", ".", $5, "-1", "-1", h }' \
+unstarch "$pk" \
+  | awk -v "h=$halfbin" 'BEGIN {OFS="\t"} ; { print $1, $2, $3, ".", "0", ".", $5, "-1", "-1", h }' \
   | starch - \
-  > ${pk/.starch/.narrowpeaks.starch}
+  > "${pk/.starch/.narrowpeaks.starch}"
 
-echo "finalizing density..."
+log "Finalizing density..."
 starchcat $densouts \
-  > $density
+  > "$density"
 
 exit 0
