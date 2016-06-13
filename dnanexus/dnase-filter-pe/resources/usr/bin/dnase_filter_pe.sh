@@ -84,7 +84,7 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
     set +x
 	# Match picard_MarkDuplicates formatting so that parsing works the same.
 	echo -e "From\tReads_Examined\tRead_Duplicates\tUMI_Read_Duplicates\tPercent_Duplication" > ${filtered_bam_root}_umi_dups.txt
-	echo -e "samtools view -c\t${all}\t${dup}\t${dup}\t${pct_dups}"                          >> ${filtered_bam_root}_umi_dups.txt
+	echo -e "samtools view -c\t${all}\t${dups}\t${dups}\t${pct_dups}"                        >> ${filtered_bam_root}_umi_dups.txt
 
 	echo "-- ------------- umi_dups"
 	cat ${filtered_bam_root}_umi_dups.txt

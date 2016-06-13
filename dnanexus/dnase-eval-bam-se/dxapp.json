@@ -1,9 +1,9 @@
 {
   "name": "dnase-eval-bam-se",
-  "title": "Evaluate bam - se (v0.8.0)",
+  "title": "Evaluate bam - se (v0.8.1)",
   "summary": "Evaluates sample of (single-end) bam for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
