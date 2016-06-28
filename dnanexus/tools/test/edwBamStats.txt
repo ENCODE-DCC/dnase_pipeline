@@ -1,0 +1,16 @@
+alignedBy bwa
+isPaired 0
+isSortedByTarget 1
+readCount 3386314
+readBaseCount 121907304
+mappedCount 3386314
+uniqueMappedCount 3383829
+readSizeMean 36
+readSizeStd 0
+readSizeMin 36
+readSizeMax 36
+u4mReadCount 3383829
+u4mUniquePos 3190559
+u4mUniqueRatio 0.942884
+targetSeqCount 25
+targetBaseCount 3095693983

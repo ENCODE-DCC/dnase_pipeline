@@ -12,8 +12,14 @@ main() {
 
     echo "* Value of reads: '$reads'"
     echo "* Value of bwa_index: '$bwa_index'"
-    echo "* Value of UMI:       '$umi'"
+    echo "* Value of barcode:   '$barcode'"
+    #echo "* Value of UMI:       '$umi'"   # No UMI handling of single-end fastqs... no UMI single-end fastqs expected
     echo "* Value of nthreads:  '$nthreads'"
+
+    umi="no"
+    if [[ $barcode == SSLIB* ]]; then
+        echo "* WARNING: barcode '$barcode' suggests UMI, but single-end is expected to be non-UMI and is being treated as such."
+    fi
 
     #echo "* Download files..."
     outfile_name=""
@@ -56,20 +62,11 @@ main() {
     dx download "$bwa_index" -o ${bwa_ix_root}.tgz
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
+    bam_root="${bam_root}_se_bwa_techrep"
     set -x
     dnase_align_bwa_se.sh ${bwa_ix_root}.tgz ${reads_root}.fq.gz $nthreads $bam_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
-    scripted_root="${bam_root}_se_bwa"
-    bam_root="${scripted_root}_techrep"
-    # Add DX/encodeD specific _techrep qualifier
-    set -x
-    mv ${scripted_root}.bam ${bam_root}.bam 
-    mv ${scripted_root}_flagstat.txt ${bam_root}_flagstat.txt 
-    mv ${scripted_root}_edwBamStats.txt ${bam_root}_edwBamStats.txt 
-    set +x
-    echo "-- The named results..."
-    ls -l ${bam_root}*
 
     echo "* Prepare metadata json..."
     qc_aligned=''
@@ -92,9 +89,9 @@ main() {
     cat ${bam_root}_edwBamStats.txt     >> ${bam_root}_qc.txt
 
     echo "* Upload results..."
-    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $qc_aligned }" --property SW="$versions" \
-                                        --property mapped_reads="$mapped_reads" --property all_reads="$all_reads" \
-                                        --property read_length="$read_len" --property UMI="$umi" --brief)
+    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $qc_aligned }" --property SW="$versions" --property pe_or_se="se" \
+                                --property mapped_reads="$mapped_reads" --property all_reads="$all_reads" \
+                                --property read_length="$read_len" --property UMI="$umi" --property barcode="$barcode" --brief)
     bam_qc=$(dx upload ${bam_root}_qc.txt --details "{ $qc_aligned }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_bwa "$bam_bwa" --class=file

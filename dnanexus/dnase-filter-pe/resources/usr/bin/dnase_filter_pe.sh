@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-if [ $# -ne 4 ]; then
-    echo "usage v1: dnase_filter_pe.sh <unfiltered.bam> <map_threshold> <ncpus> <umi>"
+if [ $# -ne 5 ]; then
+    echo "usage v1: dnase_filter_pe.sh <unfiltered.bam> <map_threshold> <ncpus> <umi> <filtered_bam_root>"
     echo "Filters paired-end aligned reads for DNase.  Is independent of DX and encodeD."
     echo "Requires: filter_reads.py, mark_duplicates.mk and umi_sort_sam_annotate.awk in /usr/bin; and samtools on path."
     echo "          Also needs pysam, java and picard 1.92."
@@ -11,23 +11,10 @@ unfiltered_bam=$1  # unfiltered bam file.
 map_thresh=$2      # Mapping threshold (e.g. 10)
 ncpus=$3           # Number of cpus available
 umi=$4             # Whether reads in bam contain UMI ids (only 'yes' means yes).
+filtered_bam_root=$5 # root name for output bam (e.g. "out" will create "out.bam" and "out_flagstat.txt") 
 
 unfiltered_bam_root=${unfiltered_bam%.bam}
-filtered_bam_root="${unfiltered_bam_root}_filtered"
 echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
-
-# research:
-# Richard points to scripts/bwa/aggregate/merge.bash for dup marking/filtering.
-# filter_reads.py calleed by makefiles/bwa/bwa_paired_trimmed.mk
-#                            makefiles/bwa/bwa_paired_trimmed_umi.mk
-# Both called by processes/bwa/process_bwa_paired_trimmed.bash
-#    which calls:
-#      scripts/fastq/splitfastq.bash
-#      makefiles/bwa/bwa_paired_trimmed_umi.mk or makefiles/bwa/bwa_paired_trimmed.mk 
-#        (which TRIMS, aligns to sam, sam to bam, filter_reads.py, sorts)  trim-adapters-illumina
-#      makefiles/umi/mark_duplicates.mk on UMI
-#      makefiles/bwa/process_paired_bam.mk  picard CollectInsertSizeMetrics.jar
-#      makefiles/picard/dups.mk FOR ALL (not just non-UMI) 
 
 echo "-- Sort bam by name."
 set -x
@@ -59,16 +46,7 @@ set +x
 
 if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" == "t" ] || [ "$umi" == "umi" ]; then
 
-    # DEBUG Temporary: non-comparable (to non-UMI) and confusing.  Still we will start with this baseline
-    #echo "-- Running picard mark duplicates on UMI..."
-    #set -x
-    #time java -Xmx4G -jar /picard/MarkDuplicates.jar INPUT=flagged.bam OUTPUT=remarked.bam \
-    #    METRICS_FILE=${filtered_bam_root}_dup_qc.txt ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
-    #    READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'
-    #set +x
-	#echo "-- ------------- picard MarkDuplicates"
-	#cat ${filtered_bam_root}_dup_qc.txt
-	#echo "-- -------------"
+    # MarkDuplicates on UMI is non-comparable (to non-UMI) and confusing.
 	
     echo "-- UMI filtering will be performed."
     set -x
@@ -104,7 +82,6 @@ else
 	cat ${filtered_bam_root}_dup_qc.txt
 	echo "-- -------------"
 
-
     # Richard Sandstrom: non-UMI flags: 512 only (again, 8 and 4 are both criteria to set 512.  we don't filter dups for non UMI reads by convention).
     filter_flags=512
     # TODO: Optional filter out dups on non-UMI?
@@ -113,7 +90,7 @@ fi
 
 echo "-- Filter bam and threshold..."
 set -x
-samtools view -F $filter_flags -b marked.bam > ${filtered_bam_root}.bam
+samtools view -F $filter_flags -q ${map_thresh} -b marked.bam > ${filtered_bam_root}.bam
 set +x
 #set -x
 #samtools view -F $filter_flags -f 2 -q ${map_thresh} -u marked.bam | \

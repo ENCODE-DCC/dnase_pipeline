@@ -1,0 +1,37 @@
+################
+ChIP data: ENCFF001RUR_rep1_1_bwa_no_chrM_15000000_sample.tagAlign.gz 
+Control data: NA 
+strandshift(min): -500 
+strandshift(step): 5 
+strandshift(max) 1500 
+user-defined peak shift NA 
+exclusion(min): -500 
+exclusion(max): -1 
+num parallel nodes: NA 
+FDR threshold: 0.01 
+NumPeaks Threshold: NA 
+Output Directory: . 
+narrowPeak output file name: NA 
+regionPeak output file name: NA 
+Rdata filename: NA 
+plot pdf filename: NA 
+result filename: ENCFF001RUR_rep1_1_bwa_no_chrM_15000000_sample_spp.txt 
+Overwrite files?: TRUE
+
+Decompressing ChIP file
+Reading ChIP tagAlign/BAM file ENCFF001RUR_rep1_1_bwa_no_chrM_15000000_sample.tagAlign.gz 
+opened /tmp/RtmpNMi847/ENCFF001RUR_rep1_1_bwa_no_chrM_15000000_sample.tagAlign608391f4bfb
+done. read 2286836 fragments
+ChIP data read length 36 
+[1] TRUE
+Calculating peak characteristics
+Minimum cross-correlation value 0.03001068 
+Minimum cross-correlation shift 1500 
+Top 3 cross-correlation values 0.086978740217396,0.0864436517524779 
+Top 3 estimates for fragment length 40,55 
+Window half size 265 
+Phantom peak location 40 
+Phantom peak Correlation 0.08697874 
+Normalized Strand cross-correlation coefficient (NSC) 2.898259 
+Relative Strand cross-correlation Coefficient (RSC) 1 
+Phantom Peak Quality Tag 1 

@@ -23,19 +23,20 @@ main() {
     for ix in ${!bam_set[@]}
     do
         file_root=`dx describe "${bam_set[$ix]}" --name`
-        file_root=${file_root%_bwa_techrep.bam}
-        file_root=${file_root%_bwa.bam}
+        file_root=${file_root%.bam}
+        file_root=${file_root%_techrep}
+        file_root=${file_root%_bwa}
         sans_se=${file_root%_se}
         if [ "${sans_se}" != "${file_root}" ]; then
             echo "ERROR: Single-ended alignment file is not supported in paired-end filtering."
             exit 1
         fi
+        file_root=${file_root%_pe}
         if [ "${merged_bam_root}" == "" ]; then
-            merged_bam_root="${file_root}"
+            merged_bam_root="${file_root}_pe_bwa_biorep"
         else
             merged_bam_root="${file_root}_${merged_bam_root}"
             if [ "${merged}" == "" ]; then
-                merged_bam_root="${merged_bam_root}_bwa_biorep" 
                 merged="s merged as"
             fi
         fi
@@ -96,10 +97,6 @@ main() {
     
     # At this point there is a 'sofar.bam' with one or more input bams
     if [ "${merged}" == "" ]; then
-        merged_bam_root="${file_root}_bwa_biorep"
-        set -x
-        mv sofar.bam ${merged_bam_root}.bam
-        set +x
         echo "* Only one input file, no merging required."
     else
         # Sort not necessary for filtering and merged bam is not saved
@@ -108,19 +105,18 @@ main() {
         #samtools sort -@ $nthreads -m 6G -f sofar.bam sorted.bam
         #samtools view -hb sorted.bam > sofar.bam 
         #set +x
-    
-        set -x
-        mv sofar.bam ${merged_bam_root}.bam
-        set +x
-        echo "* Files merged into '${merged_bam_root}.bam'"
+        echo "* Files merging into '${merged_bam_root}.bam'"
     fi 
+    set -x
+    mv sofar.bam ${merged_bam_root}.bam
+    set +x
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
+    filtered_bam_root="${merged_bam_root}_filtered"
     set -x
-    dnase_filter_pe.sh ${merged_bam_root}.bam $map_thresh $nthreads $umi
+    dnase_filter_pe.sh ${merged_bam_root}.bam $map_thresh $nthreads $umi "$filtered_bam_root"
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
-    filtered_bam_root="${merged_bam_root}_filtered"
 
     echo "* Prepare metadata for filtered bam..."
     qc_filtered=''
@@ -153,7 +149,6 @@ main() {
         qc_filtered=`echo $qc_filtered, \"filtering\": { $qc_filtering }`
         if [ -e ${filtered_bam_root}_umi_dups.txt ]; then
             umi_dups=`cat ${filtered_bam_root}_umi_dups.txt`
-            
         fi
     fi
     # All qc to one file per target file:
@@ -176,10 +171,10 @@ main() {
     
     echo "* Upload results..."
     bam_filtered=$(dx upload ${filtered_bam_root}.bam --details "{ $qc_filtered }" --property SW="$versions" \
-                                                      --property prefiltered_all_reads="$prefiltered_all_reads" \
-                                                      --property prefiltered_mapped_reads="$prefiltered_mapped_reads" \
-                                                      --property filtered_mapped_reads="$filtered_mapped_reads" \
-                                                      --property read_length="$read_len" --property from_UMI="$umi" --brief)
+                                      --property prefiltered_all_reads="$prefiltered_all_reads" --property pe_or_se="pe" \
+                                      --property prefiltered_mapped_reads="$prefiltered_mapped_reads" \
+                                      --property filtered_mapped_reads="$filtered_mapped_reads" \
+                                      --property read_length="$read_len" --property from_UMI="$umi" --brief)
     bam_filtered_qc=$(dx upload ${filtered_bam_root}_qc.txt --details "{ $qc_filtered }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file

@@ -31,7 +31,7 @@ class DnaseLaunch(Launch):
                             "dnase-align-bwa-se": {
                                 "inputs": { "reads": "reads", "bwa_index": "bwa_index" },
                                 "app": "dnase-align-bwa-se", 
-                                "params": {"nthreads": "nthreads", "umi": "umi" }, 
+                                "params": {"nthreads": "nthreads", "barcode": "barcode", "umi": "umi" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -41,7 +41,7 @@ class DnaseLaunch(Launch):
                             "dnase-align-bwa-pe": {
                                 "inputs": { "reads1": "reads1", "reads2": "reads2", "bwa_index": "bwa_index" }, 
                                 "app": "dnase-align-bwa-pe", 
-                                "params": { "nthreads": "nthreads", "umi": "umi" }, 
+                                "params": { "nthreads": "nthreads", "barcode": "barcode" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -52,11 +52,11 @@ class DnaseLaunch(Launch):
         },
         "BIO_REP":  {
                 "ORDER": { "se": [  "dnase-filter-se", 
-                                    "dnase-eval-bam-se", 
+                                    "dnase-eval-bam-alt", 
                                     "dnase-call-hotspots-alt", 
                                  ],
                            "pe": [  "dnase-filter-pe", 
-                                    "dnase-eval-bam-pe", 
+                                    "dnase-eval-bam", 
                                     "dnase-call-hotspots", 
                                  ] },
                 "STEPS": {
@@ -80,17 +80,17 @@ class DnaseLaunch(Launch):
                                 },
                                 #"output_values": { "reads_filtered": "filtered_mapped_reads" },
                             }, 
-                            "dnase-eval-bam-pe": {
+                            "dnase-eval-bam": {
                                 "inputs": { "bam_filtered": "bam_filtered" }, 
-                                "app": "dnase-eval-bam-pe", 
-                                "params": { "sample_size": "sample_size", "nthreads": "nthreads" }, 
+                                "app": "dnase-eval-bam", 
+                                "params": { "pe_or_se": "pe_or_se", "sample_size": "sample_size", "nthreads": "nthreads" }, 
                                 "results": {
                                     "bam_sample":           "bam_sample", 
                                     "bam_sample_qc":        "bam_sample_qc", 
                                 },
                                 #"output_values": { "sampled_": "sampled_reads" },
                             },
-                            "dnase-eval-bam-se": {
+                            "dnase-eval-bam-alt": {
                                 "inputs": { "bam_filtered": "bam_filtered" }, 
                                 "app": "dnase-eval-bam-se", 
                                 "params": { "sample_size": "sample_size" }, 
@@ -316,10 +316,11 @@ class DnaseLaunch(Launch):
         psv['map_thresh']  = 3
         psv['sample_size'] = 15000000
         psv['read_length'] = args.read_length
+        psv['pe_or_se'] = "se"
+        if psv['paired_end']:
+            psv['pe_or_se'] = "pe"
         if args.umi:
             psv['umi'] = "yes"
-        #else:
-        #    psv['umi'] = "no"
         psv['upper_limit'] = 0
         
         if verbose:

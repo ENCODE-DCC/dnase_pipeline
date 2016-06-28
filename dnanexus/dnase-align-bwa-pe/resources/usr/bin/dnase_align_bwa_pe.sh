@@ -13,7 +13,7 @@ barcode=$4       # Barcode used in generating fastqs
 umi=$5           # Whether reads in bam contain UMI ids (only 'yes' means yes).
 adapters_tsv=$6  # Adapter file that contains <barcode>_P5 and <barcode>_P7 sequences that should be trimmed
 ncpus=$7         # Number of cpus available.
-bam_root="${8}_pe_bwa"   # root name for output bam (e.g. "out" will create "out_pe_bwa.bam" and "out_pe_bwa_flagstat.txt") 
+bam_root=$8      # root name for output bam (e.g. "out" will create "out.bam" and "out_flagstat.txt") 
 
 echo "-- Expect to create '${bam_root}.bam'"
 
@@ -28,10 +28,6 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
 fi
 
 echo "-- Adapter trimming..."
-#echo -e "P7\tGATCGGAAGAGCACACGTCTGAACTCCAGTCACTCCGCGAAATCTCGTATGCCGTCTTCTGCTTG" > adapt.txt
-#echo -e "P5\tGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNNNATCTCGTATGCCGTCTTCTGCTTG" >> adapt.txt
-#trim-adapters-illumina -f adapt.txt -1 P5 -2 P7 $reads1_fq_gz $reads2_fq_gz R1_trimmed.fq.gz R2_trimmed.fq.gz \
-#                                                                                                2> ${bam_root}_trim_stats.txt
 set -x
 trim-adapters-illumina -f $adapters_tsv -1 ${barcode}_P5 -2 ${barcode}_P7 $reads1_fq_gz $reads2_fq_gz \
 																R1_trimmed.fq.gz R2_trimmed.fq.gz 2> ${bam_root}_trim_stats.txt

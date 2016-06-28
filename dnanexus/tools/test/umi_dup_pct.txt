@@ -1,0 +1,3 @@
+Reads Examined: 35143010
+Read Duplicates: 653622
+Percent Duplication: 0.018599

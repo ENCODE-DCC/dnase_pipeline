@@ -1,0 +1,2 @@
+From	Reads_Examined	Read_Duplicates	UMI_Read_Duplicates	Percent_Duplication
+samtools view -c	35143010	653622	653622	0.018599

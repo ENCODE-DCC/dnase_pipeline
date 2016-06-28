@@ -13,9 +13,16 @@ main() {
     echo "* Value of reads1: '$reads1'"
     echo "* Value of reads2: '$reads2'"
     echo "* Value of bwa_index: '$bwa_index'"
-    echo "* Value of UMI:       '$barcode'"
+    echo "* Value of barcode:   '$barcode'"
     echo "* Value of UMI:       '$umi'"
     echo "* Value of nthreads:  '$nthreads'"
+    
+    if [ '$umi' == "yes" ] && [[ $barcode != SSLIB* ]]; then
+        echo "* WARNING: barcode '$barcode' and UMI:'$umi' don't match.  Using UMI:$umi."
+    elif [ '$umi' == "no" ] && [[ $barcode == SSLIB* ]]; then
+        echo "* WARNING: barcode '$barcode' and UMI:'$umi' don't match.  Using UMI:yes."
+        umi="yes"
+    fi
     
     #echo "* Download files..."
     outfile_name=""
@@ -100,22 +107,12 @@ main() {
 	# TODO: Handle "dual-index" barcodes when they are seen. Could simplify adapter file from /opt/data/adapters.txt
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
+    bam_root="${bam_root}_pe_bwa_techrep"
     set -x
     dnase_align_bwa_pe.sh ${bwa_ix_root}.tgz ${reads1_root}.fq.gz ${reads2_root}.fq.gz $barcode $umi /opt/data/adapters.txt \
     																									$nthreads $bam_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
-    scripted_root="${bam_root}_pe_bwa"
-    bam_root="${scripted_root}_techrep"
-    # Add DX/encodeD specific _techrep qualifier
-    set -x
-    mv ${scripted_root}.bam ${bam_root}.bam 
-    mv ${scripted_root}_flagstat.txt ${bam_root}_flagstat.txt 
-    mv ${scripted_root}_edwBamStats.txt ${bam_root}_edwBamStats.txt 
-    mv ${scripted_root}_trim_stats.txt ${bam_root}_trim_stats.txt 
-    set +x
-    echo "-- The named results..."
-    ls -l ${bam_root}*
 
     echo "* Prepare metadata json..."
     qc_aligned=''
@@ -143,7 +140,7 @@ main() {
     cat ${bam_root}_trim_stats.txt            >> ${bam_root}_qc.txt
 
     echo "* Upload results..."
-    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $qc_aligned }" --property SW="$versions" \
+    bam_bwa=$(dx upload ${bam_root}.bam --details "{ $qc_aligned }" --property SW="$versions" --property pe_or_se="pe" \
                                 --property mapped_reads="$mapped_reads" --property all_reads="$all_reads" \
                                 --property read_length="$read_len" --property UMI="$umi" --property barcode="$barcode" --brief)
     bam_qc=$(dx upload ${bam_root}_qc.txt --details "{ $qc_aligned }" --property SW="$versions" --brief)

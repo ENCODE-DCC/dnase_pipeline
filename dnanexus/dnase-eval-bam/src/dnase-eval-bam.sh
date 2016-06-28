@@ -1,5 +1,5 @@
 #!/bin/bash
-# dnase-eval-bam-pe.sh - Evaluates sample of (paired-end) bam for the ENCODE DNase-seq pipeline.
+# dnase-eval-bam.sh - Evaluates sample of bam for the ENCODE DNase-seq pipeline.
 
 main() {
     echo "* Installing phantompeakqualtools, caTools, snow and spp..." 2>&1 | tee -a install.log
@@ -34,8 +34,9 @@ main() {
     fi
  
     echo "* Value of bam_filtered: '$bam_filtered'"
-    echo "* Value of sample_size: '$sample_size'"
-    echo "* Value of nthreads: '$nthreads'"
+    echo "* Value of pe_or_se:     '$pe_or_se'"
+    echo "* Value of sample_size:  '$sample_size'"
+    echo "* Value of nthreads:     '$nthreads'"
 
     echo "* Download files..."
     # expecting *_bwa_biorep_filtered.bam
@@ -47,12 +48,20 @@ main() {
     #bam_input_root=${bam_input_root%_biorep}
     #bam_input_root=${bam_input_root%_techrep}
     #bam_input_root=${bam_input_root%_bwa}
+    #bam_input_root=${bam_input_root%_pe}
+    #bam_input_root=${bam_input_root%_se}
+    #bam_input_root=${bam_input_root%_spe} # mixed
     dx download "$bam_filtered" -o ${bam_input_root}.bam
     echo "* bam file: '${bam_input_root}.bam'"
     
+    #zero_is_pe=`samtools view -c -F 0x1 ${bam_input_root}.bam`
+    #if [ $zero_is_pe -eq 0 ]; then
+    #    pe_or_se="pe"
+    #fi
+    
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_eval_bam_pe.sh ${bam_input_root}.bam $sample_size $nthreads
+    dnase_eval_bam_pe.sh ${bam_input_root}.bam $sample_size $nthreads $pe_or_se
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     bam_sample_root="${bam_input_root}_${sample_size}_sample"
@@ -84,7 +93,8 @@ main() {
         
     echo "* Upload results..."
     bam_sample=$(dx upload ${bam_sample_root}.bam --details "{ $qc_sampled }" --property SW="$versions" \
-                           --property sampled_reads="$reads_sampled" --property read_length="$read_len" --brief)
+                            --property pe_or_se=$pe_or_se --property sampled_reads="$reads_sampled" \
+                            --property read_length="$read_len" --brief)
     bam_sample_qc=$(dx upload ${bam_sample_root}_qc.txt   --details "{ $qc_sampled }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_sample "$bam_sample" --class=file

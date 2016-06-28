@@ -13,12 +13,8 @@ APP_TOOLS = {
     "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats" ],
     "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools", "filter_reads.py", "picard" ],
     "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools", "filter_reads.py" ],
-    "dnase-eval-bam-pe":  [
-                            "dnase_eval_bam_pe.sh","samtools","edwBamFilter","edwBamStats",#"R",
-                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                          ],
-    "dnase-eval-bam-se":  [
-                            "dnase_eval_bam_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
+    "dnase-eval-bam":     [
+                            "dnase_eval_bam.sh","samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
     "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bedToBigBed","bedGraphToBigWig"  ],
@@ -47,7 +43,11 @@ APP_TOOLS = {
     #                        "edwComparePeaks", "edwBamStats" 
     #                      ],
     #"dnase-size-bam":     [ "edwBamStats" ],
-    }
+    #"dnase-eval-bam-se":  [
+    #                        "dnase_eval_bam_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
+    #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
+    #                      ],
+    #}
 
 # Virtual apps only differ from their parent by name/version. 
 VIRTUAL_APPS = {
@@ -116,10 +116,10 @@ ALL_TOOLS = {
             "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_filter_pe.sh":       "dnase_filter_pe.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_eval_bam_pe.sh":     "dnase_eval_bam_pe.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_eval_bam_se.sh":     "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_eval_bam.sh":        "dnase_eval_bam.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_idr.sh":             "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
+            #"dnase_eval_bam_se.sh":     "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
             #"dnase_qc_hotspot.sh":      "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
             #"dnase_pool_reps.sh":       "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
             }

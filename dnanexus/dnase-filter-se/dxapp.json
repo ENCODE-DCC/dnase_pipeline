@@ -21,14 +21,6 @@
       "default": 10
     },
     {
-      "name": "umi",
-      "label": "UMI ids in reads.",
-      "class": "string",
-      "choices": [ "yes", "no", "discover" ],
-      "default": "discover",
-      "optional": true
-    },
-    {
       "name": "nthreads",
       "label": "Number of threads to use",
       "class": "int",

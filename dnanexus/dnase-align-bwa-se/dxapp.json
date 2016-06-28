@@ -21,11 +21,11 @@
       "patterns": ["*_bwa_index.tar.gz","*_bwa_index.tgz"]
     },
     {
-      "name": "umi",
-      "label": "UMI ids in reads.",
+      "name": "barcode",
+      "label": "Barcode of fastqs.",
       "class": "string",
-      "choices": [ "yes", "no" ],
-      "optional": false
+      "default": "unspecified",
+      "optional": true
     },
     {
       "name": "nthreads",

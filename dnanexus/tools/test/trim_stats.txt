@@ -1,0 +1,1 @@
+Total read-pairs processed: 27705275; Total read-pairs trimmed: 8909459

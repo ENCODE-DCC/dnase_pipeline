@@ -1,0 +1,2 @@
+  total tags  hotspot tags    SPOT
+     2255195       1083552  0.4804

@@ -1,17 +1,24 @@
 {
-  "name": "dnase-eval-bam-pe",
-  "title": "Evaluate bam - pe (v0.8.2)",
-  "summary": "Evaluates sample of (paired-end) bam for the ENCODE DNase-seq pipeline",
+  "name": "dnase-eval-bam-alt",
+  "title": "Evaluate bam (virtual-1.0.0)",
+  "summary": "Evaluates sample of bam for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
   "version": "0.8.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
       "name": "bam_filtered",
-      "label": "Paired-end filtered bam",
+      "label": "Filtered bam",
       "class": "file",
       "optional": false,
       "patterns": [ "*_filtered.bam", "*_filtered_sized.bam" ]
+    },
+    {
+      "name": "pe_or_se",
+      "label": "Paired or single-ended alignments",
+      "class": "string",
+      "choices": [ "pe", "se" ],
+      "optional": false
     },
     {
       "name": "sample_size",
@@ -55,7 +62,7 @@
   ],
   "runSpec": {
     "interpreter": "bash",
-    "file": "src/dnase-eval-bam-pe.sh",
+    "file": "src/dnase-eval-bam.sh",
     "systemRequirements": {
       "main": {
         "instanceType": "mem3_hdd2_x8"

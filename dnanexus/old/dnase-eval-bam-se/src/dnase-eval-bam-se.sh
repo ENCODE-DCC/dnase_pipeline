@@ -46,7 +46,8 @@ main() {
     #bam_input_root=${bam_input_root%_biorep}
     #bam_input_root=${bam_input_root%_techrep}
     #bam_input_root=${bam_input_root%_bwa}
-    bam_input_root=${bam_input_root%.bam}
+    #bam_input_root=${bam_input_root%_se}
+    #bam_input_root=${bam_input_root%_spe}
     dx download "$bam_filtered" -o ${bam_input_root}.bam
     echo "* bam file: '${bam_input_root}.bam'"
     bam_no_chrM_root="${bam_input_root}_no_chrM"

@@ -1,28 +1,40 @@
 #!/bin/bash -e
 
-if [ $# -ne 3 ]; then
-    echo "usage v1: dnase_eval_pe.sh <filtered.bam> <sample_size> <ncpus>"
-    echo "Evaluates filtered paired-end aligned reads for DNase.  Is independent of DX and encodeD."
+if [ $# -ne 4 ]; then
+    echo "usage v1: dnase_eval_bam.sh <filtered.bam> <sample_size> <ncpus> <pe_or_se>"
+    echo "Evaluates filtered aligned reads for DNase.  Is independent of DX and encodeD."
     echo "Requires edwBamFilter,edwBamStats,samtools,Rscript,phantompeakqualtools,caTools,snow,spp,gawk,bedtools on path."
     exit -1; 
 fi
 filtered_bam=$1  # filtered bam file.
 sample_size=$2   # number of sample reads to evaluate (e.g. 15000000)
 ncpus=$3         # Number of cpus available
-
+pe_or_se=$4      # Either "pe" for paired-end or "se" for single-end
+if [ "$pe_or_se" != "pe" ] && [ "$pe_or_se" != "pe" ]; then
+    echo "-- ERROR: Declare either 'pe' for paied-end or 'se' for single-end."
+    exit 1
+fi
 bam_input_root=${filtered_bam%.bam}
 bam_no_chrM_root="${bam_input_root}_no_chrM"
 bam_sample_root="${bam_input_root}_${sample_size}_sample"
 echo "-- Sampled alignments file will be: '${bam_sample_root}.bam'"
 
 echo "-- Filter out chrM..."
-# Note the sort by name which is needed for proper pe sampling
 set -x
 edwBamFilter -sponge -chrom=chrM $filtered_bam ${bam_no_chrM_root}.bam  ## qc based on bam without chrm
-samtools sort -@ $ncpus -m 6G -n -f ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_byname.sam ## for pbc usage
-samtools view -hb ${bam_no_chrM_root}_byname.sam > ${bam_no_chrM_root}_byname.bam
-samtools index ${bam_no_chrM_root}_byname.bam
-rm *.sam
+set +x
+if [ "$pe_or_se" == "pe" ]; then
+    echo "-- Sorting by name for paired-end data..."
+    # Note the sort by name which is needed for proper pe sampling
+    set -x
+    samtools sort -@ $ncpus -m 6G -n -f ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_byname.sam ## for pbc usage
+    samtools view -hb ${bam_no_chrM_root}_byname.sam > ${bam_no_chrM_root}_byname.bam
+    rm *.sam
+    set +x
+    bam_no_chrM_root="${bam_no_chrM_root}_byname"
+fi
+set -x
+samtools index ${bam_no_chrM_root}.bam
 set +x
 
 echo "-- Generating stats on $sample_size reads..."
