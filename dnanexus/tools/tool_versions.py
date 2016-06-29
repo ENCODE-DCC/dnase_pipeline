@@ -47,10 +47,11 @@ APP_TOOLS = {
     #                        "dnase_eval_bam_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
     #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
     #                      ],
-    #}
+    }
 
 # Virtual apps only differ from their parent by name/version. 
 VIRTUAL_APPS = {
+    "dnase-eval-bam-alt":        "dnase-eval-bam",
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
     "dnase-idr-alt":             "dnase-idr",
     #"dnase-merge-bams-alt":      "dnase-merge-bams",

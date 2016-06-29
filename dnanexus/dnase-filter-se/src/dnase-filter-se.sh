@@ -74,12 +74,12 @@ main() {
             set +x
         fi
     done
-    if [ $found_se == "yes" ] && [ $found_pe == "yes" ]
+    if [ $found_se == "yes" ] && [ $found_pe == "yes" ]; then
         echo "WARNING: Paired-ended alignment file is being mixed with single-end alignments."
     fi
     if [ "$exp_id" != "" ] && [ "$tech_reps" != "" ]; then
         merged_bam_root="${exp_id}_${tech_reps}_se_bwa_biorep"
-        if [ $found_se == "yes" ] && [ $found_pe == "yes" ]
+        if [ $found_se == "yes" ] && [ $found_pe == "yes" ]; then
             merged_bam_root="${exp_id}_${tech_reps}_spe_bwa_biorep"
         fi
     fi
