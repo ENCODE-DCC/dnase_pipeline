@@ -3,7 +3,7 @@
   "title": "Evaluate bam (virtual-1.0.0)",
   "summary": "Evaluates sample of bam for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "0.8.2",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {

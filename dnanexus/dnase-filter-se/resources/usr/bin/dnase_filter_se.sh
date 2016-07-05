@@ -14,6 +14,11 @@ filtered_bam_root=$4 # root name for output bam (e.g. "out" will create "out.bam
 unfiltered_bam_root=${unfiltered_bam%.bam}
 echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
+echo "-- Sort bam by location."
+set -x
+samtools sort -@ $ncpus -m 6G -O bam -T sorted $unfiltered_bam > sorted.bam
+set +x
+
 # echo "-- Handle UMI flagging and errors with 'filter_reads.py'." # No filter-reads.py UMI handling of single-end fastqs.
 
 #    1 read paired
@@ -31,7 +36,7 @@ echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
 echo "-- Running picard mark duplicates on non-UMI..."
 set -x
-time java -Xmx4G -jar /picard/MarkDuplicates.jar INPUT=$unfiltered_bam OUTPUT=marked.bam \
+time java -Xmx4G -jar /picard/MarkDuplicates.jar INPUT=sorted.bam OUTPUT=marked.bam \
   METRICS_FILE=${filtered_bam_root}_dup_qc.txt ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
 	READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'
 set +x
@@ -47,7 +52,7 @@ filter_flags=512
 echo "-- Filter on flags and threashold..."
 # Simple version from Richard
 set -x
-samtools view -F $filter_flags -q ${map_thresh} -b $unfiltered_bam > ${filtered_bam_root}.bam
+samtools view -F $filter_flags -q ${map_thresh} -b marked.bam > ${filtered_bam_root}.bam
 set +x
 # More complex version
 #set -x

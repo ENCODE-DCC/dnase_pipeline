@@ -25,7 +25,10 @@ echo "-- Handle UMI flagging and errors with 'filter_reads.py'."
 marked_root="${unfiltered_bam_root}_marked"
 set -x
 python2.7 /usr/bin/filter_reads.py --min_mapq $map_thresh sorted.sam flagged_presorted.sam
+set +x
 #samtools view -bS flagged_presorted.sam > flagged.bam
+echo "-- Sort bam by location."
+set -x
 samtools sort -@ $ncpus -m 6G -O bam -T flagged flagged_presorted.sam > flagged.bam
 rm *.sam
 set +x

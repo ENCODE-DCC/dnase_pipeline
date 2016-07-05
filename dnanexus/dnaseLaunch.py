@@ -131,33 +131,41 @@ class DnaseLaunch(Launch):
                 }
         },
         "COMBINED_REPS": {
-                "ORDER": { "se": [ "dnase-idr-alt" ],
-                          "pe": [ "dnase-idr",    ] },
+                "ORDER": { "se": [ "dnase-rep-corr-alt" ],
+                          "pe": [ "dnase-rep-corr",    ] },
                 "STEPS": {
-                            "dnase-idr": {
-                                "inputs": {
-                                    "peaks_a":    "peaks_a",    "peaks_b":    "peaks_b", 
-                                    "chrom_sizes": "chrom_sizes" 
-                                }, 
-                                "app": "dnase-idr", 
-                                "params": {}, 
-                                "results": { "idr_png": "idr_png",
-                                             "idr_bb":  "idr_bb",
-                                             "idr_bed": "idr_bed",
-                                },
+                            "dnase-rep-corr": {
+                                "inputs": { "density_a":"density_a", "density_b":"density_b" }, 
+                                "results": { "corr_txt": "corr_txt" },
                             },
-                            "dnase-idr-alt": {
-                                "inputs": {
-                                    "peaks_a":    "peaks_a",    "peaks_b":    "peaks_b", 
-                                    "chrom_sizes": "chrom_sizes" 
-                                }, 
-                                "app": "dnase-idr-alt", 
-                                "params": {}, 
-                                "results": { "idr_png": "idr_png",
-                                             "idr_bb":  "idr_bb",
-                                             "idr_bed": "idr_bed",
-                                },
+                            "dnase-rep-corr-alt": {
+                                "inputs": { "density_a":"density_a", "density_b":"density_b" }, 
+                                "results": { "corr_txt": "corr_txt" },
                             },
+        #                    "dnase-idr": {
+        #                        "inputs": {
+        #                            "peaks_a":    "peaks_a",    "peaks_b":    "peaks_b", 
+        #                            "chrom_sizes": "chrom_sizes" 
+        #                        }, 
+        #                        "app": "dnase-idr", 
+        #                        "params": {}, 
+        #                        "results": { "idr_png": "idr_png",
+        #                                     "idr_bb":  "idr_bb",
+        #                                     "idr_bed": "idr_bed",
+        #                        },
+        #                    },
+        #                    "dnase-idr-alt": {
+        #                        "inputs": {
+        #                            "peaks_a":    "peaks_a",    "peaks_b":    "peaks_b", 
+        #                            "chrom_sizes": "chrom_sizes" 
+        #                        }, 
+        #                        "app": "dnase-idr-alt", 
+        #                        "params": {}, 
+        #                        "results": { "idr_png": "idr_png",
+        #                                     "idr_bb":  "idr_bb",
+        #                                     "idr_bed": "idr_bed",
+        #                        },
+        #                    },
         #                    "dnase-pool-bioreps": {
         #                        "inputs": {
         #                               "bam_A":    "bam_A",    "bam_B":    "bam_B", 
@@ -219,12 +227,16 @@ class DnaseLaunch(Launch):
         "bb_peaks":                 "/*_peaks.bb",
         "bw_density":               "/*_density.bw", 
         "hotspots_qc":              "/*_hotspots_qc.txt", 
+        # dnase-rep-corr input/results:
+        "density_a":                "/*_density.bw",
+        "density_b":                "/*_density.bw",
+        "corr_txt":                 "/*_corr.txt",
         # dnase-idr input/results:
-        "peaks_a":                  "/*_peaks.bed.gz", # "/*_bwa_biorep_filtered_peaks.bed.gz",
-        "peaks_b":                  "/*_peaks.bed.gz", # "/*_bwa_biorep_filtered_peaks.bed.gz",
-        "idr_bed":                  "/*_idr.bed.gz",
-        "idr_bb":                   "/*_idr.bb",
-        "idr_png":                  "/*_idr.png",
+        #"peaks_a":                  "/*_peaks.bed.gz", # "/*_bwa_biorep_filtered_peaks.bed.gz",
+        #"peaks_b":                  "/*_peaks.bed.gz", # "/*_bwa_biorep_filtered_peaks.bed.gz",
+        #"idr_bed":                  "/*_idr.bed.gz",
+        #"idr_bb":                   "/*_idr.bb",
+        #"idr_png":                  "/*_idr.png",
         # dnase-pool-bioreps input/results:
         #"bam_A":                    "/*_filtered.bam",
         #"bam_B":                    "/*_filtered.bam",

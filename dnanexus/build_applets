@@ -5,15 +5,13 @@
 #       but all other applet contents are temporary symlinks to the true applets's contents.  This script handles the symlinks.
 
 applets="dnase-index-bwa dnase-align-bwa-pe dnase-align-bwa-se dnase-filter-pe dnase-filter-se"
-applets="$applets dnase-eval-bam dnase-call-hotspots dnase-idr"
-# Expecting to add:
-#applets="$applets dnase-qc-hotspot dnase-call-hotspots"
+applets="$applets dnase-eval-bam dnase-call-hotspots dnase-rep-corr"
 # No longer expecting:
-#applets="$applets dnase-size-bam dnase-pool-bioreps"
+#applets="$applets dnase-size-bam dnase-pool-bioreps dnase-idr"
 #extra_apps='dnase-install fastq-stats bam-filter-pe bam-filter-se'
 
 tools="tool_versions.py qc_metrics.py parse_property.py"
-virtual_pairs="dnase-eval-bam:dnase-eval-bam-alt dnase-call-hotspots:dnase-call-hotspots-alt dnase-idr:dnase-idr-alt"
+virtual_pairs="dnase-eval-bam:dnase-eval-bam-alt dnase-call-hotspots:dnase-call-hotspots-alt dnase-rep-corr:dnase-rep-corr-alt"
 # No longer expecting:
 #virtual_pairs="$virtual_pairs dnase-pool-bioreps:dnase-pool-bioreps-alt"
 virtual_links="src resources Readme.developer.md Readme.md"

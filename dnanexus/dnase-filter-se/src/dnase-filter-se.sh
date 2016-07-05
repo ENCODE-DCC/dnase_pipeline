@@ -28,9 +28,9 @@ main() {
         file_root=${file_root%.bam}
         file_root=${file_root%_techrep}
         file_root=${file_root%_bwa}
-        if [ ${file_root%_pe} == "_pe" ]; then
+        if [ "${file_root%_pe}" == "_pe" ]; then
             found_pe="yes"
-        elif [ ${file_root%_se} == "_se" ]; then
+        elif [ "${file_root%_se}" == "_se" ]; then
             found_se="yes"
         fi
         # remove assumed _se but not _pe
@@ -74,12 +74,12 @@ main() {
             set +x
         fi
     done
-    if [ $found_se == "yes" ] && [ $found_pe == "yes" ]; then
+    if [ "$found_se" == "yes" ] && [ "$found_pe" == "yes" ]; then
         echo "WARNING: Paired-ended alignment file is being mixed with single-end alignments."
     fi
     if [ "$exp_id" != "" ] && [ "$tech_reps" != "" ]; then
         merged_bam_root="${exp_id}_${tech_reps}_se_bwa_biorep"
-        if [ $found_se == "yes" ] && [ $found_pe == "yes" ]; then
+        if [ "$found_se" == "yes" ] && [ "$found_pe" == "yes" ]; then
             merged_bam_root="${exp_id}_${tech_reps}_spe_bwa_biorep"
         fi
     fi

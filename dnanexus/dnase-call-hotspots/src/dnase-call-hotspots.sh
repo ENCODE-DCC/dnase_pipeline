@@ -74,18 +74,20 @@ main() {
     cat ${peaks_root}_count.txt        >> ${hotspot_root}_qc.txt
     
     echo "* Upload results..."
-    bed_hotspots=$(dx upload ${hotspot_root}.bed.gz  --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
-    bb_hotspots=$(dx upload ${hotspot_root}.bb       --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
-    bed_peaks=$(dx upload ${peaks_root}.bed.gz       --details "{ $qc_hotspot }" --property SW="$versions" --property peaks_count="$peaks_count" --brief)
-    bb_peaks=$(dx upload ${peaks_root}.bb            --details "{ $qc_hotspot }" --property SW="$versions" --property peaks_count="$peaks_count" --brief)
-    bw_density=$(dx upload ${density_root}.bw        --details "{ $qc_hotspot }" --property SW="$versions" --brief)
-    hotspots_qc=$(dx upload ${hotspot_root}_qc.txt   --details "{ $qc_hotspot }" --property SW="$versions" --brief)
+    bed_hotspots=$(dx upload ${hotspot_root}.bed.gz   --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
+    bb_hotspots=$(dx upload ${hotspot_root}.bb        --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
+    bed_peaks=$(dx upload ${peaks_root}.bed.gz        --details "{ $qc_hotspot }" --property SW="$versions" --property peaks_count="$peaks_count" --brief)
+    bb_peaks=$(dx upload ${peaks_root}.bb             --details "{ $qc_hotspot }" --property SW="$versions" --property peaks_count="$peaks_count" --brief)
+    bw_density=$(dx upload ${density_root}.bw         --details "{ $qc_hotspot }" --property SW="$versions" --brief)
+    starch_density=$(dx upload ${density_root}.starch --details "{ $qc_hotspot }" --property SW="$versions" --brief)
+    hotspots_qc=$(dx upload ${hotspot_root}_qc.txt    --details "{ $qc_hotspot }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bed_hotspots "$bed_hotspots" --class=file
     dx-jobutil-add-output bb_hotspots "$bb_hotspots" --class=file
     dx-jobutil-add-output bed_peaks "$bed_peaks" --class=file
     dx-jobutil-add-output bb_peaks "$bb_peaks" --class=file
     dx-jobutil-add-output bw_density "$bw_density" --class=file
+    dx-jobutil-add-output starch_density "$starch_density" --class=file
     dx-jobutil-add-output hotspots_qc "$hotspots_qc" --class=file
     dx-jobutil-add-output metadata "{ $qc_hotspot }" --class=string
     

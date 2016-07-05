@@ -55,9 +55,15 @@
     },
     {
       "name": "bw_density",
-      "label": "Density bed in bigWig format?",
+      "label": "Density in bigWig format",
       "class": "file",
       "patterns": ["*_density.bw"]
+    },
+    {
+      "name": "starch_density",
+      "label": "Density bed in starch format",
+      "class": "file",
+      "patterns": ["*_density.starch"]
     },
     {
       "name": "hotspots_qc",

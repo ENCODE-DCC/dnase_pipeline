@@ -18,7 +18,7 @@ APP_TOOLS = {
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
                           ],
     "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bedToBigBed","bedGraphToBigWig"  ],
-    "dnase-idr":           [ "dnase_idr.sh", "Anaconda3", "idr", "bedToBigBed", "pigz" ],
+    "dnase-rep-corr":      [ "dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops" ],
     # Obsolete:
     #"dnase-merge-bams":   [ "samtools" ],
     #"bam-filter-pe":      [
@@ -47,6 +47,7 @@ APP_TOOLS = {
     #                        "dnase_eval_bam_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
     #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
     #                      ],
+    #"dnase-idr":           [ "dnase_idr.sh", "Anaconda3", "idr", "bedToBigBed", "pigz" ],
     }
 
 # Virtual apps only differ from their parent by name/version. 
@@ -112,6 +113,8 @@ ALL_TOOLS = {
             #"picard":                   "java -Xmx4G -jar /picard/MarkDuplicates.jar --version", # From https://github.com/broadinstitute/picard.git
             "pigz":                     "pigz --version 2>&1 | awk '{print $2}'",
             "trim-adapters-illumina":   "trim-adapters-illumina --version 2>&1 | awk '{print $3}'", # https://bitbucket.org/jvierstra/bio-tools/get/master.tar.gz https://bitbucket.org/jvierstra/bio-tools/src/6fe54fa5a3d9b5c930ee77e8ccd757b347c86ac1/apps/trim-adapters-illumina/?at=master
+            "chromCor.Rscript":         "md5sum /usr/bin/chromCor.Rscript | awk '{printf \"unversioned %-8.8s\",$1}'",
+            "bigWigToWig":              "md5sum /usr/bin/bigWigToWig | awk '{printf \"unversioned %-8.8s\",$1}'",
             "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
@@ -119,7 +122,8 @@ ALL_TOOLS = {
             "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_eval_bam.sh":        "dnase_eval_bam.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_idr.sh":             "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
+            "dnase_rep_corr.sh":        "dnase_rep_corr.sh | grep usage | awk '{print $2}' | tr -d :",
+            #"dnase_idr.sh":             "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
             #"dnase_eval_bam_se.sh":     "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
             #"dnase_qc_hotspot.sh":      "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
             #"dnase_pool_reps.sh":       "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",

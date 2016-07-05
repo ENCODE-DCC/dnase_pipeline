@@ -58,6 +58,7 @@ set +x
 echo "-- Saving density bigWig..."
 set -x
 mv out/*.density.bw ${density_root}.bw
+mv out/*.density.starch ${density_root}.starch
 set +x
 
 echo "-- Saving SPOT..."

@@ -10,7 +10,7 @@ filtered_bam=$1  # filtered bam file.
 sample_size=$2   # number of sample reads to evaluate (e.g. 15000000)
 ncpus=$3         # Number of cpus available
 pe_or_se=$4      # Either "pe" for paired-end or "se" for single-end
-if [ "$pe_or_se" != "pe" ] && [ "$pe_or_se" != "pe" ]; then
+if [ "$pe_or_se" != "pe" ] && [ "$pe_or_se" != "se" ]; then
     echo "-- ERROR: Declare either 'pe' for paied-end or 'se' for single-end."
     exit 1
 fi
@@ -40,7 +40,7 @@ set +x
 echo "-- Generating stats on $sample_size reads..."
 set -x
 edwBamStats -sampleBamSize=$sample_size -u4mSize=$sample_size -sampleBam=${bam_sample_root}.bam \
-                      ${bam_no_chrM_root}_byname.bam ${bam_no_chrM_root}_sampling_edwBamStats.txt
+                      ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_sampling_edwBamStats.txt
 edwBamStats ${bam_sample_root}.bam ${bam_sample_root}_edwBamStats.txt
 samtools index ${bam_sample_root}.bam
 set +x
