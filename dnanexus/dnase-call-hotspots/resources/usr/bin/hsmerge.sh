@@ -51,8 +51,8 @@ filter(){
   "$AWK_EXE" \
     -v "threshold=$HOTSPOT_FDR_THRESHOLD" \
     '{
-       split($6,y,"-")
-       if ((length(y)!=1 && y[2]>100) || $6 <= threshold ){
+       len = split($6,y,"-")
+       if ((len != 1 && y[2]>100) || $6 <= threshold ){
          print $1"\t"$2"\t"$3
        }
      }'
@@ -120,8 +120,8 @@ annotate(){
       if (0 == $4) {
         print $1, $2, $3, "id-"NR, $5, ".","-1","-1", max
       } else {
-        split($4,y,"-");
-        if(length(y)!=1 && y[2] > max) {
+        len = split($4,y,"-");
+        if(len != 1 && y[2] > max) {
           print $1, $2, $3, "id-"NR, $5, ".","-1","-1", max
         } else {
           print $1, $2, $3, "id-"NR, $5, ".","-1","-1", c*log($4)
