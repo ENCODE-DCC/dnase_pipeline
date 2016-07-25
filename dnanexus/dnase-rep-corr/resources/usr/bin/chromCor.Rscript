@@ -1,0 +1,105 @@
+#! /usr/bin/env Rscript
+# -*- mode: R -*-
+# Above tells emacs to go into R mode for editing (must be second line).
+
+##
+## chromCor:
+##
+##   Compute correlation of two jarched bed files along a chromosome (default chr19).
+##
+## To run this script, turn the execute bit on and run just as any other script file. The Rscript
+## command must be in your path.  Rscript comes with R distributions 2.8 (?) and higher, and is in the
+## same directory as the R script itself (eg, /usr/local/R/bin).
+##
+## Author: RET
+## Date:  20 Aug 2009
+
+usage <- paste('Usage:  chromCor [-c <chromosome>] [-n <column number>] [-z] [-u] <bed1.jarch> <bed2.jarch>',
+               '',
+               'Compute correlation of two bed files along a chromosome (default chr19).',
+               '',
+               'By default, <bed1.jarch> and <bed2.jarch> are jarched 5-column bed files, with score to be correlated in the',
+               'fifth column.  There must be the same number of entries for the desired chromosome in each bed file.',
+               '',
+               '<chromosome> is a chromosome name; by default chr19, or "all", for all entries in the bed file.',
+               '',
+               '<column number> is the column in each file containing the data to correlate; by default, 5.',
+               '',
+               '-s specifies that bed files are starched instead of jarched.',
+               '',
+               '-z specifies that bed files are gzipped instead of jarched.',
+               '',
+               '-u specifies that bed files are uncompressed (not jarched or gzipped).',
+               '',
+               'Expects gchr and Rscript to be in the user\'s path.',
+               '',
+               'Writes results to stdout.',
+               '',
+               '\n',
+               sep = '\n')
+
+args <- commandArgs(T)
+
+if(length(args) <= 1){
+  cat(usage)
+  quit('no')
+}
+
+chr <- 'chr19'
+col <- 5
+gzip <- F
+starch <- F
+compr <- T
+
+i <- 1
+while(substr(args[i], 1, 1) == '-'){
+  opt <- substr(args[i], 2, 2)
+  if(opt == 'c'){
+    chr <- args[i+1]
+    if(chr == 'all') chr = ''
+    i <- i + 2
+  }else if(opt == 'n'){
+    col <- as.integer(args[i+1])
+    i <- i + 2
+  }else if(opt == 'z'){
+    gzip <- T
+    i <- i + 1
+  }else if(opt == 's'){
+    starch <- T
+    i <- i + 1
+  }else if(opt == 'u'){
+    compr <- F
+    i <- i + 1
+  }else{
+    cat('Unrecognized option:', args[i], '\n')
+    cat(usage)
+    quit('no')
+  }
+}
+
+bed1 <- args[i];  bed2 <- args[i+1]
+
+if(!compr){
+  cmd <- if(chr == '') 'cat %BED' else paste('cat %BED | grep "^', chr, '" -', sep = '')
+}else if(gzip){
+  cmd <- if(chr == '') 'zcat %BED' else paste('zcat %BED | grep "^', chr, '" -', sep = '')
+}else if(starch){
+  cmd <- if(chr == '') 'unstarch %BED' else paste('unstarch', chr, '%BED')
+}else{
+  cmd <- if(chr == '') 'gchr %BED' else paste('gchr', chr, '%BED')
+}
+
+cmd <- paste(cmd, ' | cut -f', col, sep = '')
+
+cat('Reading', bed1, '...\n')
+
+con <- pipe(gsub('%BED', bed1, cmd))
+r1d <- scan(con, what = numeric(0))
+close(con)
+cat('Reading', bed2, '...\n')
+con <- pipe(gsub('%BED', bed2, cmd))
+r2d <- scan(con, what = numeric(0))
+close(con)
+cor(r1d, r2d)
+
+

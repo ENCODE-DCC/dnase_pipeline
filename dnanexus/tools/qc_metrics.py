@@ -246,7 +246,7 @@ def read_horizontal(filePath,lines='',columns='',delimit=None,verbose=False):
            
 def read_singleton(filePath,key,delimit=None,verbose=False):
     '''
-    Generic case of single vale file. 
+    Generic case of single value file. 
     '''
     # TODO support selecting by line and columns!
     pairs = {}
@@ -455,6 +455,44 @@ def read_idr(filePath,verbose=False):
                 pairs[percentKey] = string_or_number(percent)
 
     fh.close()
+    return pairs
+
+def read_rep_corr(filePath,verbose=False):
+    '''
+    SPECIAL CASE of samtools stats 
+    '''
+    pairs = {}
+    file_a = None
+    file_b = None
+    
+    fh = open(filePath, 'r')
+    while True:
+        line = readline_may_continue( fh )
+        if line == None:
+            break
+        if verbose:
+            print "["+line+"]"
+        line = strip_comments(line,True)
+        if line == '':
+            continue
+
+        parts = parse_line(line,verbose=verbose)
+        
+        if parts[0] == 'Reading':
+            if file_a is None:
+                file_a = parts[1]
+            else:
+                file_b = parts[1]
+
+        elif parts[0] == 'Read':
+            if file_a is not None and "file 1 items" not in pairs:
+                pairs["file 1 items"] = string_or_number(parts[1])
+            elif file_b is not None:
+                pairs["file 2 items"] = string_or_number(parts[1])
+
+        elif parts[0].startswith('['):
+            pairs["correlation"] = string_or_number(parts[1])
+        
     return pairs
 
 def read_samstats(filePath,verbose=False):
@@ -800,6 +838,8 @@ def main():
         metrics = read_hotspot(args.file,args.verbose)
     elif parsing["type"] == 'idr':
         metrics = read_idr(args.file,args.verbose)
+    elif parsing["type"] == 'rep_corr':
+        metrics = read_rep_corr(args.file,args.verbose)
     elif parsing["type"] == 'samstats':
         metrics = read_samstats(args.file,args.verbose)
     elif parsing["type"] == 'spp':

@@ -1,0 +1,55 @@
+{
+  "name": "dnase-rep-corr",
+  "title": "Correlation of replicate density (v0.8.3)",
+  "summary": "Compares two hotspot density files and calculates the correlation.",
+  "dxapi": "1.0.0",
+  "version": "0.8.3",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "density_a",
+      "label": "Density signal produced from one biological replicate",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_density.bw", "*_density.starch"]
+    },
+    {
+      "name": "density_b",
+      "label": "Density signal from another biological replicate",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*_density.bw", "*_density.starch"]
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "corr_txt",
+      "label": "Correlation results",
+      "class": "file",
+      "patterns": ["*_corr.txt"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/dnase-rep-corr.sh",
+    "execDepends": [
+      {"name": "r-base-core"}
+    ],
+    "systemRequirements": {
+      "main": { "instanceType": "mem3_hdd2_x8" }
+    }
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}
