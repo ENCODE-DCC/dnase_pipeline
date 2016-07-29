@@ -1,6 +1,6 @@
 {
-  "name": "dnase-rep-corr",
-  "title": "Correlation of replicate density (v1.0.0)",
+  "name": "dnase-rep-corr-alt",
+  "title": "Correlation of replicate density (virtual-1.0.0)",
   "summary": "Compares two hotspot density files and calculates the correlation.",
   "dxapi": "1.0.0",
   "version": "1.0.0",
