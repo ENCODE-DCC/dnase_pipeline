@@ -39,7 +39,7 @@ AWK_EXE=$(which mawk 2>/dev/null || which awk)
 log "Calculating densities and peak-finding..."
 pkouts=""
 densouts=""
-for chr in $(unstarch --list-chr "$hotspots")
+for chr in $(awk '{print $1}' "$chrfile")
 do
   log "\tProcessing $chr"
 
