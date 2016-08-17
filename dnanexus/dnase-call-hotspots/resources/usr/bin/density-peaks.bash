@@ -45,14 +45,8 @@ do
 
   ## Tag density, 150bp window, sliding every 20bp, used for peak-finding and display
   ##  --sweep-all used to prevent a possible broken pipe
-  bedops --ec -u --chrom "$chr" "$chrfile" \
-    | "$AWK_EXE" -v "b=$bins" -v "s=$step" \
-       'BEGIN {OFS="\t"; hs=s/2; hb=b/2} ; { \
-         for ( start = $2+hb-hs; start < $3-hb-hs; start+=s) { \
-           print $1, start, start+s, "."; \
-         } \
-       }' \
-    | bedmap --faster --sweep-all --chrom "$chr" --range "$rangepad" --delim "\t" --echo --count - "$tags" \
+  bedops --ec --chop 20 --stagger 20 --chrom "$chr" "$chrfile" \
+    | bedmap --faster --sweep-all --chrom "$chr" --range "$rangepad" --delim "\t" --echo --echo-ref-row-id --count - "$tags" \
     | starch - \
    > "$tmpdir/.dens.$chr.starch"
 

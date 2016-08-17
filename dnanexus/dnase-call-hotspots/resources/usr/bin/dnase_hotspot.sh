@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 if [ $# -lt 6 ] || [ $# -gt 7 ]; then
-    echo "usage v1: dnase_hotspot.sh <aligned.bam> <chrom.sizes> <blacklist.bed> <hotspot_root> <peaks_root> <density_root> [<allcalls_root>]"
+    echo "usage v1: dnase_hotspot.sh <aligned.bam> <chrom.sizes> <mappable.tgz> <hotspot_root> <peaks_root> <density_root> [<allcalls_root>]"
     echo "Calls peaks hotspot2.  Is independent of DX and encodeD."
     echo "Requires hotspot2 (hotspot2,hotspot2.sh,tallyCountsInSmallWindows,cutcounts.bash,density-peaks.bash,bed_exclude.py),"
     echo "         bedops (bam2bed,bedmap,sort-bed,starch,unstarch), modwt, mawk, samtools, bedToBigBed, bedGraphToBigWig,"
@@ -10,7 +10,7 @@ if [ $# -lt 6 ] || [ $# -gt 7 ]; then
 fi
 bam_file=$1      # Bam file on which hotspot will be run.
 chrom_sizes=$2   # Chrom sizes file that matches the reference genome which bam reads were aligned to.
-blacklist_bed=$3 # List of regions to exclude from hotspot calling. (Optional: 'na' for no blacklist).
+mappable_tgz=$3  # Archive with mappable_target.starch, center_sites.starch and chrom_sizes.bed created by dnase_index.bwa.sh.
 hotspot_root=$4  # Put hotspot results into ${hotspot_root}.bed.gz, ${hotspot_root}.bb, ${hotspot_root}_count.txt, and ${hotspot_root}_SPOT.txt
 peaks_root=$5    # Put peak results into ${peaks_root}.bed.gz, ${peaks_root}.bb, and ${peaks_root}_count.txt
 density_root=$6  # Put density results into ${density_root}.bw
@@ -20,17 +20,18 @@ if [ $# -eq 7 ]; then
     echo "           and '${allcalls_root}.bed.gz/_count.txt'"
 fi
 
-echo "-- Convert chrom.sizes to bed format..."
-cat $chrom_sizes | awk '{printf "%s\t0\t%s\n",$1,$2}' | sort-bed - > chrom_sizes.bed
+#echo "-- Convert chrom.sizes to bed format..."
+#cat $chrom_sizes | awk '{printf "%s\t0\t%s\n",$1,$2}' | sort-bed - > chrom_sizes.bed
 
-blacklist_param=""
-if [ -s $blacklist_bed ]; then
-    blacklist_param="-e $blacklist_bed"
-fi
+echo "-- Extracting mappable regions..."
+set -x
+tar -xzf $mappable_tgz
+set +x
 
 echo "-- Running hotspot2.sh..."
+#old: hotspot2.sh -s 12345 $blacklist_param -c chrom_sizes.bed $bam_file out/
 set -x
-hotspot2.sh -s 12345 $blacklist_param -c chrom_sizes.bed $bam_file out/
+hotspot2.sh -c chrom_sizes.bed -C center_sites.starch -M mappable_target.starch $bam_file out/
 set +x
 
 echo "-- houtspot2.sh out/..."
@@ -38,9 +39,8 @@ ls -l out
 
 echo "-- Converting hotspots to bed.gz and bigBed..."
 set -x
-mv out/*.hotspots.fdr*.broadpeaks.starch ${hotspot_root}.starch
+mv out/*.hotspots.fdr*.starch ${hotspot_root}.starch
 unstarch ${hotspot_root}.starch > ${hotspot_root}.bed
-#touch ${hotspot_root}.bb  # First round don't press your luck
 bedToBigBed -as=/usr/bin/broadPeak.as -type=bed6+3 ${hotspot_root}.bed $chrom_sizes ${hotspot_root}.bb
 grep "^chr" ${hotspot_root}.bed | wc -l > ${hotspot_root}_count.txt
 pigz ${hotspot_root}.bed

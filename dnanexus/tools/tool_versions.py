@@ -19,6 +19,8 @@ APP_TOOLS = {
                           ],
     "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bedToBigBed","bedGraphToBigWig"  ],
     "dnase-rep-corr":      [ "dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops" ],
+    # special for optional output
+    "dnase-index-bwa(hotspot2)":    [ "dnase_index_bwa.sh", "hotspot2", "bedops" ],
     # Obsolete:
     #"dnase-merge-bams":   [ "samtools" ],
     #"bam-filter-pe":      [
@@ -88,6 +90,7 @@ ALL_TOOLS = {
             "edwBamFilter":             "edwBamFilter 2>&1 | grep 'edwBamFilter v' | awk '{print $2}'",
             "edwBamStats":              "edwBamStats 2>&1 | grep 'edwBamStats v' | awk '{print $2}'",
             "edwComparePeaks":          "md5sum /usr/bin/edwComparePeaks | awk '{printf \"unversioned %-8.8s\",$1}'", #"edwComparePeaks 2>&1 | grep 'edwComparePeaks -' | awk '{print $3,$4,$5,$6}'",
+            "faSize":                   "md5sum /usr/bin/faSize | awk '{printf \"unversioned %-8.8s\",$1}'", #"bigWigCorrelate 2>&1 | grep 'bigWigCorrelate -' | awk '{print $3,$4,$5}'",
             "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
             "fastq_umi_add.py":         "md5sum /usr/bin/fastq_umi_add.py | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/stampipes/scripts/umi/
             "filter_reads.py":          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/scripts/bwa/
@@ -159,6 +162,10 @@ def main():
                         help="Version of applet")
     parser.add_argument('-j','--dxjson', required=False,
                         help="Use dnanexus json file to discover 'applet' and 'appver'")
+    parser.add_argument('-k', '--key',
+                        help='Prints just the value for this key.',
+                        default=None,
+                        required=False)
     parser.add_argument('-q', '--quiet', action="store_true", required=False, default=False, 
                         help="Don't print versions to stderr.")
     parser.add_argument('-v', '--verbose', action="store_true", required=False, default=False, 
@@ -175,7 +182,7 @@ def main():
         return
 
     applet = args.applet
-    applet = args.appver
+    appver = args.appver
     
     if args.dxjson != None:
         (applet,appver) = parse_dxjson(args.dxjson)
@@ -202,7 +209,21 @@ def main():
     if not args.quiet:
         sys.stderr.write("********\n")
     
-    print json.dumps(versions) 
+    if args.key != None:
+        if args.key in versions:
+            print versions[args.key]
+            if not args.quiet:
+                sys.stderr.write(versions[args.key] + '\n')
+        elif args.key in versions["DX applet"]:
+            print versions["DX applet"][args.key]
+            if not args.quiet:
+                sys.stderr.write(versions["DX applet"][args.key] + '\n')
+        else:
+            print ''   
+            if not args.quiet:
+                sys.stderr.write('(not found)\n')
+    else:
+        print json.dumps(versions) 
      
 if __name__ == '__main__':
     main()

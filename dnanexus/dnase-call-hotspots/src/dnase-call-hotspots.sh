@@ -14,7 +14,7 @@ main() {
 
     echo "* Value of bam_to_call: '$bam_to_call'"
     echo "* Value of chrom_sizes: '$chrom_sizes'"
-    echo "* Value of blacklist:   '$blacklist'"
+    echo "* Value of hotspot_mappable:   '$hotspot_mappable'"
 
     echo "* Download files..."
     bam_root=`dx describe "$bam_to_call" --name`
@@ -23,23 +23,8 @@ main() {
     echo "* bam file: '${bam_root}.bam'"
 
     dx download "$chrom_sizes" -o chrom.sizes
-    
-    # TODO: When official blacklist arrives...
-    # 1) cat togther with k36mer.unmappable bed from UW (only the 0 lines from UWs GRCh38_no_alts.K36.mappability.starch)
-    # 2) ./dnase-call-hotspots/resources/usr/bin/sort-bed combined.bed | \
-    # 3)      awk '{printf "%s\t%d\t%d\n",$1,$2,$3}' > unmappable.bed
-    # 4) ~/tim/ubin/downloads/bedtools/bedtools-2.17.0/bin/mergeBed -i unmappable.bed > GRCh38_no_alts.DNase_excludeable.bed
-    # 5) gzip GRCh38_no_alts.DNase_excludeable.bed 
-    if [ "$blacklist" != "" ]; then
-        blacklist_root=`dx describe "$blacklist" --name`
-        blacklist_root=${blacklist_root%.bed.gz}
-        dx download "$blacklist" -o ${blacklist_root}.bed.gz
-        gunzip ${blacklist_root}.bed.gz
-        blacklist_file="${blacklist_root}.bed"
-        echo "* blacklist file: '$blacklist_file'"
-    else
-        blacklist_file="na" # No blacklist file
-    fi
+    mappable_archive=`dx describe "$hotspot_mappable" --name`
+    dx download "$hotspot_mappable"
     
     hotspot_root="${bam_root}_hotspots"  # Put hotspot results into ${hotspot_root}.bed.gz, ${hotspot_root}.bb, ${hotspot_root}_count.txt, and ${hotspot_root}_SPOT.txt
     peaks_root="${bam_root}_peaks"       # Put peak results into ${peaks_root}.bed.gz, ${peaks_root}.bb, and ${peaks_root}_count.txt
@@ -47,7 +32,7 @@ main() {
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $blacklist_file $hotspot_root $peaks_root $density_root
+    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $mappable_archive $hotspot_root $peaks_root $density_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     

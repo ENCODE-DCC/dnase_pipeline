@@ -1,9 +1,9 @@
 {
   "name": "dnase-index-bwa",
-  "title": "Index genome with bwa for DNase (v1.0.2)",
+  "title": "Index genome with bwa for DNase (v1.0.4)",
   "summary": "Prepare reference genome index for BWA used in the ENCODE dnase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -22,12 +22,18 @@
       "patterns": ["hg19", "hg38", "mm10"]
     },
     {
-      "name": "gender",
-      "label": "Gender",
-      "class": "string",
+      "name": "mappable_regions",
+      "label": "Mappable regions (.starch)",
+      "class": "file",
       "optional": true,
-      "default": "",
-      "patterns": ["female", "male"]
+      "patterns": ["*.mappable_only.starch"]
+    },
+    {
+      "name": "blacklist",
+      "label": "Blacklisted regions (.bed.gz)",
+      "class": "file",
+      "optional": true,
+      "patterns": ["*.bed.gz", "*.bed"]
     }
   ],
   "outputSpec": [
@@ -35,7 +41,15 @@
       "name": "bwa_index",
       "label": "Reference index index for BWA",
       "class": "file",
-      "patterns": ["*.tgz"]
+      "optional": true,
+      "patterns": ["*_bwa_index.tgz"]
+    },
+    {
+      "name": "mappable_tar",
+      "label": "Hotspot2 mappable regions",
+      "class": "file",
+      "optional": true,
+      "patterns": ["*_hotspot_mappable.tgz"]
     }
   ],
   "runSpec": {
