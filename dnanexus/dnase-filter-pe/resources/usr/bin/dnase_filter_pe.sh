@@ -3,7 +3,7 @@
 if [ $# -ne 5 ]; then
     echo "usage v1: dnase_filter_pe.sh <unfiltered.bam> <map_threshold> <ncpus> <umi> <filtered_bam_root>"
     echo "Filters paired-end aligned reads for DNase.  Is independent of DX and encodeD."
-    echo "Requires: filter_reads.py, mark_duplicates.mk and umi_sort_sam_annotate.awk in /usr/bin; and samtools on path."
+    echo "Requires: filter_reads.py, mark_umi_dups.mk and umi_sort_sam_annotate.awk in /usr/bin; and samtools on path."
     echo "          Also needs pysam, java and picard 1.92."
     exit -1; 
 fi

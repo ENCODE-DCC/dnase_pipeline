@@ -1,6 +1,3 @@
-# From: https://github.com/StamLab/stampipes/scripts/umi/umi_sort_sam_annotate.awk
-# Used in sorting UMI reads
-
 BEGIN{
   FS="\t";
   OFS="\t";

@@ -1,5 +1,5 @@
 # From: https://github.com/StamLab/stampipes/makefiles/umi/mark_duplicates.mk
-# Used for marking UMI duplicates
+# CHANGED minimally BY DCC for umi_sort_sam_annotate.awk location
 
 ###############
 # These variables should be passed in for the makefile to work properly

@@ -9,10 +9,10 @@ import sys, os, argparse, json, commands
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
 APP_TOOLS = { 
     "dnase-index-bwa":    [ "dnase_index_bwa.sh", "bwa" ],
-    "dnase-align-bwa-pe": [ "dnase_align_bwa_pe.sh", "trim-adapters-illumina", "fastq_umi_add.py", "bwa", "samtools", "edwBamStats" ],
+    "dnase-align-bwa-pe": [ "dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats", "trim-adapters-illumina", "fastq_umi_add.py (stampipes)" ],
     "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats" ],
-    "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools", "filter_reads.py", "picard" ],
-    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools", "filter_reads.py" ],
+    "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools", "filter_reads.py (stampipes)", "picard" ], # "mark_umi_dups.mk (stampipes)", "umi_sort_sam_annotate.awk (stampipes)"
+    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools", "filter_reads.py (stampipes)" ],
     "dnase-eval-bam":     [
                             "dnase_eval_bam.sh","samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
@@ -20,7 +20,7 @@ APP_TOOLS = {
     "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bedToBigBed","bedGraphToBigWig"  ],
     "dnase-rep-corr":      [ "dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops" ],
     # special for optional output
-    "dnase-index-bwa(hotspot2)":    [ "dnase_index_bwa.sh", "hotspot2", "bedops" ],
+    "dnase-index-bwa(hotspot2)":    [ "dnase_index_bwa.sh", "hotspot2", "bedops" ], # "extractCenterSites.sh (hotspot2)", "sort-bed (bedops)", "starch (bedops)", "unstarch (bedops)"
     # Obsolete:
     #"dnase-merge-bams":   [ "samtools" ],
     #"bam-filter-pe":      [
@@ -92,8 +92,11 @@ ALL_TOOLS = {
             "edwComparePeaks":          "md5sum /usr/bin/edwComparePeaks | awk '{printf \"unversioned %-8.8s\",$1}'", #"edwComparePeaks 2>&1 | grep 'edwComparePeaks -' | awk '{print $3,$4,$5,$6}'",
             "faSize":                   "md5sum /usr/bin/faSize | awk '{printf \"unversioned %-8.8s\",$1}'", #"bigWigCorrelate 2>&1 | grep 'bigWigCorrelate -' | awk '{print $3,$4,$5}'",
             "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
-            "fastq_umi_add.py":         "md5sum /usr/bin/fastq_umi_add.py | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/stampipes/scripts/umi/
-            "filter_reads.py":          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/scripts/bwa/
+            # stampipes:
+            "fastq_umi_add.py (stampipes)":         "md5sum /usr/bin/fastq_umi_add.py | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
+            "filter_reads.py" (stampipes):          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/bwa/
+            #  "umi_sort_sam_annotate.awk (stampipes)":"md5sum /usr/bin/umi_sort_sam_annotate.awk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
+            #  "mark_umi_dups.mk (stampipes)":       "md5sum /usr/bin/mark_duplicates.mk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/makefiles/umi/mark_duplicates.mk (dcc minimal change)
             "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
             "idr":                      "idr/bin/idr --version 2>&1 | grep IDR | awk '{print $2}'",
             "mawk":                     "mawk -W version 2>&1 | grep mawk | awk '{print $2}'",
@@ -107,16 +110,16 @@ ALL_TOOLS = {
             "spp":                      "grep spp_ phantompeakqualtools/installPkgs.R | sed 's/_/ /' | awk '{print $2}' | sed 's/\.tar\.gz.*//'",
             "hotspot2":                              "hotspot2 --version | awk '{print $3}'",
             #  "hotspot2.sh (hotspot2)":              "hotspot2 --version | awk '{print $3}'",
-            #  "tallyCountsInSmallWindows (hotspot2)":"hotspot2 --version | awk '{print $3}'",
             #  "cutcounts.bash (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
             #  "density-peaks.bash (hotspot2)":       "hotspot2 --version | awk '{print $3}'",
             #  "bed_exclude.py (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
-            "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/modwt
+            #  "extractCenterSites.sh (hotspot2)":    "hotspot2 --version | awk '{print $3}'",
+            "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/modwt/tree/1.0
             "picard":                   "echo tag 1.92", # From https://github.com/broadinstitute/picard.git
             #"picard":                   "java -Xmx4G -jar /picard/MarkDuplicates.jar --version", # From https://github.com/broadinstitute/picard.git
             "pigz":                     "pigz --version 2>&1 | awk '{print $2}'",
             "trim-adapters-illumina":   "trim-adapters-illumina --version 2>&1 | awk '{print $3}'", # https://bitbucket.org/jvierstra/bio-tools/get/master.tar.gz https://bitbucket.org/jvierstra/bio-tools/src/6fe54fa5a3d9b5c930ee77e8ccd757b347c86ac1/apps/trim-adapters-illumina/?at=master
-            "chromCor.Rscript":         "md5sum /usr/bin/chromCor.Rscript | awk '{printf \"unversioned %-8.8s\",$1}'",
+            "chromCor.Rscript":         "md5sum /usr/bin/chromCor.Rscript | awk '{printf \"unversioned %-8.8s\",$1}'", # emailed from Richard Sandstrom  Will reside in our github
             "bigWigToWig":              "md5sum /usr/bin/bigWigToWig | awk '{printf \"unversioned %-8.8s\",$1}'",
             "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
             "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
