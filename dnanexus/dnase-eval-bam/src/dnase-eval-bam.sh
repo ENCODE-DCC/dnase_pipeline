@@ -43,21 +43,8 @@ main() {
     bam_input_root=`dx describe "$bam_filtered" --name`
     # Better to leave the whole suffix!
     bam_input_root=${bam_input_root%.bam}
-    #bam_input_root=${bam_input_root%_sized}
-    #bam_input_root=${bam_input_root%_filtered}
-    #bam_input_root=${bam_input_root%_biorep}
-    #bam_input_root=${bam_input_root%_techrep}
-    #bam_input_root=${bam_input_root%_bwa}
-    #bam_input_root=${bam_input_root%_pe}
-    #bam_input_root=${bam_input_root%_se}
-    #bam_input_root=${bam_input_root%_spe} # mixed
     dx download "$bam_filtered" -o ${bam_input_root}.bam
     echo "* bam file: '${bam_input_root}.bam'"
-    
-    #zero_is_pe=`samtools view -c -F 0x1 ${bam_input_root}.bam`
-    #if [ $zero_is_pe -eq 0 ]; then
-    #    pe_or_se="pe"
-    #fi
     
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x

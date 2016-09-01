@@ -13,9 +13,6 @@ bam_root=$4    # root name for output bam (e.g. "out" will create "out.bam" and 
 
 echo "-- Expect to create '${bam_root}.bam'"
 
-#echo "-- UMI marking fastqs..."    # No UMI handling of single-end fastqs... no UMI single-end fastqs expected
-#echo "-- Adapter trimming..."      # No addapter trimming of single-end fastqs
-
 echo "-- Uncompress index archive..."
 set -x
 tar zxvf $index_tgz

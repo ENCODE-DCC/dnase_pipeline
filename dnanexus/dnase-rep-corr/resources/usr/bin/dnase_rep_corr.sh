@@ -12,7 +12,6 @@ rank_col=$3       # Column in starch files that should be compared
 corr_root=$4      # root name for output text file
 
 echo "-- Running chromCor..."
-#Rscript chromCor.Rscript -c all -n $rank_col -s $density_a_bed $density_b_bed 2>&1 | tee ${corr_root}.txt
 set -x
 Rscript chromCor.Rscript -c all -n $rank_col -s $density_a_bed $density_b_bed 2> chrmCor_stderr.txt | tee ${corr_root}.txt
 cat chrmCor_stderr.txt >> ${corr_root}.txt

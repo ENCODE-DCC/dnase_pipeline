@@ -32,7 +32,6 @@ set -x
 samtools sort -@ $ncpus -m 6G -O bam -T flagged flagged_presorted.sam > flagged.bam
 rm *.sam
 set +x
-    # sam to bam?
 
 #    1 read paired
 #    2 read mapped in proper pair
@@ -95,17 +94,6 @@ echo "-- Filter bam and threshold..."
 set -x
 samtools view -F $filter_flags -q ${map_thresh} -b marked.bam > ${filtered_bam_root}.bam
 set +x
-#set -x
-#samtools view -F $filter_flags -f 2 -q ${map_thresh} -u marked.bam | \
-#        samtools sort -@ $ncpus -m 6G -n -f - ${filtered_bam_root}_tmp.sam
-#samtools view -hb ${filtered_bam_root}_tmp.sam > ${filtered_bam_root}_tmp.bam
-#samtools fixmate -r ${filtered_bam_root}_tmp.bam -O sam - | \
-#        samtools view -F $filter_flags -f 2 -u - | \
-#        samtools sort -@ $ncpus -m 6G -f - ${filtered_bam_root}.sam
-#samtools view -hb ${filtered_bam_root}.sam > ${filtered_bam_root}.bam
-#samtools index ${filtered_bam_root}.bam
-#rm *.sam
-#set +x
 
 echo "-- Collect bam stats..."
 set -x

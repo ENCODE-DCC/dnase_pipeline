@@ -20,16 +20,12 @@ if [ $# -eq 7 ]; then
     echo "           and '${allcalls_root}.bed.gz/_count.txt'"
 fi
 
-#echo "-- Convert chrom.sizes to bed format..."
-#cat $chrom_sizes | awk '{printf "%s\t0\t%s\n",$1,$2}' | sort-bed - > chrom_sizes.bed
-
 echo "-- Extracting mappable regions..."
 set -x
 tar -xzf $mappable_tgz
 set +x
 
 echo "-- Running hotspot2.sh..."
-#old: hotspot2.sh -s 12345 $blacklist_param -c chrom_sizes.bed $bam_file out/
 set -x
 hotspot2.sh -c chrom_sizes.bed -C center_sites.starch -M mappable_target.starch $bam_file out/
 set +x

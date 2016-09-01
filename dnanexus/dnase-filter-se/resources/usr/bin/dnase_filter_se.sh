@@ -19,8 +19,6 @@ set -x
 samtools sort -@ $ncpus -m 6G -O bam -T sorted $unfiltered_bam > sorted.bam
 set +x
 
-# echo "-- Handle UMI flagging and errors with 'filter_reads.py'." # No filter-reads.py UMI handling of single-end fastqs.
-
 #    1 read paired
 #    2 read mapped in proper pair
 #    4 read unmapped
@@ -54,14 +52,6 @@ echo "-- Filter on flags and threashold..."
 set -x
 samtools view -F $filter_flags -q ${map_thresh} -b marked.bam > ${filtered_bam_root}.bam
 set +x
-# More complex version
-#set -x
-#samtools view -F $filter_flags -q ${map_thresh} -u $unfiltered_bam | \
-#        samtools sort -@ $ncpus -m 6G -f - ${filtered_bam_root}.sam
-#samtools view -hb ${filtered_bam_root}.sam > ${filtered_bam_root}.bam
-#samtools index ${filtered_bam_root}.bam
-#rm *.sam
-#set +x
 
 echo "-- Collect bam stats..."
 set -x
