@@ -94,7 +94,7 @@ ALL_TOOLS = {
             "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
             # stampipes:
             "fastq_umi_add.py (stampipes)":         "md5sum /usr/bin/fastq_umi_add.py | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
-            "filter_reads.py" (stampipes):          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/bwa/
+            "filter_reads.py (stampipes)":          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/bwa/
             #  "umi_sort_sam_annotate.awk (stampipes)":"md5sum /usr/bin/umi_sort_sam_annotate.awk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
             #  "mark_umi_dups.mk (stampipes)":       "md5sum /usr/bin/mark_duplicates.mk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/makefiles/umi/mark_duplicates.mk (dcc minimal change)
             "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",

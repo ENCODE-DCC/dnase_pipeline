@@ -31,7 +31,7 @@ class DnaseLaunch(Launch):
                             "dnase-align-bwa-se": {
                                 "inputs": { "reads": "reads", "bwa_index": "bwa_index" },
                                 "app": "dnase-align-bwa-se", 
-                                "params": {"nthreads": "nthreads", "barcode": "barcode", "umi": "umi" }, 
+                                "params": {"nthreads": "nthreads", "barcode": "barcode" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -41,7 +41,7 @@ class DnaseLaunch(Launch):
                             "dnase-align-bwa-pe": {
                                 "inputs": { "reads1": "reads1", "reads2": "reads2", "bwa_index": "bwa_index" }, 
                                 "app": "dnase-align-bwa-pe", 
-                                "params": { "nthreads": "nthreads", "barcode": "barcode" }, 
+                                "params": { "nthreads": "nthreads", "barcode": "barcode", "umi": "umi" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -103,7 +103,9 @@ class DnaseLaunch(Launch):
                                 #"output_values": { "sampled_": "sampled_reads" },
                             }, 
                             "dnase-call-hotspots": {
-                                "inputs": { "bam_filtered": "bam_to_call", "chrom_sizes": "chrom_sizes" }, 
+                                "inputs": { "bam_filtered": "bam_to_call", 
+                                            "chrom_sizes": "chrom_sizes", 
+                                            "hotspot_mappable": "hotspot_mappable" }, 
                                 "app": "dnase-call-hotspots", 
                                 #"params": {  }, 
                                 "results": {
@@ -136,10 +138,12 @@ class DnaseLaunch(Launch):
                 "STEPS": {
                             "dnase-rep-corr": {
                                 "inputs": { "density_a":"density_a", "density_b":"density_b" }, 
+                                #"app": "dnase-rep-corr", 
                                 "results": { "corr_txt": "corr_txt" },
                             },
                             "dnase-rep-corr-alt": {
                                 "inputs": { "density_a":"density_a", "density_b":"density_b" }, 
+                                #"app": "dnase-rep-corr-alt", 
                                 "results": { "corr_txt": "corr_txt" },
                             },
         #                    "dnase-idr": {
@@ -262,32 +266,19 @@ class DnaseLaunch(Launch):
         # For looking up reference file names.
         # TODO: should use ACCESSION based fileNames
         "bwa_index":   {
-                        "GRCh38": {
-                                "female":   "GRCh38_XY_bwa_index.tgz",
-                                "male":     "GRCh38_XY_bwa_index.tgz"
-                                },
-                        "hg19": {
-                                "female":   "hg19_female_bwa_index.tgz",
-                                "male":     "hg19_male_bwa_index.tgz"
-                                },
-                        "mm10": {
-                                "female":   "mm10_male_bwa_index.tgz",
-                                "male":     "mm10_male_bwa_index.tgz"
-                                }
+                        "GRCh38": "GRCh38_bwa_index.tgz",
+                        "hg19":   "hg19_bwa_index.tgz",
+                        "mm10":   "mm10_bwa_index.tgz",
+                        },
+        "hotspot_mappable":   {
+                        "GRCh38": "GRCh38_hotspot_mappable.tgz",
+                        "hg19":   "hg19_hotspot_mappable.tgz",
+                        "mm10":   "mm10_hotspot_mappable.tgz",
                         },
         "chrom_sizes":   {
-                        "GRCh38": {
-                                "female":   "GRCh38_EBV.chrom.sizes",
-                                "male":     "GRCh38_EBV.chrom.sizes"
-                                },
-                        "hg19": {
-                                "female":   "female.hg19.chrom.sizes",
-                                "male":     "male.hg19.chrom.sizes"
-                                },
-                        "mm10": {
-                                "female":   "male.mm10.chrom.sizes",
-                                "male":     "male.mm10.chrom.sizes"
-                                }
+                        "GRCh38": "GRCh38_EBV.chrom.sizes",
+                        "hg19":   "male.hg19.chrom.sizes",
+                        "mm10":   "male.mm10.chrom.sizes",
                         }
         }
 
@@ -344,7 +335,7 @@ class DnaseLaunch(Launch):
     def find_ref_files(self,priors):
         '''Locates all reference files based upon organism and gender.'''
         # TODO:  move all ref files to ref project and replace "/ref/" and self.REF_PROJECT_DEFAULT
-        bwa_path = self.psv['refLoc']+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
+        bwa_path = self.psv['refLoc']+"dnase/"+self.REFERENCE_FILES['bwa_index'][self.psv['genome']]
         #base_dir = "/ref/" + self.psv['genome'] + "/dnase/"
         #bwa_path = base_dir+self.REFERENCE_FILES['bwa_index'][self.psv['genome']][self.psv['gender']]
         bwa_fid = self.find_file(bwa_path,self.REF_PROJECT_DEFAULT)
@@ -353,12 +344,20 @@ class DnaseLaunch(Launch):
         else:
             priors['bwa_index'] = bwa_fid
 
-        chrom_sizes = self.psv['refLoc']+self.REFERENCE_FILES['chrom_sizes'][self.psv['genome']][self.psv['gender']]
+        hot_map = self.psv['refLoc']+"dnase/"+self.REFERENCE_FILES['hotspot_mappable'][self.psv['genome']]
+        hot_map_fid = self.find_file(hot_map,self.REF_PROJECT_DEFAULT)
+        if hot_map_fid == None:
+            sys.exit("ERROR: Unable to locate hotspot_mappable file '" + hot_map + "'")
+        else:
+            priors['hotspot_mappable'] = hot_map_fid
+
+        chrom_sizes = self.psv['refLoc']+self.REFERENCE_FILES['chrom_sizes'][self.psv['genome']]
         chrom_sizes_fid = self.find_file(chrom_sizes,self.REF_PROJECT_DEFAULT)
         if chrom_sizes_fid == None:
             sys.exit("ERROR: Unable to locate Chrom Sizes file '" + chrom_sizes + "'")
         else:
             priors['chrom_sizes'] = chrom_sizes_fid
+
         self.psv['ref_files'] = self.REFERENCE_FILES.keys()
         return priors
     
@@ -407,6 +406,9 @@ class DnaseLaunch(Launch):
                         river['rep_tech'] += tributary['rep_tech'][5:]
                         river['tributaries'].append(tributary_id)
             assert len(river['tributaries']) >= 1  # It could be the case that there is one tech_rep for a bio_rep!
+            # Try to contract reps1_1 (as opposed to reps1_1.2) to rep1_1
+            if '.' not in river['rep_tech']:
+                river['rep_tech'] = "rep" + river['rep_tech'][4:]
             # river_id for ['a','b'] = 'b-bio_rep1'
             river_id = river['tributaries'][-1] + '-bio_rep' + str(bio_rep)
             reps[river_id] = river
@@ -431,7 +433,10 @@ class DnaseLaunch(Launch):
                     tributary = reps[tributary_id]
                     if len(sea['tributaries']) > 0:
                         sea['rep_tech'] += '-'
-                    sea['rep_tech'] += tributary['rep_tech'][4:]
+                    if '.' not in tributary['rep_tech']:
+                        sea['rep_tech'] += tributary['rep_tech'][3:]
+                    else:
+                        sea['rep_tech'] += tributary['rep_tech'][4:]
                     sea['tributaries'].append(tributary_id)
             
                 psv['rep_tech'] = sea['rep_tech']

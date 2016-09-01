@@ -21,11 +21,11 @@
       "patterns": ["*chrom.sizes"]
     },
     {
-      "name": "blacklist",
-      "label": "Blacklisted regions to exclude from hotspot calling",
+      "name": "hotspot_mappable",
+      "label": "Hotspot mappable regions archive",
       "class": "file",
-      "optional": true,
-      "patterns": ["*.bed.gz"]
+      "optional": false,
+      "patterns": ["*_hotspot_mappable.tgz"]
     }
   ],
   "outputSpec": [

@@ -19,7 +19,7 @@ virtual_links="src resources Readme.developer.md Readme.md"
 applet_dest=`cat ~/.dnanexus_config/DX_PROJECT_CONTEXT_NAME`
 
 if [ $# -gt 0 ]; then
-    if [ $1 == "?" ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
+    if [ "$1" == "?" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
         echo "Usage: $0 [.|{project}] [{applet}] [{applet}]... [--test]"
         echo "    Build applets in dx project"
         echo "       project: Name of project to build in ('.' for default). Default: $applet_dest"
@@ -39,11 +39,11 @@ done
 # Parse args
 testing="nope"
 # Only the first arg can be project
-if [ $# -gt 0 ] && [ ! -d $1 ] && [ ! -d "virtual/$1" ]; then 
+if [ $# -gt 0 ] && [ ! -d "$1" ] && [ ! -d "virtual/$1" ]; then 
     if [ "$1" == "--test" ]; then
         testing=$1
     else
-        applet_dest=$1
+        applet_dest="$1"
     fi
     shift
 fi

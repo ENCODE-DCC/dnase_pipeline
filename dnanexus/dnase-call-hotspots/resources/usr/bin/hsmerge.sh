@@ -1,6 +1,6 @@
 #!/bin/bash
 
-usage(){
+usage() {
   cat >&2 <<__EOF__
 Usage:  "$0" [options] input.allcalls.starch hotspots.out.starch
 
@@ -19,7 +19,7 @@ HOTSPOT_FDR_THRESHOLD=0.05
 
 AWK_EXE=$(which mawk 2>/dev/null || which awk)
 
-while getopts 'hf:m:' opt ; do
+while getopts 'hf:m:' opt; do
   case "$opt" in
     h) usage ;;
     f) HOTSPOT_FDR_THRESHOLD=$OPTARG ;;
@@ -27,22 +27,21 @@ while getopts 'hf:m:' opt ; do
   esac
 done
 
-shift $((OPTIND - 1 ))
+shift $((OPTIND - 1))
 
-if [[ $# -lt 2 ]] ; then
+if [[ $# -lt 2 ]]; then
   usage
 fi
 
 infile=$1
 outfile=$2
 
-
 # Function definitions
 
 # To combat issues awk sometimes has with numbers below 1e-300,
 # we parse the FDR initially as a string, and assume anything below 1e-100
 # passes the user's threshold.
-filter(){
+filter() {
   "$AWK_EXE" \
     -v "threshold=$HOTSPOT_FDR_THRESHOLD" \
     '{
@@ -51,9 +50,10 @@ filter(){
          print $1"\t"$2"\t"$3
        }
      }'
+
 }
 
-merge(){
+merge() {
   bedops -m - \
     | "$AWK_EXE" \
       -v "minW=$MIN_HOTSPOT_WIDTH" \
@@ -96,15 +96,22 @@ merge(){
            print chrL, begPosL, endPosL
          }
        }'
+
 }
 
 # We report the largest -log10(FDR) observed at any bp of a hotspot
+
 # as the "score" of that hotspot, where FDR is the site-specific FDR estimate.
+
 # FDR values of 0 will be encountered, and we don't want to do log(0).
+
 # Nonzero FDR values as low as 1e-308 have been seen during testing.
+
 # We choose to cap all FDR estimates at 1e-100, i.e. -log10(FDR) = 100.
+
 # The constant c below converts from natural logarithm to log10.
-annotate(){
+
+annotate() {
   "$AWK_EXE" \
     'BEGIN{
       OFS="\t"
@@ -125,14 +132,15 @@ annotate(){
         }
       }
     }'
+
 }
 
 # Main
 
 unstarch "$infile" \
-    | filter \
-    | merge \
-    | bedmap --faster --sweep-all --delim "\t" --echo --min   - "$infile" \
-    | annotate \
-    | starch - \
-> "$outfile"
+  | filter \
+  | merge \
+  | bedmap --faster --sweep-all --delim "\t" --echo --min - "$infile" \
+  | annotate \
+  | starch - \
+    >"$outfile"

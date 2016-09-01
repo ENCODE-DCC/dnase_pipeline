@@ -40,20 +40,28 @@ main() {
 
     echo "* Download files..."
     dx download "$reference" -o ${genome}.fa.gz
-    
+    echo "* Reference file: '${genome}.fa.gz'"
 
     mappable_starch=""
     blacklist_bed_gz=""
     if [ "$mappable_regions" != "" ]; then
         mappable_starch=`dx describe "$mappable_regions" --name`
         dx download "$mappable_regions"
+        echo "* Mappable regions file: '$mappable_starch'"
         if [ "$blacklist" != "" ]; then
             blacklist_bed_gz=`dx describe "$blacklist" --name`
             dx download "$blacklist"
+            echo "* Blacklist file: '$$blacklist'"
+        fi
+        mappable_root=${mappable_starch%.bed.gz}
+        if [ "$mappable_root" != "$mappable_starch" ]; then
+            echo "* Converting $mappable_root.bed.gz to $mappable_root.starch..."
+            gunzip $mappable_root.bed.gz
+            starch $mappable_root.bed > $mappable_root.starch
+            mappable_starch=$mappable_root.starch
         fi
     fi
 
-    echo "* Reference file: '$ref'"
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x

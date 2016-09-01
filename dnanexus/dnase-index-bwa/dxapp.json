@@ -1,9 +1,9 @@
 {
   "name": "dnase-index-bwa",
-  "title": "Index genome with bwa for DNase (v1.0.4)",
+  "title": "Index genome with bwa for DNase (v1.0.0)",
   "summary": "Prepare reference genome index for BWA used in the ENCODE dnase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -26,7 +26,7 @@
       "label": "Mappable regions (.starch)",
       "class": "file",
       "optional": true,
-      "patterns": ["*.mappable_only.starch"]
+      "patterns": ["*.mappable_only.starch", "*.mappable_only.bed.gz"]
     },
     {
       "name": "blacklist",
