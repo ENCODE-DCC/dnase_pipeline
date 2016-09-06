@@ -12,7 +12,7 @@ APP_TOOLS = {
     "dnase-align-bwa-pe": [ "dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats", "trim-adapters-illumina", "fastq_umi_add.py (stampipes)" ],
     "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats" ],
     "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools", "filter_reads.py (stampipes)", "picard" ], # "mark_umi_dups.mk (stampipes)", "umi_sort_sam_annotate.awk (stampipes)"
-    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools", "filter_reads.py (stampipes)" ],
+    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools" ],
     "dnase-eval-bam":     [
                             "dnase_eval_bam.sh","samtools","edwBamFilter","edwBamStats",#"R",
                             "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"

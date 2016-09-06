@@ -5,7 +5,7 @@ main() {
     echo "* Installing phantompeakqualtools, caTools, snow and spp..." 2>&1 | tee -a install.log
     set -x
     # phantompeakqualtools  : also resquires boost C libraries (on aws), boost C libraries (on aws) samtools (in resources/usr/bin)
-    wget https://phantompeakqualtools.googlecode.com/files/ccQualityControl.v.1.1.tar.gz -O phantompeakqualtools.tgz >> install.log 2>&1
+    wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/phantompeakqualtools/ccQualityControl.v.1.1.tar.gz -O phantompeakqualtools.tgz >> install.log 2>&1
     mkdir phantompeakqualtools
     tar -xzf phantompeakqualtools.tgz -C phantompeakqualtools --strip-components=1
     cd phantompeakqualtools
