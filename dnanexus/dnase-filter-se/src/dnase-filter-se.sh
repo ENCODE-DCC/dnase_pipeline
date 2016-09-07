@@ -135,7 +135,7 @@ main() {
         qc_filtering=`echo $qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
         qc_filtering=`echo $qc_filtering, \"post-filter all reads\": $filtered_all_reads`
         qc_filtering=`echo $qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
-        qc_filtered=`echo $qc_filtered, \"read_filtering\": { $qc_filtering } `
+        qc_filtered=`echo $qc_filtered, \"filtering\": { $qc_filtering } `
     fi
     # All qc to one file per target file:
     echo "===== samtools flagstat ====="   > ${filtered_bam_root}_qc.txt
