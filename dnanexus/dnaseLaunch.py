@@ -325,6 +325,8 @@ class DnaseLaunch(Launch):
         if args.umi:
             psv['umi'] = "yes"
         psv['upper_limit'] = 0
+        self.multi_rep = True      # For DNase, a single tech_rep moves on to merge/filter.
+        self.combined_reps = True
         
         if verbose:
             print "Pipeline Specific Vars:"
@@ -392,6 +394,7 @@ class DnaseLaunch(Launch):
             river['tributaries'] = []
             river['rep_tech'] = 'reps' + str(bio_rep) + '_'  # reps1_1.2.3 is rep1_1 + rep1_2 + rep1_3
             river['br'] = bio_rep
+            river['paired_end'] = False
             for tributary_id in sorted( reps.keys() ): 
                 if len(tributary_id) == 1:
                     tributary = reps[tributary_id]
@@ -401,6 +404,11 @@ class DnaseLaunch(Launch):
                         elif river['umi'] != tributary.get('umi'):
                             print >> sys.stderr, "ERROR: mixed UMI setting on tech_reps for bio_rep %s." % river['br']
                             sys.exit(1)
+                        if river['paired_end'] and not tributary['paired_end']:
+                            print >> sys.stderr, "WARNING: mixed paired-end setting on tech_reps for bio_rep %s." % river['br']
+                            #sys.exit(1)
+                        elif river['paired_end'] != tributary['paired_end']:
+                            river['paired_end'] = tributary['paired_end']
                         if len(river['tributaries']) > 0:
                             river['rep_tech'] += '.'
                         river['rep_tech'] += tributary['rep_tech'][5:]
