@@ -18,7 +18,7 @@ echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
 echo "-- Sort bam by name."
 set -x
-samtools sort -@ $ncpus -m 6G -n -O sam -T sorted $unfiltered_bam > sorted.sam
+samtools sort -@ $ncpus -m 4G -n -O sam -T sorted $unfiltered_bam > sorted.sam
 set +x
 echo "-- Handle UMI flagging and errors with 'filter_reads.py'."
 # NOTE script written for python3 works just as well for python2.7 as long as pysam works
@@ -29,7 +29,7 @@ set +x
 #samtools view -bS flagged_presorted.sam > flagged.bam
 echo "-- Sort bam by location."
 set -x
-samtools sort -@ $ncpus -m 6G -O bam -T flagged flagged_presorted.sam > flagged.bam
+samtools sort -@ $ncpus -m 4G -O bam -T flagged flagged_presorted.sam > flagged.bam
 rm *.sam
 set +x
 

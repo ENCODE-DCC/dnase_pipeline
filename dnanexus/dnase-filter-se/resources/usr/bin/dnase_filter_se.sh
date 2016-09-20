@@ -16,7 +16,7 @@ echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
 echo "-- Sort bam by location."
 set -x
-samtools sort -@ $ncpus -m 6G -O bam -T sorted $unfiltered_bam > sorted.bam
+samtools sort -@ $ncpus -m 4G -O bam -T sorted $unfiltered_bam > sorted.bam
 set +x
 
 #    1 read paired

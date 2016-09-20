@@ -57,6 +57,7 @@ VIRTUAL_APPS = {
     "dnase-eval-bam-alt":        "dnase-eval-bam",
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
     "dnase-idr-alt":             "dnase-idr",
+    "dnase-rep-corr-alt":        "dnase-rep-corr",
     #"dnase-merge-bams-alt":      "dnase-merge-bams",
     #"dnase-size-bam-alt":        "dnase-size-bam",
     #"dnase-qc-hotspot-alt":      "dnase-qc-hotspot",   
