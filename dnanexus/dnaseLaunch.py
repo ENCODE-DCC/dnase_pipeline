@@ -132,6 +132,9 @@ class DnaseLaunch(Launch):
         }
     }
 
+    PRUNE_STEPS = ["dnase-call-hotspots","dnase-call-hotspots-alt","dnase-rep-corr","dnase-rep-corr-alt"]
+    '''If --no-hotspot is requested, these steps are pruned from the pipeline before launching.'''
+
     FILE_GLOBS = {
         #"reads":                    "/*.fq.gz",
         #"reads1":                   "/*.fq.gz",
@@ -199,6 +202,11 @@ class DnaseLaunch(Launch):
                         action='store_true',
                         required=False)
 
+        ap.add_argument('--no_hotspot',
+                        help='Stop before calling hotspots (default: include all steps).',
+                        action='store_true',
+                        required=False)
+
         # NOTE: Could override get_args() to have this non-generic control message
         #ap.add_argument('-c', '--control',
         #                help='The control bam for peak calling.',
@@ -226,6 +234,10 @@ class DnaseLaunch(Launch):
         self.multi_rep = True      # For DNase, a single tech_rep moves on to merge/filter.
         self.combined_reps = True
         
+        self.no_hotspot = args.no_hotspot
+        if not self.no_hotspot:
+            self.PRUNE_STEPS = []
+
         if verbose:
             print "Pipeline Specific Vars:"
             print json.dumps(psv,indent=4)
@@ -244,12 +256,13 @@ class DnaseLaunch(Launch):
         else:
             priors['bwa_index'] = bwa_fid
 
-        hot_map = self.psv['refLoc']+"dnase/"+self.REFERENCE_FILES['hotspot_mappable'][self.psv['genome']]
-        hot_map_fid = self.find_file(hot_map,self.REF_PROJECT_DEFAULT)
-        if hot_map_fid == None:
-            sys.exit("ERROR: Unable to locate hotspot_mappable file '" + hot_map + "'")
-        else:
-            priors['hotspot_mappable'] = hot_map_fid
+        if not self.no_hotspot:
+            hot_map = self.psv['refLoc']+"dnase/"+self.REFERENCE_FILES['hotspot_mappable'][self.psv['genome']]
+            hot_map_fid = self.find_file(hot_map,self.REF_PROJECT_DEFAULT)
+            if hot_map_fid == None:
+                sys.exit("ERROR: Unable to locate hotspot_mappable file '" + hot_map + "'")
+            else:
+                priors['hotspot_mappable'] = hot_map_fid
 
         chrom_sizes = self.psv['refLoc']+self.REFERENCE_FILES['chrom_sizes'][self.psv['genome']]
         chrom_sizes_fid = self.find_file(chrom_sizes,self.REF_PROJECT_DEFAULT)
@@ -259,6 +272,8 @@ class DnaseLaunch(Launch):
             priors['chrom_sizes'] = chrom_sizes_fid
 
         self.psv['ref_files'] = self.REFERENCE_FILES.keys()
+        if self.no_hotspot:
+            self.psv['ref_files'].remove('hotspot_mappable')
         return priors
     
 
