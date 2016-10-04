@@ -17,25 +17,27 @@ if [ $# -gt 2 ]; then
     fi
 fi
 
-index_file="${genome}_bwa_index.tgz"
-echo "-- Index file will be: '$index_file'"
+if [ -f $ref_fa_gz ]; then
+    index_file="${genome}_bwa_index.tgz"
+    echo "-- Index file will be: '$index_file'"
 
-ref_fa=${ref_fa_gz%.gz}
-if [ "$ref_fa" != "$ref_fa_gz" ]; then
-    echo "-- Uncompressing reference"
-    set -x
-    gunzip $ref_fa_gz 
-    set +x
-fi
-if [ "$ref_fa" != "$genome.fa" ]; then
-    set -x
-    mv $ref_fa ${genome}.fa
-    set +x
+    ref_fa=${ref_fa_gz%.gz}
+    if [ "$ref_fa" != "$ref_fa_gz" ]; then
+        echo "-- Uncompressing reference"
+        set -x
+        gunzip $ref_fa_gz 
+        set +x
+    fi
+    if [ "$ref_fa" != "$genome.fa" ]; then
+        set -x
+        mv $ref_fa ${genome}.fa
+        set +x
+    fi
 fi
 
 # Optionally create a mappable regions tar: faSize, sort-bed bedops starch unstarch extractCenterSites.sh
 mappable_tar=""
-if [ $# -gt 2 ]; then
+if [ -f $mappable_only_starch ]; then
     mappable_tar="${genome}_hotspot_mappable.tgz"
     echo "-- Create hotspot2 mappable regions archive: ${mappable_tar}"
     echo "-- Generating chrom_sizes.bed from fasta file..."
@@ -45,7 +47,7 @@ if [ $# -gt 2 ]; then
     #cat $chrom_sizes | awk '{printf "%s\t0\t%s\n",$1,$2}' | sort-bed - > chrom_sizes.bed
 
     blacklist_bed=""
-    if [ $# -gt 3 ]; then
+    if [ -f $blacklist_bed_gz ]; then
         blacklist_bed=${blacklist_bed_gz%.gz}
         if [ "$blacklist_bed" != "$blacklist_bed_gz" ]; then
             echo "-- Uncompressing blacklist..."
@@ -75,24 +77,28 @@ if [ $# -gt 2 ]; then
     set +x
 fi
 
-echo "-- Build index..."
-set -x
-bwa index -p $genome -a bwtsw ${genome}.fa
-set +x
-
-echo "-- tar and gzip index..."
-set -x
-tar -czf $index_file ${genome}.*
-set +x
-    
-if [ "$ref_fa" != "${genome}.fa" ]; then
+if [ -f ${genome}.fa ]; then
+    echo "-- Build index..."
     set -x
-    mv ${genome}.fa $ref_fa
+    bwa index -p $genome -a bwtsw ${genome}.fa
     set +x
+
+    echo "-- tar and gzip index..."
+    set -x
+    tar -czf $index_file ${genome}.*
+    set +x
+        
+    if [ "$ref_fa" != "${genome}.fa" ]; then
+        set -x
+        mv ${genome}.fa $ref_fa
+        set +x
+    fi
 fi
 
 echo "-- The results..."
-ls -l $index_file
+if [ -f $index_file ]; then
+    ls -l $index_file
+fi
 if [ -f $mappable_tar ]; then
     ls -l $mappable_tar
 fi

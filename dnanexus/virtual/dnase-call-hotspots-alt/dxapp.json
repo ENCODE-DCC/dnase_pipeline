@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots-alt",
-  "title": "Call hotspots (virtual-1.0.0)",
+  "title": "Call hotspots (virtual-1.0.1)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -80,7 +80,7 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-call-hotspots.sh",
-    "systemRequirements": {  "main": { "instanceType": "mem3_hdd2_x8" } },
+    "systemRequirements": {  "main": { "instanceType": "mem2_ssd1_x4" } },
     "execDepends": [ { "name": "gawk" },
                      { "name": "pigz" } ]
   },

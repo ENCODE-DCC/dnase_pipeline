@@ -1,9 +1,9 @@
 {
   "name": "dnase-eval-bam",
-  "title": "Evaluate bam (v1.0.1)",
+  "title": "Evaluate bam (v1.0.2)",
   "summary": "Evaluates sample of bam for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -32,7 +32,7 @@
       "label": "Number of threads to use",
       "class": "int",
       "optional": true,
-      "default": 8
+      "default": 2
     }
   ],
   "outputSpec": [
@@ -63,14 +63,7 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-eval-bam.sh",
-    "systemRequirements": {
-      "main": {
-        "instanceType": "mem3_hdd2_x8"
-      },
-      "myEntryPoint": {
-        "instanceType": "mem3_hdd2_x8"
-      }
-    },
+    "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x2" } },
     "execDepends": [
         { "name": "gawk" }
     ]
