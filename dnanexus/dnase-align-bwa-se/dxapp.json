@@ -1,9 +1,9 @@
 {
   "name": "dnase-align-bwa-se",
-  "title": "Align with bwa - se (v1.0.1)",
+  "title": "Align with bwa - se (v1.1.0)",
   "summary": "Alignment by bwa of single-end fastq for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -32,7 +32,7 @@
       "label": "Number of threads to use",
       "class": "int",
       "optional": true,
-      "default": 8
+      "default": 16
     }
   ],
   "outputSpec": [
@@ -69,14 +69,9 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-align-bwa-se.sh",
-    "systemRequirements": {
-      "main": {
-        "instanceType": "mem3_hdd2_x8"
-      },
-      "myEntryPoint": {
-        "instanceType": "mem3_hdd2_x8"
-      }
-    }
+    "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x16" } }
+  },
+  "access": {
   },
   "access": {
     "network": [

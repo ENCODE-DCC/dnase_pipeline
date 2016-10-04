@@ -1,9 +1,9 @@
 {
   "name": "dnase-index-bwa",
-  "title": "Index genome with bwa for DNase (v1.0.0)",
+  "title": "Index genome with bwa for DNase (v1.1.0)",
   "summary": "Prepare reference genome index for BWA used in the ENCODE dnase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
