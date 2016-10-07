@@ -32,7 +32,7 @@
       "label": "Number of threads to use",
       "class": "int",
       "optional": true,
-      "default": 16
+      "default": 4
     }
   ],
   "outputSpec": [
@@ -56,7 +56,7 @@
     },
     {
       "name": "mapped_reads",
-      "label": "Count of mapped reads in the filtered bam",
+      "label": "Count of mapped reads in the bam",
       "optional": true,
       "class": "string"
     },
@@ -69,7 +69,7 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-align-bwa-se.sh",
-    "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x16" } }
+    "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x4" } }
   },
   "access": {
   },

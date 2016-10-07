@@ -32,7 +32,7 @@
       "label": "Number of threads to use",
       "class": "int",
       "optional": true,
-      "default": 8
+      "default": 2
     }
   ],
   "outputSpec": [
