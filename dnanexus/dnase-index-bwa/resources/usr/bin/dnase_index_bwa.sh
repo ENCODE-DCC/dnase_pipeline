@@ -1,38 +1,38 @@
 #!/bin/bash -e
 
-if [ $# -lt 2 ] ||  [ $# -gt 4 ]; then
-    echo "usage v1: dnase_index_bwa.sh <genome> <reference.fasta.gz> [<mappable_only.starch> [<blacklist.bed.gz>]]"
+if [ $# -lt 2 ] || [ $# -gt 5 ]; then
+    echo "usage v1: dnase_index_bwa.sh <genome> <reference.fasta.gz> [<skip_indexing> <mappable_only.starch> [<blacklist.bed.gz>]]"
     echo "Indexes reference for bwa alignment.  Optionally creates hotspot mappable regions. Is independent of DX and encodeD."
     echo "Requires bwa on path.  Making mappable regions needs: faSize, sort-bed bedops starch unstarch extractCenterSites.sh"
     exit -1; 
 fi
 genome=$1               # Genome assembly (e.g. "GRCh38").
 ref_fa_gz=$2            # Reference fasta file (e.g. GRCh38.fa.gz).  Will be uncompressed if not already.
+skip_indexing="false"
 mappable_only_starch="none"
 blacklist_bed_gz="none"
-if [ $# -gt 2 ]; then
-    mappable_only_starch=$3     # Mappable regions only file (e.g. GRCh38_no_alts.K36.mappable_only.starch).
-    if [ $# -gt 3 ]; then
-        blacklist_bed_gz=$4     # Assembly blacklist file (e.g. wgEncodeDacMapabilityConsensusExcludable.bed.gz).
+if [ $# -gt 3 ]; then
+    skip_indexing=$3            # If making mappable targets, optionally skip indexing
+    mappable_only_starch=$4     # Mappable regions only file (e.g. GRCh38_no_alts.K36.mappable_only.starch).
+    if [ $# -gt 4 ]; then
+        blacklist_bed_gz=$5     # Assembly blacklist file (e.g. wgEncodeDacMapabilityConsensusExcludable.bed.gz).
     fi
 fi
 
-if [ -f $ref_fa_gz ]; then
-    index_file="${genome}_bwa_index.tgz"
-    echo "-- Index file will be: '$index_file'"
+index_file="${genome}_bwa_index.tgz"
+echo "-- Index file will be: '$index_file'"
 
-    ref_fa=${ref_fa_gz%.gz}
-    if [ "$ref_fa" != "$ref_fa_gz" ]; then
-        echo "-- Uncompressing reference"
-        set -x
-        gunzip $ref_fa_gz 
-        set +x
-    fi
-    if [ "$ref_fa" != "$genome.fa" ]; then
-        set -x
-        mv $ref_fa ${genome}.fa
-        set +x
-    fi
+ref_fa=${ref_fa_gz%.gz}
+if [ "$ref_fa" != "$ref_fa_gz" ]; then
+    echo "-- Uncompressing reference"
+    set -x
+    gunzip $ref_fa_gz 
+    set +x
+fi
+if [ "$ref_fa" != "$genome.fa" ]; then
+    set -x
+    mv $ref_fa ${genome}.fa
+    set +x
 fi
 
 # Optionally create a mappable regions tar: faSize, sort-bed bedops starch unstarch extractCenterSites.sh
@@ -77,7 +77,7 @@ if [ -f $mappable_only_starch ]; then
     set +x
 fi
 
-if [ -f ${genome}.fa ]; then
+if [ "$skip_indexing" != "true" ]; then
     echo "-- Build index..."
     set -x
     bwa index -p $genome -a bwtsw ${genome}.fa

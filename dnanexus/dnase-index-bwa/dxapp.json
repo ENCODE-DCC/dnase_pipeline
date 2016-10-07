@@ -1,9 +1,9 @@
 {
   "name": "dnase-index-bwa",
-  "title": "Index genome with bwa for DNase (v1.1.0)",
+  "title": "Index genome with bwa for DNase (v1.1.1)",
   "summary": "Prepare reference genome index for BWA used in the ENCODE dnase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -34,7 +34,14 @@
       "class": "file",
       "optional": true,
       "patterns": ["*.bed.gz", "*.bed"]
-    }
+    },
+    {
+      "name": "skip_indexing",
+      "label": "Just build the mappablility reference and skip indexing.",
+      "class": "boolean",
+      "default": false,
+      "optional": true
+   }
   ],
   "outputSpec": [
     {

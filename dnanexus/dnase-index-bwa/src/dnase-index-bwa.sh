@@ -15,6 +15,7 @@ main() {
     echo "* Value of reference:        '$reference'"
     echo "* Value of mappable_regions: '$mappable_regions'"
     echo "* Value of blacklist:        '$blacklist'"
+    echo "* Skip indexing:             '$skip_indexing'"
     # Prefer to discover genome and gender
     source_msg="Value of"
     gender_msg="Default "
@@ -61,11 +62,10 @@ main() {
             mappable_starch=$mappable_root.starch
         fi
     fi
-
-
+    
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_index_bwa.sh $genome ${genome}.fa.gz $mappable_starch $blacklist_bed_gz
+    dnase_index_bwa.sh $genome ${genome}.fa.gz $skip_indexing $mappable_starch $blacklist_bed_gz
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     index_file="${genome}_bwa_index.tgz"
