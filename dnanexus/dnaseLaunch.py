@@ -30,7 +30,6 @@ class DnaseLaunch(Launch):
                 "STEPS": {
                             "dnase-align-bwa-se": {
                                 "inputs": { "reads": "reads", "bwa_index": "bwa_index" },
-                                "params": {"nthreads": "nthreads", "barcode": "barcode" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -38,7 +37,7 @@ class DnaseLaunch(Launch):
                             },
                             "dnase-align-bwa-pe": {
                                 "inputs": { "reads1": "reads1", "reads2": "reads2", "bwa_index": "bwa_index" }, 
-                                "params": { "nthreads": "nthreads", "barcode": "barcode", "umi": "umi" }, 
+                                "params": { "barcode": "barcode", "umi": "umi" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -58,7 +57,7 @@ class DnaseLaunch(Launch):
                 "STEPS": {
                             "dnase-filter-pe": {
                                 "inputs": { "bam_ABC":    "bam_set" },
-                                "params": { "map_thresh": "map_thresh", "nthreads": "nthreads", "umi": "umi" }, 
+                                "params": { "map_thresh": "map_thresh", "umi": "umi" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
                                     "bam_filtered_qc":      "bam_filtered_qc", 
@@ -66,7 +65,7 @@ class DnaseLaunch(Launch):
                             },
                             "dnase-filter-se": {
                                 "inputs": { "bam_ABC":    "bam_set" },
-                                "params": { "map_thresh": "map_thresh", "nthreads": "nthreads" }, 
+                                "params": { "map_thresh": "map_thresh", }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
                                     "bam_filtered_qc":      "bam_filtered_qc", 
@@ -74,7 +73,7 @@ class DnaseLaunch(Launch):
                             }, 
                             "dnase-eval-bam": {
                                 "inputs": { "bam_filtered": "bam_filtered" }, 
-                                "params": { "pe_or_se": "pe_or_se", "sample_size": "sample_size", "nthreads": "nthreads" }, 
+                                "params": { "pe_or_se": "pe_or_se", "sample_size": "sample_size" }, 
                                 "results": {
                                     "bam_sample":           "bam_sample", 
                                     "bam_sample_qc":        "bam_sample_qc", 
@@ -82,7 +81,7 @@ class DnaseLaunch(Launch):
                             },
                             "dnase-eval-bam-alt": {
                                 "inputs": { "bam_filtered": "bam_filtered" }, 
-                                "params": { "pe_or_se": "pe_or_se", "sample_size": "sample_size", "nthreads": "nthreads" }, 
+                                "params": { "pe_or_se": "pe_or_se", "sample_size": "sample_size" }, 
                                 "results": {
                                     "bam_sample":           "bam_sample", 
                                     "bam_sample_qc":        "bam_sample_qc", 
