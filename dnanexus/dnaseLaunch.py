@@ -30,6 +30,7 @@ class DnaseLaunch(Launch):
                 "STEPS": {
                             "dnase-align-bwa-se": {
                                 "inputs": { "reads": "reads", "bwa_index": "bwa_index" },
+                                "params": { "barcode": "barcode" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
