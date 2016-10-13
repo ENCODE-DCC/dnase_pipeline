@@ -220,6 +220,8 @@ class DnaseLaunch(Launch):
             rep = psv['reps'][ltr]
             if not rep['paired_end']:
                 psv['pe_or_se'] = "se"
+            if rep['paired_end'] and 'barcode' in rep and rep['barcode'] == "undetected":
+                del rep['barcode']
         if args.umi:
             psv['umi'] = "yes"
         psv['upper_limit'] = 0
