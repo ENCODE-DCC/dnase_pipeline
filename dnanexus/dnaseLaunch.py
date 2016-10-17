@@ -177,7 +177,7 @@ class DnaseLaunch(Launch):
         "chrom_sizes":   {
                         "GRCh38": "GRCh38_EBV.chrom.sizes",
                         "hg19":   "male.hg19.chrom.sizes",
-                        "mm10":   "male.mm10.chrom.sizes",
+                        "mm10":   "mm10_no_alt.chrom.sizes",
                         }
         }
 
