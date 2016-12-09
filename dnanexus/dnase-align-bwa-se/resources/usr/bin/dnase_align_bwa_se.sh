@@ -24,10 +24,9 @@ echo "-- Aligning with bwa..."
 set -x
 bwa aln -Y -l 32 -n 0.04 -k 2 -t $ncpus $ref_id $reads_fq_gz > tmp.sai
 bwa samse -n 10 ${ref_id} tmp.sai $reads_fq_gz > tmp_se.sam
-samtools view -Shu tmp_se.sam | samtools sort -@ $ncpus -m 4G -f - tmp.sam
-samtools view -hb tmp.sam > ${bam_root}.bam
+samtools view -Shb tmp_se.sam > tmp.bam
+samtools sort -@ $ncpus -m 4G tmp.bam > ${bam_root}.bam 
 samtools index ${bam_root}.bam
-#samtools view -H ${bam_root}.bam
 set +x
 
 #echo "-- Clean-up..."
