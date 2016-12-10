@@ -54,8 +54,8 @@ set -x
 bwa aln -q 5 -l 32 -k 2 -t $ncpus $ref_id $reads1_fq_gz > tmp_1.sai
 bwa aln -q 5 -l 32 -k 2 -t $ncpus $ref_id $reads2_fq_gz > tmp_2.sai
 bwa sampe -P $ref_id tmp_1.sai tmp_2.sai $reads1_fq_gz $reads2_fq_gz > tmp_pe.sam
-samtools view -Shu tmp_pe.sam | samtools sort -@ $ncpus -m 4G -f - tmp.sam
-samtools view -hb tmp.sam > ${bam_root}.bam
+samtools view -Shb tmp_se.sam > tmp.bam
+samtools sort -@ $ncpus -m 4G tmp.bam > ${bam_root}.bam 
 samtools index ${bam_root}.bam
 #samtools view -H ${bam_root}.bam
 set +x
