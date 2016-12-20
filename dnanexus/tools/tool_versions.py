@@ -10,7 +10,7 @@ import sys, os, argparse, json, commands
 APP_TOOLS = { 
     "dnase-index-bwa":    [ "dnase_index_bwa.sh", "bwa" ],
     "dnase-align-bwa-pe": [ "dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats", "trim-adapters-illumina", "fastq_umi_add.py (stampipes)" ],
-    "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats" ],
+    "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats", "cutadapt" ],
     "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools", "filter_reads.py (stampipes)", "picard" ], # "mark_umi_dups.mk (stampipes)", "umi_sort_sam_annotate.awk (stampipes)"
     "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools" ],
     "dnase-eval-bam":     [
@@ -134,6 +134,7 @@ ALL_TOOLS = {
             #"dnase_eval_bam_se.sh":     "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
             #"dnase_qc_hotspot.sh":      "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
             #"dnase_pool_reps.sh":       "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
+            "cutadapt":                     "cutadapt --version",
             }
 
 def parse_dxjson(dxjson):

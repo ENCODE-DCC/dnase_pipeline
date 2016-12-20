@@ -30,7 +30,7 @@ class DnaseLaunch(Launch):
                 "STEPS": {
                             "dnase-align-bwa-se": {
                                 "inputs": { "reads": "reads", "bwa_index": "bwa_index" },
-                                "params": { "barcode": "barcode" }, 
+                                "params": { "barcode": "barcode", "trim_len": "trim_len" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
                                     "bam_techrep_qc":   "bam_bwa_qc",
@@ -233,6 +233,11 @@ class DnaseLaunch(Launch):
         if args.umi:
             psv['umi'] = "yes"
         psv['upper_limit'] = 0
+        # Crawford fastqs require trimming
+        psv["trim_len"] = 0
+        if not psv['paired_end'] and "crawford" in psv['lab']:
+            print "Detected that fastqs will be trimmed to 20"
+            psv["trim_len"] = 20
         self.multi_rep = True      # For DNase, a single tech_rep moves on to merge/filter.
         self.combined_reps = True
         
