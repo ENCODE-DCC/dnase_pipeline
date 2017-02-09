@@ -1,55 +1,55 @@
 #!/usr/bin/env python2.7
 # tool_versions.py v1.1  Creates "SW" versions json string for a particular DX applet.
-#                        Write request to stdout and verbose info to stderr.  This allows easy use in dx app scripts.
+#                        Write request to stdout and verbose info to stderr.  This allows easy use
+#                        in dx app scripts.
 #
 # Creates versions json string for a particular applet
 
-import sys, os, argparse, json, commands
+import sys
+import argparse
+import json
+import commands
 
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
-APP_TOOLS = { 
-    "dnase-index-bwa":    [ "dnase_index_bwa.sh", "bwa" ],
-    "dnase-align-bwa-pe": [ "dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats", "trim-adapters-illumina", "fastq_umi_add.py (stampipes)" ],
-    "dnase-align-bwa-se": [ "dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats", "cutadapt" ],
-    "dnase-filter-pe":    [ "dnase_filter_pe.sh", "samtools", "filter_reads.py (stampipes)", "picard" ], # "mark_umi_dups.mk (stampipes)", "umi_sort_sam_annotate.awk (stampipes)"
-    "dnase-filter-se":    [ "dnase_filter_se.sh", "samtools" ],
-    "dnase-eval-bam":     [
-                            "dnase_eval_bam.sh","samtools","edwBamFilter","edwBamStats",#"R",
-                            "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-                          ],
-    "dnase-call-hotspots": [ "dnase_hotspot.sh","samtools","hotspot2","bedops","modwt", "mawk","bedToBigBed","bedGraphToBigWig"  ],
-    "dnase-rep-corr":      [ "dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops" ],
+APP_TOOLS = {
+    "dnase-index-bwa":    ["dnase_index_bwa.sh", "bwa"],
+    "dnase-align-bwa-pe": ["dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats",
+                           "trim-adapters-illumina", "fastq_umi_add.py (stampipes)"],
+    "dnase-align-bwa-se": ["dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats",
+                           "cutadapt"],
+    "dnase-filter-pe":    ["dnase_filter_pe.sh", "samtools", "filter_reads.py (stampipes)",
+                           "picard"],
+    "dnase-filter-se":    ["dnase_filter_se.sh", "samtools"],
+    "dnase-eval-bam":     ["dnase_eval_bam.sh", "samtools", "edwBamFilter", "edwBamStats",  # "R",
+                           "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
+                           "bedtools"],
+    "dnase-call-hotspots": ["dnase_hotspot.sh", "samtools", "hotspot2", "bedops", "modwt", "mawk",
+                            "bedToBigBed", "bedGraphToBigWig"],
+    "dnase-rep-corr":      ["dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops"],
     # special for optional output
-    "dnase-index-bwa(hotspot2)":    [ "dnase_index_bwa.sh", "hotspot2", "bedops" ], # "extractCenterSites.sh (hotspot2)", "sort-bed (bedops)", "starch (bedops)", "unstarch (bedops)"
+    "dnase-index-bwa(hotspot2)": ["dnase_index_bwa.sh", "hotspot2", "bedops"],
+    # "extractCenterSites.sh (hotspot2)","sort-bed (bedops)","starch (bedops)","unstarch (bedops)"
     # Obsolete:
-    #"dnase-merge-bams":   [ "samtools" ],
-    #"bam-filter-pe":      [
-    #                        "samtools","edwBamFilter","edwBamStats",#"R",
-    #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-    #                      ],
-    #"bam-filter-se":      [
-    #                        "samtools","edwBamFilter","edwBamStats",#"R",
-    #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-    #                      ],
-    #"fastq-stats":        [ "fastqStatsAndSubsample" ]
-    #"dnase-call-hotspots5": [
-    #                        "dnase_hotspot.sh", "hotspot","hotspot.py","samtools",
-    #                        "bedops","bedtools","bedToBigBed","bedGraphToBigWig","bedGraphPack","edwBamStats"
-    #                      ],
-    #"dnase-qc-hotspot":   [
-    #                        "dnase_qc_hotspot.sh","edwBamStats","hotspot","hotspot.py","samtools",
-    #                        "bedops","bedtools"
-    #                      ],
-    #"dnase-pool-bioreps": [ 
-    #                        "dnase_pool_reps.sh", "samtools","bedtools","bigBedToBed","bedToBigBed","bigWigCorrelate",
-    #                        "edwComparePeaks", "edwBamStats" 
-    #                      ],
-    #"dnase-size-bam":     [ "edwBamStats" ],
-    #"dnase-eval-bam-se":  [
-    #                        "dnase_eval_bam_se.sh","samtools","edwBamFilter","edwBamStats",#"R",
-    #                        "Rscript","phantompeakqualtools","caTools","snow","spp","gawk","bedtools"
-    #                      ],
-    #"dnase-idr":           [ "dnase_idr.sh", "Anaconda3", "idr", "bedToBigBed", "pigz" ],
+    # "dnase-merge-bams":   ["samtools"],
+    # "bam-filter-pe":      ["samtools", "edwBamFilter", "edwBamStats", #"R",
+    #                        "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
+    #                        "bedtools"],
+    # "bam-filter-se":      ["samtools", "edwBamFilter", "edwBamStats", #"R",
+    #                        "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
+    #                        "bedtools"],
+    # "fastq-stats":        ["fastqStatsAndSubsample"],
+    # "dnase-call-hotspots5": ["dnase_hotspot.sh", "hotspot", "hotspot.py", "samtools",
+    #                          "bedops", "bedtools", "bedToBigBed", "bedGraphToBigWig",
+    #                          "bedGraphPack","edwBamStats"],
+    # "dnase-qc-hotspot":   ["dnase_qc_hotspot.sh", "edwBamStats", "hotspot", "hotspot.py",
+    #                        "samtools", "bedops","bedtools"],
+    # "dnase-pool-bioreps": ["dnase_pool_reps.sh", "samtools", "bedtools", "bigBedToBed",
+    #                        "bedToBigBed","bigWigCorrelate", "edwComparePeaks", "edwBamStats"],
+    # "dnase-size-bam":     ["edwBamStats"],
+    # "dnase-eval-bam-se":  ["dnase_eval_bam_se.sh", "samtools", "edwBamFilter", "edwBamStats",#"R",
+    #                        "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
+    #                        "bedtools"],
+    # "dnase-idr":          ["dnase_idr.sh", "Anaconda3", "idr", "bedToBigBed", "pigz" ],
     }
 
 # Virtual apps only differ from their parent by name/version. 
@@ -58,91 +58,91 @@ VIRTUAL_APPS = {
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
     "dnase-idr-alt":             "dnase-idr",
     "dnase-rep-corr-alt":        "dnase-rep-corr",
-    #"dnase-merge-bams-alt":      "dnase-merge-bams",
-    #"dnase-size-bam-alt":        "dnase-size-bam",
-    #"dnase-qc-hotspot-alt":      "dnase-qc-hotspot",   
-    #"dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
-    #"dnase-final-hotspots":      "dnase-call-hotspots",
-    #"dnase-final-hotspots-alt":  "dnase-call-hotspots",
+    # "dnase-merge-bams-alt":      "dnase-merge-bams",
+    # "dnase-size-bam-alt":        "dnase-size-bam",
+    # "dnase-qc-hotspot-alt":      "dnase-qc-hotspot",
+    # "dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
+    # "dnase-final-hotspots":      "dnase-call-hotspots",
+    # "dnase-final-hotspots-alt":  "dnase-call-hotspots",
     }
 
-# ALL_TOOLS contains the printable tool name (key) and the command that is used to determine the version.
-ALL_TOOLS = { 
-            "Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - -f 2",
-            "bedGraphPack":             "bedGraphPack 2>&1 | grep 'bedGraphPack v' | awk '{print $2}'",
-            "bedGraphToBigWig":         "bedGraphToBigWig 2>&1 | grep 'bedGraphToBigWig v' | awk '{print $2$3}'",
-            "bedops":                   "bedops --version 2>&1 | grep version | awk '{print $2}'",
-            #  "bam2bed (bedops)":         "bedops --version 2>&1 | grep version | awk '{print $2}'", # Note: no version.. subsituting bedops
-            #  "bedmap (bedops)":          "bedmap --version 2>&1 | grep version | awk '{print $2}'",
-            #  "convert2bed (bedops)":     "convert2bed --version 2>&1 | grep version | awk '{print $2}'",
-            #  "sort-bed (bedops)":        "sort-bed --version 2>&1 | grep version | awk '{print $2}'",
-            #  "starch (bedops)":          "starch --version 2>&1 | grep version | awk '{print $3}'",
-            #  "starchcat (bedops)":       "starchcat --version 2>&1 | grep version | awk '{print $3}'",
-            #  "unstarch (bedops)":        "unstarch --version 2>&1 | grep version | awk '{print $3}'",
-            "bedToBigBed":              "bedToBigBed 2>&1 | grep 'bedToBigBed v' | awk '{print $3}'",
-            "bedtools":                 "bedtools --version 2>&1 | awk '{print $2}'",
-            #  "bamToBed (bedtools)":      "bamToBed -h 2>&1 | grep Version | awk '{print $2}'",
-            #  "intersectBed (bedtools)":  "intersectBed 2>&1 | grep Version | awk '{print $2}'",
-            #  "shuffleBed (bedtools)":    "shuffleBed -h 2>&1 | grep Version | awk '{print $2}'",
-            "bigBedToBed":              "bigBedToBed 2>&1 | grep 'bigBedToBed v' | awk '{print $2}'",
-            "bigWigCorrelate":          "md5sum /usr/bin/bigWigCorrelate | awk '{printf \"unversioned %-8.8s\",$1}'", #"bigWigCorrelate 2>&1 | grep 'bigWigCorrelate -' | awk '{print $3,$4,$5}'",
-            "bwa":                      "bwa 2>&1 | grep Version | awk '{print $2}'",
-            "caTools":                  "grep caTools_ phantompeakqualtools/install.log | head -1 | sed 's/_/ /' | awk '{print $4}' | sed 's/\.tar\.gz.*//'",
-            "edwBamFilter":             "edwBamFilter 2>&1 | grep 'edwBamFilter v' | awk '{print $2}'",
-            "edwBamStats":              "edwBamStats 2>&1 | grep 'edwBamStats v' | awk '{print $2}'",
-            "edwComparePeaks":          "md5sum /usr/bin/edwComparePeaks | awk '{printf \"unversioned %-8.8s\",$1}'", #"edwComparePeaks 2>&1 | grep 'edwComparePeaks -' | awk '{print $3,$4,$5,$6}'",
-            "faSize":                   "md5sum /usr/bin/faSize | awk '{printf \"unversioned %-8.8s\",$1}'", #"bigWigCorrelate 2>&1 | grep 'bigWigCorrelate -' | awk '{print $3,$4,$5}'",
-            "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
-            # stampipes:
-            "fastq_umi_add.py (stampipes)":         "md5sum /usr/bin/fastq_umi_add.py | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
-            "filter_reads.py (stampipes)":          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/bwa/
-            #  "umi_sort_sam_annotate.awk (stampipes)":"md5sum /usr/bin/umi_sort_sam_annotate.awk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
-            #  "mark_umi_dups.mk (stampipes)":       "md5sum /usr/bin/mark_duplicates.mk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/makefiles/umi/mark_duplicates.mk (dcc minimal change)
-            "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
-            "idr":                      "idr/bin/idr --version 2>&1 | grep IDR | awk '{print $2}'",
-            "mawk":                     "mawk -W version 2>&1 | grep mawk | awk '{print $2}'",
-            #old "hotspot":                  "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
-            #old "hotspot.py":               "hotspot.py -h | grep Version | awk '{print $8}'",
-            "phantompeakqualtools":     "grep Version phantompeakqualtools/README.txt | awk '{print $2}'",
-            "R":                        "R --version | grep 'R version' | awk '{print $3,$4}'",
-            "Rscript":                  "Rscript --version 2>&1 | awk '{print $5,$6}'",
-            "samtools":                 "samtools 2>&1 | grep Version | awk '{print $2}'",
-            "snow":                     "grep snow_ phantompeakqualtools/install.log | head -1 | sed 's/_/ /' | awk '{print $4}' | sed 's/\.tar\.gz.*//'",
-            "spp":                      "grep spp_ phantompeakqualtools/installPkgs.R | sed 's/_/ /' | awk '{print $2}' | sed 's/\.tar\.gz.*//'",
-            "hotspot2":                              "hotspot2 --version | awk '{print $3}'",
-            #  "hotspot2.sh (hotspot2)":              "hotspot2 --version | awk '{print $3}'",
-            #  "cutcounts.bash (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
-            #  "density-peaks.bash (hotspot2)":       "hotspot2 --version | awk '{print $3}'",
-            #  "bed_exclude.py (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
-            #  "extractCenterSites.sh (hotspot2)":    "hotspot2 --version | awk '{print $3}'",
-            "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/modwt/tree/1.0
-            "picard":                   "echo tag 1.92", # From https://github.com/broadinstitute/picard.git
-            #"picard":                   "java -Xmx4G -jar /picard/MarkDuplicates.jar --version", # From https://github.com/broadinstitute/picard.git
-            "pigz":                     "pigz --version 2>&1 | awk '{print $2}'",
-            "trim-adapters-illumina":   "trim-adapters-illumina --version 2>&1 | awk '{print $3}'", # https://bitbucket.org/jvierstra/bio-tools/get/master.tar.gz https://bitbucket.org/jvierstra/bio-tools/src/6fe54fa5a3d9b5c930ee77e8ccd757b347c86ac1/apps/trim-adapters-illumina/?at=master
-            "chromCor.Rscript":         "md5sum /usr/bin/chromCor.Rscript | awk '{printf \"unversioned %-8.8s\",$1}'", # emailed from Richard Sandstrom  Will reside in our github
-            "bigWigToWig":              "md5sum /usr/bin/bigWigToWig | awk '{printf \"unversioned %-8.8s\",$1}'",
-            "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_filter_pe.sh":       "dnase_filter_pe.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_eval_bam.sh":        "dnase_eval_bam.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
-            "dnase_rep_corr.sh":        "dnase_rep_corr.sh | grep usage | awk '{print $2}' | tr -d :",
-            #"dnase_idr.sh":             "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
-            #"dnase_eval_bam_se.sh":     "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
-            #"dnase_qc_hotspot.sh":      "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
-            #"dnase_pool_reps.sh":       "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
-            "cutadapt":                     "cutadapt --version",
+# ALL_TOOLS contains printable tool name (key) and the command that is used to determine version.
+ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - -f 2",
+             "bedGraphPack":             "bedGraphPack 2>&1 | grep 'bedGraphPack v' | awk '{print $2}'",
+             "bedGraphToBigWig":         "bedGraphToBigWig 2>&1 | grep 'bedGraphToBigWig v' | awk '{print $2$3}'",
+             "bedops":                   "bedops --version 2>&1 | grep version | awk '{print $2}'",
+             # "bam2bed (bedops)":         "bedops --version 2>&1 | grep version | awk '{print $2}'", # Note: no version.. subsituting bedops
+             # "bedmap (bedops)":          "bedmap --version 2>&1 | grep version | awk '{print $2}'",
+             # "convert2bed (bedops)":     "convert2bed --version 2>&1 | grep version | awk '{print $2}'",
+             # "sort-bed (bedops)":        "sort-bed --version 2>&1 | grep version | awk '{print $2}'",
+             # "starch (bedops)":          "starch --version 2>&1 | grep version | awk '{print $3}'",
+             # "starchcat (bedops)":       "starchcat --version 2>&1 | grep version | awk '{print $3}'",
+             # "unstarch (bedops)":        "unstarch --version 2>&1 | grep version | awk '{print $3}'",
+             "bedToBigBed":              "bedToBigBed 2>&1 | grep 'bedToBigBed v' | awk '{print $3}'",
+             "bedtools":                 "bedtools --version 2>&1 | awk '{print $2}'",
+             # "bamToBed (bedtools)":      "bamToBed -h 2>&1 | grep Version | awk '{print $2}'",
+             # "intersectBed (bedtools)":  "intersectBed 2>&1 | grep Version | awk '{print $2}'",
+             # "shuffleBed (bedtools)":    "shuffleBed -h 2>&1 | grep Version | awk '{print $2}'",
+             "bigBedToBed":              "bigBedToBed 2>&1 | grep 'bigBedToBed v' | awk '{print $2}'",
+             "bigWigCorrelate":          "md5sum /usr/bin/bigWigCorrelate | awk '{printf \"unversioned %-8.8s\",$1}'",
+             # "bigWigCorrelate 2>&1 | grep 'bigWigCorrelate -' | awk '{print $3,$4,$5}'",
+             "bwa":                      "bwa 2>&1 | grep Version | awk '{print $2}'",
+             "caTools":                  "grep caTools_ phantompeakqualtools/install.log | head -1 | sed 's/_/ /' | awk '{print $4}' | sed 's/\.tar\.gz.*//'",
+             "edwBamFilter":             "edwBamFilter 2>&1 | grep 'edwBamFilter v' | awk '{print $2}'",
+             "edwBamStats":              "edwBamStats 2>&1 | grep 'edwBamStats v' | awk '{print $2}'",
+             "edwComparePeaks":          "md5sum /usr/bin/edwComparePeaks | awk '{printf \"unversioned %-8.8s\",$1}'", #"edwComparePeaks 2>&1 | grep 'edwComparePeaks -' | awk '{print $3,$4,$5,$6}'",
+             "faSize":                   "md5sum /usr/bin/faSize | awk '{printf \"unversioned %-8.8s\",$1}'", #"bigWigCorrelate 2>&1 | grep 'bigWigCorrelate -' | awk '{print $3,$4,$5}'",
+             "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
+             # stampipes:
+             "fastq_umi_add.py (stampipes)":         "md5sum /usr/bin/fastq_umi_add.py | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
+             "filter_reads.py (stampipes)":          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/bwa/
+             # "umi_sort_sam_annotate.awk (stampipes)":"md5sum /usr/bin/umi_sort_sam_annotate.awk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
+             # "mark_umi_dups.mk (stampipes)":       "md5sum /usr/bin/mark_duplicates.mk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/makefiles/umi/mark_duplicates.mk (dcc minimal change)
+             "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
+             "idr":                      "idr/bin/idr --version 2>&1 | grep IDR | awk '{print $2}'",
+             "mawk":                     "mawk -W version 2>&1 | grep mawk | awk '{print $2}'",
+             # old "hotspot":                  "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
+             # old "hotspot.py":               "hotspot.py -h | grep Version | awk '{print $8}'",
+             "phantompeakqualtools":     "grep Version phantompeakqualtools/README.txt | awk '{print $2}'",
+             "R":                        "R --version | grep 'R version' | awk '{print $3,$4}'",
+             "Rscript":                  "Rscript --version 2>&1 | awk '{print $5,$6}'",
+             "samtools":                 "samtools 2>&1 | grep Version | awk '{print $2}'",
+             "snow":                     "grep snow_ phantompeakqualtools/install.log | head -1 | sed 's/_/ /' | awk '{print $4}' | sed 's/\.tar\.gz.*//'",
+             "spp":                      "grep spp_ phantompeakqualtools/installPkgs.R | sed 's/_/ /' | awk '{print $2}' | sed 's/\.tar\.gz.*//'",
+             "hotspot2":                              "hotspot2 --version | awk '{print $3}'",
+             # "hotspot2.sh (hotspot2)":              "hotspot2 --version | awk '{print $3}'",
+             # "cutcounts.bash (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
+             # "density-peaks.bash (hotspot2)":       "hotspot2 --version | awk '{print $3}'",
+             # "bed_exclude.py (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
+             # "extractCenterSites.sh (hotspot2)":    "hotspot2 --version | awk '{print $3}'",
+             "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/modwt/tree/1.0
+             "picard":                   "echo tag 1.92", # From https://github.com/broadinstitute/picard.git
+             # "picard":                   "java -Xmx4G -jar /picard/MarkDuplicates.jar --version", # From https://github.com/broadinstitute/picard.git
+             "pigz":                     "pigz --version 2>&1 | awk '{print $2}'",
+             "trim-adapters-illumina":   "trim-adapters-illumina --version 2>&1 | awk '{print $3}'", # https://bitbucket.org/jvierstra/bio-tools/get/master.tar.gz https://bitbucket.org/jvierstra/bio-tools/src/6fe54fa5a3d9b5c930ee77e8ccd757b347c86ac1/apps/trim-adapters-illumina/?at=master
+             "chromCor.Rscript":         "md5sum /usr/bin/chromCor.Rscript | awk '{printf \"unversioned %-8.8s\",$1}'", # emailed from Richard Sandstrom  Will reside in our github
+             "bigWigToWig":              "md5sum /usr/bin/bigWigToWig | awk '{printf \"unversioned %-8.8s\",$1}'",
+             "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_filter_pe.sh":       "dnase_filter_pe.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_eval_bam.sh":        "dnase_eval_bam.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_rep_corr.sh":        "dnase_rep_corr.sh | grep usage | awk '{print $2}' | tr -d :",
+             # "dnase_idr.sh":         "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
+             # "dnase_eval_bam_se.sh": "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
+             # "dnase_qc_hotspot.sh":  "dnase_qc_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
+             # "dnase_pool_reps.sh":   "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
+             "cutadapt":                     "cutadapt --version",
             }
 
 def parse_dxjson(dxjson):
     '''Parses the dnanexus-executable.json file in the job directory to get applet name and version.'''
-    with open(dxjson) as data_file:    
+    with open(dxjson) as data_file:
         dxapp = json.load(data_file)
 
-    appver = "unknown"    
+    appver = "unknown"
     applet = dxapp.get("name")
     if "version" in dxapp:
         appver = dxapp.get("version")
@@ -153,51 +153,50 @@ def parse_dxjson(dxjson):
             appver = last_word[9:-1]
         elif last_word.startswith('(v') and last_word.endswith(')'):
             appver = last_word[2:-1]
-    
+
     return (applet, appver)
 
 
 def main():
-    parser = argparse.ArgumentParser(description =  "Versions parser for a dx applet. " + \
-                                                    "Prints version lines to stderr and json string to stdout. " + \
-                                                    "MUST specify either --applet and --appver or --dxjson.")
-    parser.add_argument('-a','--applet', required=False,
+    parser = argparse.ArgumentParser(description="Versions parser for a dx applet. " + \
+                                                 "Prints version lines to stderr and json string to stdout. " + \
+                                                 "MUST specify either --applet and --appver or --dxjson.")
+    parser.add_argument('-a', '--applet', required=False,
                         help="Applet to print versions for")
-    parser.add_argument('-av','--appver', required=False,
+    parser.add_argument('-av', '--appver', required=False,
                         help="Version of applet")
-    parser.add_argument('-j','--dxjson', required=False,
+    parser.add_argument('-j', '--dxjson', required=False,
                         help="Use dnanexus json file to discover 'applet' and 'appver'")
     parser.add_argument('-k', '--key',
                         help='Prints just the value for this key.',
                         default=None,
                         required=False)
-    parser.add_argument('-q', '--quiet', action="store_true", required=False, default=False, 
+    parser.add_argument('-q', '--quiet', action="store_true", required=False, default=False,
                         help="Don't print versions to stderr.")
-    parser.add_argument('-v', '--verbose', action="store_true", required=False, default=False, 
+    parser.add_argument('-v', '--verbose', action="store_true", required=False, default=False,
                         help="Show the command-line that is used to get the version.")
-
 
     args = parser.parse_args(sys.argv[1:])
     if len(sys.argv) < 3:
         parser.print_usage()
         return
-        
+
     if (args.applet == None or args.appver == None) and args.dxjson == None:
         parser.print_help()
         return
 
     applet = args.applet
     appver = args.appver
-    
+
     if args.dxjson != None:
-        (applet,appver) = parse_dxjson(args.dxjson)
-    
+        (applet, appver) = parse_dxjson(args.dxjson)
+
     versions = {}
-    versions["DX applet"] = { applet: appver }
+    versions["DX applet"] = {applet: appver}
     if not args.quiet:
         sys.stderr.write("********\n")
-        sys.stderr.write("* Running " + applet + ": " + appver+ "\n")
-        
+        sys.stderr.write("* Running " + applet + ": " + appver + "\n")
+
     if applet in VIRTUAL_APPS:
         tools = APP_TOOLS[VIRTUAL_APPS[applet]]
     else:
@@ -213,7 +212,7 @@ def main():
 
     if not args.quiet:
         sys.stderr.write("********\n")
-    
+
     if args.key != None:
         if args.key in versions:
             print versions[args.key]
@@ -224,12 +223,13 @@ def main():
             if not args.quiet:
                 sys.stderr.write(versions["DX applet"][args.key] + '\n')
         else:
-            print ''   
+            print ''
             if not args.quiet:
                 sys.stderr.write('(not found)\n')
     else:
-        print json.dumps(versions) 
-     
+        print json.dumps(versions)
+
+
 if __name__ == '__main__':
     main()
 
