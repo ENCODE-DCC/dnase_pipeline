@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots-alt",
-  "title": "Call hotspots (virtual-1.0.1)",
+  "title": "Call hotspots (virtual-2.0.0)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -52,6 +52,12 @@
       "label": "Peaks bigBed in narrowPeak format",
       "class": "file",
       "patterns": ["*_peaks.bb"]
+    },
+    {
+      "name": "bed_allcalls",
+      "label": "All calls bed format",
+      "class": "file",
+      "patterns": ["*_all_calls.bed.gz"]
     },
     {
       "name": "bw_density",
