@@ -1,6 +1,6 @@
 {
-  "name": "dnase-qc-hotspot1",
-  "title": "QC bam sample with hotspot1 (v1.0.0)",
+  "name": "dnase-qc-hotspot1-alt",
+  "title": "QC bam sample with hotspot1 (virtual-1.0.0)",
   "summary": "Calls hotspots on a sample for qc for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
   "version": "1.0.0",

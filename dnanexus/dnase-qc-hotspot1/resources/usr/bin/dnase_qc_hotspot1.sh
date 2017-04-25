@@ -54,8 +54,17 @@ satellites=Satellite.${assembly}
 if [ "$read_length" == "36" ]; then
     set -x
     unstarch mappable_target.starch > ${hotspot_dir}/hotspot-distr/data/${mappable}.bed
+    set +x
     # Note that the blacklist is already removed from mappable_targets so will be a noop but hotspot1 doesn't know that.
-    cp *.blacklist.bed ${hotspot_dir}/hotspot-distr/data/${satellites}.bed
+    if [ -e ${assembly}.blacklist.bed ]; then
+        set -x
+        cp ${assembly}.blacklist.bed ${hotspot_dir}/hotspot-distr/data/${satellites}.bed
+        set +x
+    else    # hg19 has wgEncodeDacMapabilityConsensusExcludable.bed instead
+        set -x
+        touch ${hotspot_dir}/hotspot-distr/data/${satellites}.bed
+        set +x
+    fi
     set +x
 else
     # Not a good idea: probably only hg19 will work

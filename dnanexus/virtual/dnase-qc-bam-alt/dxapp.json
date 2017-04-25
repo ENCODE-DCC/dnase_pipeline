@@ -1,6 +1,6 @@
 {
-  "name": "dnase-qc-bam",
-  "title": "QC with hotspot1, pbc, etc. (v1.0.0)",
+  "name": "dnase-qc-bam-alt",
+  "title": "QC with hotspot1, pbc, etc. (virtual-1.0.0)",
   "summary": "Evaluates sampled bam with hotspot1, pbc, etc. for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
   "version": "1.0.0",

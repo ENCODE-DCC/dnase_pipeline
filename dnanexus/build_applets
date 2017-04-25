@@ -12,7 +12,7 @@ applets="$applets dnase-eval-bam dnase-call-hotspots dnase-rep-corr dnase-qc-hot
 
 tools="tool_versions.py qc_metrics.py parse_property.py"
 virtual_pairs="dnase-eval-bam:dnase-eval-bam-alt dnase-call-hotspots:dnase-call-hotspots-alt dnase-rep-corr:dnase-rep-corr-alt"
-# TODO: virtual_pairs="$virtual_pairs dnase-qc-hotspot1:dnase-qc-hotspot1-alt dnase-qc-bam:dnase-qc-bam"
+virtual_pairs="$virtual_pairs dnase-qc-hotspot1:dnase-qc-hotspot1-alt dnase-qc-bam:dnase-qc-bam-alt"
 virtual_links="src resources Readme.developer.md Readme.md"
 
 applet_dest=`cat ~/.dnanexus_config/DX_PROJECT_CONTEXT_NAME`
