@@ -75,7 +75,7 @@ main() {
     qc_hotspot1=''
     reads_sample=5000000
     if [ -f /usr/bin/qc_metrics.py ]; then
-        qc_hotspot1=`qc_metrics.py -n hotspot -f ${bam_root}_hotspot1_qc.txt`
+        qc_hotspot1=`qc_metrics.py -n hotspot1 -f ${bam_root}_hotspot1_qc.txt`
     fi
 
     echo "* Upload results..."

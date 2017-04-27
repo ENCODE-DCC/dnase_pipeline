@@ -110,7 +110,7 @@ main() {
         qc_sampled=`echo $qc_sampled, $meta`
         meta=`qc_metrics.py -n pbc_spp --string "{ $qc_sampled }"`
         qc_sampled=`echo $qc_sampled, $meta`
-        meta=`qc_metrics.py -n hotspot -f ${bam_sample_root}_hotspot1_qc.txt`
+        meta=`qc_metrics.py -n hotspot1 -f ${bam_sample_root}_hotspot1_qc.txt`
         qc_sampled=`echo $qc_sampled, $meta`
     fi
     # All qc to one file per target file:
