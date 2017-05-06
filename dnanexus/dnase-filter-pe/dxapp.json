@@ -1,14 +1,14 @@
 {
   "name": "dnase-filter-pe",
-  "title": "Merge and filter pe bams (v1.0.3)",
+  "title": "Merge and filter pe bams (v2.0.0)",
   "summary": "Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
       "name": "bam_set",
-      "label": "Two or more tech_rep level bam files to merge",
+      "label": "One or more tech_rep level bam files to merge",
       "class": "array:file",
       "optional": false,
       "patterns": ["*_bwa_techrep.bam", "*_bwa.bam"]
@@ -81,10 +81,7 @@
     "execDepends": [ 
         { "name": "gawk" }, 
         { "name": "pysam", "package_manager": "pip", "version": "0.8.4" }, 
-        { "name": "ant" },
-        { "name": "openjdk-6-jdk" },
-        { "name": "picard", "package_manager": "git", "url": "https://github.com/broadinstitute/picard.git", "tag": "1.92",
-          "build_commands": "ant -Djava6.home=/usr/lib/jvm/java-6-openjdk-amd64/ -Ddist=/picard -lib lib/ant package-commands"}
+        { "name": "openjdk-8-jdk" }
     ]
   },
   "access": {

@@ -1,0 +1,59 @@
+{
+  "name": "dnase-density",
+  "title": "Normalize density (v1.0.0)",
+  "summary": "Creates a normalized density signal from the filtered alignmnet for the ENCODE DNase-seq pipeline.",
+  "dxapi": "1.0.0",
+  "version": "1.0.0",
+  "authorizedUsers": [],
+  "inputSpec": [
+    {
+      "name": "bam_filtered",
+      "label": "Filtered bam",
+      "class": "file",
+      "optional": false,
+      "patterns": [ "*_filtered.bam", "*_filtered_sized.bam" ]
+    },
+    {
+      "name": "chrom_sizes",
+      "label": "chomosome/name length file",
+      "class": "file",
+      "optional": false,
+      "patterns": ["*chrom.sizes"]
+    }
+  ],
+  "outputSpec": [
+    {
+      "name": "norm_density_bw",
+      "label": "Normalized density in bigWig format",
+      "class": "file",
+      "patterns": ["*_normalized_density.bw"]
+    },
+    {
+      "name": "norm_density_starch",
+      "label": "Normalized density bed in starch format",
+      "class": "file",
+      "patterns": ["*_normalized_density.starch"]
+    },
+    {
+      "name": "metadata",
+      "label": "JSON formatted string of metadata",
+      "class": "string"
+    }
+  ],
+  "runSpec": {
+    "interpreter": "bash",
+    "file": "src/dnase-density.sh",
+    "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x8" } },
+    "execDepends": [ 
+        { "name": "gawk" } 
+    ]
+  },
+  "access": {
+    "network": [
+      "*"
+    ]
+  },
+  "categories": [
+    "ENCODE"
+  ]
+}

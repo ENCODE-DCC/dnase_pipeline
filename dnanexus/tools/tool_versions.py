@@ -18,8 +18,8 @@ APP_TOOLS = {
     "dnase-align-bwa-se": ["dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats",
                            "cutadapt"],
     "dnase-filter-pe":    ["dnase_filter_pe.sh", "samtools", "filter_reads.py (stampipes)",
-                           "picard"],
-    "dnase-filter-se":    ["dnase_filter_se.sh", "samtools"],
+                           "java", "picard"],
+    "dnase-filter-se":    ["dnase_filter_se.sh", "samtools", "java", "picard"],
     "dnase-eval-bam":     ["dnase_eval_bam.sh", "samtools", "edwBamFilter", "edwBamStats",  # "R",
                            "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
                            "bedtools"],
@@ -28,6 +28,7 @@ APP_TOOLS = {
     "dnase-qc-bam":       ["dnase_qc_bam.sh", "samtools", "edwBamFilter", "edwBamStats",  # "R",
                            "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
                            "hotspot1", "hotspot.py", "bedops", "bedtools"],
+    "dnase-density":      ["dnase_density.sh", "samtools", "bedops", "wigToBigWig", "gawk"],
     "dnase-call-hotspots": ["dnase_hotspot.sh", "samtools", "hotspot2", "bedops", "modwt", "mawk",
                             "bedToBigBed", "bedGraphToBigWig"],
     "dnase-rep-corr":      ["dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops"],
@@ -60,6 +61,7 @@ VIRTUAL_APPS = {
     "dnase-eval-bam-alt":        "dnase-eval-bam",
     "dnase-qc-hotspot1-alt":     "dnase-qc-hotspot1",
     "dnase-qc-bam-alt":          "dnase-qc-bam",
+    "dnase-density-alt":         "dnase-density",
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
     "dnase-idr-alt":             "dnase-idr",
     "dnase-rep-corr-alt":        "dnase-rep-corr",
@@ -100,7 +102,7 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              "fastqStatsAndSubsample":   "fastqStatsAndSubsample 2>&1 | grep 'fastqStatsAndSubsample v' | awk '{print $2}'",
              # stampipes:
              "fastq_umi_add.py (stampipes)":         "md5sum /usr/bin/fastq_umi_add.py | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
-             "filter_reads.py (stampipes)":          "md5sum /usr/bin/filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/bwa/
+             "filter_reads.py (stampipes)":          "md5sum ./filter_reads.py | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/bwa/
              # "umi_sort_sam_annotate.awk (stampipes)":"md5sum /usr/bin/umi_sort_sam_annotate.awk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/scripts/umi/
              # "mark_umi_dups.mk (stampipes)":       "md5sum /usr/bin/mark_duplicates.mk | awk '{printf \"unversioned %-8.8s\",$1}'",  # From https://github.com/StamLab/stampipes/tree/encode-release/makefiles/umi/mark_duplicates.mk (dcc minimal change)
              "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
@@ -108,6 +110,7 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              "mawk":                     "mawk -W version 2>&1 | grep mawk | awk '{print $2}'",
              "hotspot1":                 "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
              "hotspot.py":               "hotspot.py -h | grep Version | awk '{print $8}'",
+             "java":                     "java -version 2>&1 | head -1 | awk '{print $3}' | tr -d '\"'",
              "phantompeakqualtools":     "grep Version phantompeakqualtools/README.txt | awk '{print $2}'",
              "R":                        "R --version | grep 'R version' | awk '{print $3,$4}'",
              "Rscript":                  "Rscript --version 2>&1 | awk '{print $5,$6}'",
@@ -122,12 +125,13 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              # "bed_exclude.py (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
              # "extractCenterSites.sh (hotspot2)":    "hotspot2 --version | awk '{print $3}'",
              "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/modwt/tree/1.0
-             "picard":                   "echo tag 1.92", # From https://github.com/broadinstitute/picard.git
-             # "picard":                   "java -Xmx4G -jar /picard/MarkDuplicates.jar --version", # From https://github.com/broadinstitute/picard.git
+             # "picard":                   "echo tag 1.92", # From https://github.com/broadinstitute/picard.git
+             "picard":                   "java -jar ./picard.jar MarkDuplicates --version", # From https://github.com/broadinstitute/picard.git
              "pigz":                     "pigz --version 2>&1 | awk '{print $2}'",
              "trim-adapters-illumina":   "trim-adapters-illumina --version 2>&1 | awk '{print $3}'", # https://bitbucket.org/jvierstra/bio-tools/get/master.tar.gz https://bitbucket.org/jvierstra/bio-tools/src/6fe54fa5a3d9b5c930ee77e8ccd757b347c86ac1/apps/trim-adapters-illumina/?at=master
              "chromCor.Rscript":         "md5sum /usr/bin/chromCor.Rscript | awk '{printf \"unversioned %-8.8s\",$1}'", # emailed from Richard Sandstrom  Will reside in our github
              "bigWigToWig":              "md5sum /usr/bin/bigWigToWig | awk '{printf \"unversioned %-8.8s\",$1}'",
+             "wigToBigWig":              "wigToBigWig 2>&1 | grep 'wigToBigWig v' | awk '{print $2$3}'",
              "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
@@ -136,6 +140,7 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              "dnase_eval_bam.sh":        "dnase_eval_bam.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_qc_hotspot1.sh":     "dnase_qc_hotspot1.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_qc_bam.sh":          "dnase_qc_bam.sh | grep usage | awk '{print $2}' | tr -d :",
+             "dnase_density.sh":         "dnase_density.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_rep_corr.sh":        "dnase_rep_corr.sh | grep usage | awk '{print $2}' | tr -d :",
              # "dnase_idr.sh":         "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
