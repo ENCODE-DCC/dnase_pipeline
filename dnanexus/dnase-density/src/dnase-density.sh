@@ -32,30 +32,23 @@ main() {
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
 
     echo "* Prepare metadata for density files..."
-    qc_density=''
-    # TODO: Any qc?
-    #if [ -f /usr/bin/qc_metrics.py ]; then
-    #    qc_density=`qc_metrics.py -n edwBamStats -f ${bam_sample_root}_edwBamStats.txt`
-    #    meta=`qc_metrics.py -n phantompeaktools_spp -f ${bam_sample_root}_spp_out.txt`
-    #    qc_density=`echo $qc_density, $meta`
-    #fi
-    ## All qc to one file per target file:
-    #echo "===== edwBamStats ====="           > ${density_root}_qc.txt
-    #cat ${bam_sample_root}_edwBamStats.txt  >> ${density_root}_qc.txt
-    #echo " "                                >> ${density_root}_qc.txt
-    #echo "===== phantompeaktools spp =====" >> ${density_root}_qc.txt
-    #cat ${bam_sample_root}_spp_out.txt      >> ${density_root}_qc.txt
+    density_count=""
+    # qc anyone?  Not much value.
+    if [ -f ${density_root}_count.txt ]; then
+        density_count=`cat ${density_root}_count.txt`
+        ## All qc to one file per target file:
+        #echo "===== density intervals ====="  > ${density_root}_qc.txt
+        #cat ${density_root}_count.txt        >> ${density_root}_qc.txt
+    fi
         
     echo "* Upload results..."
-    norm_density_bw=$(dx upload ${density_root}.bw --details "{ $qc_density }" --property SW="$versions" --brief)
-    norm_density_starch=$(dx upload ${density_root}.starch  --details "{ $qc_density }" --property SW="$versions" --brief)
-    #norm_density_qc=$(dx upload ${density_root}_qc.txt --details "{ $qc_density }" --property SW="$versions" --brief)
+    normalized_bw=$(dx upload ${density_root}.bw --property intervals=$density_count --property SW="$versions" --brief)
+    normalized_starch=$(dx upload ${density_root}.starch  --property intervals=$density_count --property SW="$versions" --brief)
+    #normalized_qc=$(dx upload ${density_root}_qc.txt --property intervals=$density_count --property SW="$versions" --brief)
 
-    dx-jobutil-add-output norm_density_bw "$norm_density_bw" --class=file
-    dx-jobutil-add-output norm_density_starch "$norm_density_starch" --class=file
+    dx-jobutil-add-output normalized_bw "$normalized_bw" --class=file
+    dx-jobutil-add-output normalized_starch "$normalized_starch" --class=file
     #dx-jobutil-add-output norm_density_qc "$norm_density_qc" --class=file
-
-    dx-jobutil-add-output metadata "{ $qc_density }" --class=string
 
     echo "* Finished."
 }

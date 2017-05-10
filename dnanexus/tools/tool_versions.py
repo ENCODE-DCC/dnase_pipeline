@@ -28,7 +28,7 @@ APP_TOOLS = {
     "dnase-qc-bam":       ["dnase_qc_bam.sh", "samtools", "edwBamFilter", "edwBamStats",  # "R",
                            "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
                            "hotspot1", "hotspot.py", "bedops", "bedtools"],
-    "dnase-density":      ["dnase_density.sh", "samtools", "bedops", "wigToBigWig", "gawk"],
+    "dnase-density":      ["dnase_density.sh", "samtools", "bedops", "bedGraphToBigWig", "gawk"],
     "dnase-call-hotspots": ["dnase_hotspot.sh", "samtools", "hotspot2", "bedops", "modwt", "mawk",
                             "bedToBigBed", "bedGraphToBigWig"],
     "dnase-rep-corr":      ["dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops"],

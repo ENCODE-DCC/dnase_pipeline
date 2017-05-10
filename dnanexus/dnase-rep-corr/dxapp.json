@@ -1,9 +1,9 @@
 {
   "name": "dnase-rep-corr",
-  "title": "Correlation of replicate density (v1.0.1)",
+  "title": "Correlation of replicate density (v1.1.0)",
   "summary": "Compares two hotspot density files and calculates the correlation.",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -11,14 +11,14 @@
       "label": "Density signal produced from one biological replicate",
       "class": "file",
       "optional": false,
-      "patterns": ["*_density.bw", "*_density.starch"]
+      "patterns": ["*_normalized_density.bw", "*_normalized_density.starch"]
     },
     {
       "name": "density_b",
       "label": "Density signal from another biological replicate",
       "class": "file",
       "optional": false,
-      "patterns": ["*_density.bw", "*_density.starch"]
+      "patterns": ["*_normalized_density.bw", "*_normalized_density.starch"]
     }
   ],
   "outputSpec": [
@@ -26,7 +26,7 @@
       "name": "corr_txt",
       "label": "Correlation results",
       "class": "file",
-      "patterns": ["*_corr.txt"]
+      "patterns": ["*_normalized_density_corr.txt"]
     },
     {
       "name": "metadata",

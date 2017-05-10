@@ -23,27 +23,22 @@
   ],
   "outputSpec": [
     {
-      "name": "norm_density_bw",
+      "name": "normalized_bw",
       "label": "Normalized density in bigWig format",
       "class": "file",
       "patterns": ["*_normalized_density.bw"]
     },
     {
-      "name": "norm_density_starch",
+      "name": "normalized_starch",
       "label": "Normalized density bed in starch format",
       "class": "file",
       "patterns": ["*_normalized_density.starch"]
-    },
-    {
-      "name": "metadata",
-      "label": "JSON formatted string of metadata",
-      "class": "string"
     }
   ],
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-density.sh",
-    "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x8" } },
+    "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x4" } },
     "execDepends": [ 
         { "name": "gawk" } 
     ]

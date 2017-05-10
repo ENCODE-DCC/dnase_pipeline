@@ -31,7 +31,9 @@ main() {
         echo "* ERROR: could not detect format of '$density_a_file'.  Only 'starch' and 'bigWig' are supported."
         exit 1
     fi
+    # ex: ENCSR691MQJ_rep2_1_se_bwa_biorep_filtered_normalized_density.bw => ENCSR691MQJ_rep2_1
     density_a_root=${density_a_root%_density}
+    density_a_root=${density_a_root%_normalized}
     density_a_root=${density_a_root%_filtered}
     density_a_root=${density_a_root%_biorep}
     density_a_root=${density_a_root%_bwa}
@@ -68,6 +70,7 @@ main() {
         exit 1
     fi
     density_b_root=${density_b_root%_density}
+    density_b_root=${density_b_root%_normalized}
     density_b_root=${density_b_root%_filtered}
     density_b_root=${density_b_root%_biorep}
     density_b_root=${density_b_root%_bwa}
@@ -87,7 +90,7 @@ main() {
         dx download "$density_b" -o ${density_b_root}.starch
     fi
 
-    corr_root="${density_a_root}_to_${density_b_root}_density_corr"
+    corr_root="${density_a_root}_to_${density_b_root}_normalized_density_corr"
     echo "* Correlation root: '"$corr_root"'"
 
     # DX/ENCODE independent script is found in resources/usr/bin
