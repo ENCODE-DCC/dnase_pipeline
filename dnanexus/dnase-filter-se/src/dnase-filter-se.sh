@@ -2,15 +2,6 @@
 # dnase-filter-se.sh - Merge and filter bams (single-end) for the ENCODE DNase-seq pipeline.
 
 main() {
-    echo "Installing picard tools..."
-    set -x
-    git clone --branch 2.8.1 https://github.com/broadinstitute/picard.git
-    cd picard
-    ./gradlew shadowJar > install.log 2>&1
-    tail install.log
-    cd ..
-    mv ./picard/build/libs/picard.jar .
-    set +x
     # executables in resources/usr/bin
 
     # If available, will print tool versions to stderr and json string to stdout
@@ -135,9 +126,11 @@ main() {
         meta=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt`
         read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         qc_filtered=`echo $qc_filtered, $meta`
-        grep -i Library ${filtered_bam_root}_dup_qc.txt > ${filtered_bam_root}_dup_summary.txt
-        meta=`qc_metrics.py -n dup_stats -f ${filtered_bam_root}_dup_summary.txt`
-        qc_filtered=`echo $qc_filtered, $meta`
+        if [ -e ${filtered_bam_root}_dup_qc.txt ]; then
+            grep -i Library ${filtered_bam_root}_dup_qc.txt > ${filtered_bam_root}_dup_summary.txt
+            meta=`qc_metrics.py -n dup_stats -f ${filtered_bam_root}_dup_summary.txt`
+            qc_filtered=`echo $qc_filtered, $meta`
+        fi
         qc_filtering=`echo \"pre-filter all reads\": $prefiltered_all_reads`
         qc_filtering=`echo $qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
         qc_filtering=`echo $qc_filtering, \"post-filter all reads\": $filtered_all_reads`
@@ -150,9 +143,11 @@ main() {
     echo " "                              >> ${filtered_bam_root}_qc.txt
     echo "===== samtools stats ====="     >> ${filtered_bam_root}_qc.txt
     cat ${filtered_bam_root}_samstats.txt >> ${filtered_bam_root}_qc.txt
-    echo " "                                 >> ${filtered_bam_root}_qc.txt
-    echo "===== picard MarkDuplicates =====" >> ${filtered_bam_root}_qc.txt
-    cat ${filtered_bam_root}_dup_qc.txt      >> ${filtered_bam_root}_qc.txt
+    if [ -e ${filtered_bam_root}_dup_qc.txt ]; then
+        echo " "                                 >> ${filtered_bam_root}_qc.txt
+        echo "===== picard MarkDuplicates =====" >> ${filtered_bam_root}_qc.txt
+        cat ${filtered_bam_root}_dup_qc.txt      >> ${filtered_bam_root}_qc.txt
+    fi
     
     echo "* Upload results..."
     bam_filtered=$(dx upload ${filtered_bam_root}.bam --details "{ $qc_filtered }" --property SW="$versions" \

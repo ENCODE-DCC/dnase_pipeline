@@ -2,12 +2,6 @@
 # dnase-filter-pe.sh - Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline.
 
 main() {
-    echo "Installing picard tools..."
-    set -x
-    wget https://github.com/broadinstitute/picard/releases/download/2.8.1/picard.jar > install.log 2>&1
-    tail -2 install.log
-    mv /usr/bin/filter_reads.py .
-    set +x
     # executables in resources/usr/bin
 
     # If available, will print tool versions to stderr and json string to stdout
@@ -93,7 +87,7 @@ main() {
             echo "* UMI state discovered to be '$found_umi' but running as requested: UMI='$umi'."
         fi
     elif [ "$umi" == "discover" ]; then
-        echo "ERROR: UMI state could not be discovered and must be set."
+        echo "ERROR: UMI state count not be discovered and must be set."
         exit 1
     fi
     if [ "$umi" != "yes" ] && [ "$umi" != "no" ]; then 
@@ -116,7 +110,7 @@ main() {
     set -x
     mv sofar.bam ${merged_bam_root}.bam
     set +x
-    
+
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     filtered_bam_root="${merged_bam_root}_filtered"
     set -x
@@ -136,28 +130,41 @@ main() {
         prefiltered_mapped_reads=`qc_metrics.py -n samtools_flagstats -f ${merged_bam_root}_flagstat.txt -k mapped`
         filtered_all_reads=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt -k total`
         filtered_mapped_reads=`qc_metrics.py -n samtools_flagstats -f ${filtered_bam_root}_flagstat.txt -k mapped`
-        read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         meta=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt`
+        read_len=`qc_metrics.py -n samtools_stats -d ':' -f ${filtered_bam_root}_samstats_summary.txt -k "average length"`
         qc_filtered=`echo $qc_filtered, $meta`
-        grep -i Library ${filtered_bam_root}_dup_qc.txt > ${filtered_bam_root}_dup_summary.txt
-        meta=`qc_metrics.py -n dup_stats -f ${filtered_bam_root}_dup_summary.txt`
-        qc_filtered=`echo $qc_filtered, $meta`
+        # If UMI, then both may exist, but picard markDups is confusing: don't make qc metric
+        if [ -e ${filtered_bam_root}_umi_dups.txt ]; then
+            meta=`qc_metrics.py -n dup_stats -f ${filtered_bam_root}_umi_dups.txt`
+            qc_filtered=`echo $qc_filtered, $meta`
+        elif [ -e ${filtered_bam_root}_dup_qc.txt ]; then
+            grep -i Library ${filtered_bam_root}_dup_qc.txt > ${filtered_bam_root}_dup_summary.txt
+            meta=`qc_metrics.py -n dup_stats -f ${filtered_bam_root}_dup_summary.txt`
+            qc_filtered=`echo $qc_filtered, $meta`
+        fi
         qc_filtering=`echo \"pre-filter all reads\": $prefiltered_all_reads`
         qc_filtering=`echo $qc_filtering, \"pre-filter mapped reads\": $prefiltered_mapped_reads`
         qc_filtering=`echo $qc_filtering, \"post-filter all reads\": $filtered_all_reads`
         qc_filtering=`echo $qc_filtering, \"post-filter mapped reads\": $filtered_mapped_reads`
         qc_filtered=`echo $qc_filtered, \"filtering\": { $qc_filtering }`
+        if [ -e ${filtered_bam_root}_umi_dups.txt ]; then
+            umi_dups=`cat ${filtered_bam_root}_umi_dups.txt`
+        fi
     fi
     # All qc to one file per target file:
     echo "===== samtools flagstat ====="   > ${filtered_bam_root}_qc.txt
     cat ${filtered_bam_root}_flagstat.txt >> ${filtered_bam_root}_qc.txt
-    echo " "                                 >> ${filtered_bam_root}_qc.txt
-    if [ "$umi" == "yes" ]; then
-        echo "===== picard UmiAwareMarkDuplicatesWithMateCigar =====" >> ${filtered_bam_root}_qc.txt
-    else
-        echo "===== picard MarkDuplicatesWithMateCigar =====" >> ${filtered_bam_root}_qc.txt
+    if [ -e ${filtered_bam_root}_umi_dups.txt ]; then
+        echo " "                              >> ${filtered_bam_root}_qc.txt
+        echo "===== UMI Duplicates ====="     >> ${filtered_bam_root}_qc.txt
+        cat ${filtered_bam_root}_umi_dups.txt >> ${filtered_bam_root}_qc.txt
     fi
-    cat ${filtered_bam_root}_dup_qc.txt      >> ${filtered_bam_root}_qc.txt
+    # If UMI, then picard markDups may exist but is confusing: don't make qc metric, but include in file
+    if [ -e ${filtered_bam_root}_dup_qc.txt ]; then
+        echo " "                                 >> ${filtered_bam_root}_qc.txt
+        echo "===== picard MarkDuplicates =====" >> ${filtered_bam_root}_qc.txt
+        cat ${filtered_bam_root}_dup_qc.txt      >> ${filtered_bam_root}_qc.txt
+    fi
     echo " "                              >> ${filtered_bam_root}_qc.txt
     echo "===== samtools stats ====="     >> ${filtered_bam_root}_qc.txt
     cat ${filtered_bam_root}_samstats.txt >> ${filtered_bam_root}_qc.txt
@@ -168,7 +175,7 @@ main() {
                                       --property prefiltered_mapped_reads="$prefiltered_mapped_reads" \
                                       --property filtered_mapped_reads="$filtered_mapped_reads" \
                                       --property read_length="$read_len" --property from_UMI="$umi" --brief)
-    bam_filtered_qc=$(dx upload ${filtered_bam_root}_qc.txt --details "{ $qc_filtered }" --property from_UMI="$umi" --property SW="$versions" --brief)
+    bam_filtered_qc=$(dx upload ${filtered_bam_root}_qc.txt --details "{ $qc_filtered }" --property SW="$versions" --brief)
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file
     dx-jobutil-add-output bam_filtered_qc "$bam_filtered_qc" --class=file
