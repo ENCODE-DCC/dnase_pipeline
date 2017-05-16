@@ -50,13 +50,11 @@ class DnaseLaunch(Launch):
                 "ORDER": { "se": [  "dnase-filter-se", 
                                     "dnase-eval-bam-alt",
                                     "dnase-qc-hotspot1-alt", 
-                                    "dnase-density-alt",
                                     "dnase-call-hotspots-alt", 
                                  ],
                            "pe": [  "dnase-filter-pe", 
                                     "dnase-eval-bam", 
                                     "dnase-qc-hotspot1", 
-                                    "dnase-density",
                                     "dnase-call-hotspots", 
                                  ] },
                 "STEPS": {
@@ -108,20 +106,6 @@ class DnaseLaunch(Launch):
                                     "hotspot1_qc":    "bam_hotspot1_qc", 
                                 },
                             }, 
-                            "dnase-density": {
-                                "inputs": { "bam_filtered": "bam_filtered", 
-                                            "chrom_sizes": "chrom_sizes" }, 
-                                "results": {
-                                    "normalized_bw":    "normalized_bw", 
-                                },
-                            }, 
-                            "dnase-density-alt": {
-                                "inputs": { "bam_filtered": "bam_filtered", 
-                                            "chrom_sizes": "chrom_sizes" }, 
-                                "results": {
-                                    "normalized_bw":    "normalized_bw", 
-                                },
-                            }, 
                             "dnase-call-hotspots": {
                                 "inputs": { "bam_filtered": "bam_to_call", 
                                             "chrom_sizes": "chrom_sizes", 
@@ -131,7 +115,7 @@ class DnaseLaunch(Launch):
                                      "bb_hotspots":   "bb_hotspots", 
                                     "bed_peaks":     "bed_peaks", 
                                      "bb_peaks":      "bb_peaks",
-                                     # TODO: pipeline 2.0 add all_calls result: "bed_allcalls":  "bed_allcalls",
+                                     "bw_density":     "bw_density", 
                                      "hotspots_qc":    "hotspots_qc"
                                 },
                             }, 
@@ -144,7 +128,7 @@ class DnaseLaunch(Launch):
                                      "bb_hotspots":   "bb_hotspots", 
                                     "bed_peaks":     "bed_peaks", 
                                      "bb_peaks":      "bb_peaks",
-                                     # TODO: pipeline 2.0 add all_calls result: "bed_allcalls":  "bed_allcalls",
+                                     "bw_density":    "bw_density", 
                                     "hotspots_qc":   "hotspots_qc"
                                 },
                             }, 
@@ -180,25 +164,21 @@ class DnaseLaunch(Launch):
         "bam_ABC":                  "/*_bwa_techrep.bam", 
         "bam_filtered":             "/*_filtered.bam", 
         "bam_filtered_qc":          "/*_filtered_qc.txt", 
-        # dnase-eval-bam-pe/se results:
+        # dnase-eval-bam-pe/se input/results:
         "bam_sample":               "/*_sample.bam", 
         "bam_sample_qc":            "/*_sample_qc.txt",
-        # dnase-density results:
-        "normalized_bw":            "/*_normalized_density.bw",
-        # dnase-qc_hostpot1 results:
-        "hotspot1_qc":              "_hotspot1_qc.txt",
-        # biorep-call-hotspots results:
+        # biorep-call-hotspots input/results:
         "bed_hotspots":             "/*_hotspots.bed.gz", 
         "bb_hotspots":              "/*_hotspots.bb", 
         "bed_peaks":                "/*_peaks.bed.gz", 
         "bb_peaks":                 "/*_peaks.bb",
+        "bw_density":               "/*_density.bw", 
         "hotspots_qc":              "/*_hotspots_qc.txt", 
         "hotspot1_qc":              "/*_hotspot1_qc.txt", 
-        # TODO: pipeline 2.0 add all_calls result: "bed_allcalls":                 "/*_all_calls.bed.gz",
         # dnase-rep-corr input/results:
-        "density_a":                "/*_normalized_density.bw",
-        "density_b":                "/*_normalized_density.bw",
-        "corr_txt":                 "/*_normalized_density_corr.txt",
+        "density_a":                "/*_density.bw",
+        "density_b":                "/*_density.bw",
+        "corr_txt":                 "/*_corr.txt",
     }
 
     REFERENCE_FILES = {

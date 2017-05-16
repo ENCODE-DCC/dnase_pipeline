@@ -6,7 +6,6 @@
 
 applets="dnase-index-bwa dnase-align-bwa-pe dnase-align-bwa-se dnase-filter-pe dnase-filter-se"
 applets="$applets dnase-eval-bam dnase-call-hotspots dnase-rep-corr dnase-qc-hotspot1 dnase-qc-bam"
-applets="$applets dnase-density"
 # No longer expecting:
 #applets="$applets dnase-size-bam dnase-pool-bioreps dnase-idr"
 #extra_apps='dnase-install fastq-stats bam-filter-pe bam-filter-se'
@@ -14,7 +13,6 @@ applets="$applets dnase-density"
 tools="tool_versions.py qc_metrics.py parse_property.py"
 virtual_pairs="dnase-eval-bam:dnase-eval-bam-alt dnase-call-hotspots:dnase-call-hotspots-alt dnase-rep-corr:dnase-rep-corr-alt"
 virtual_pairs="$virtual_pairs dnase-qc-hotspot1:dnase-qc-hotspot1-alt dnase-qc-bam:dnase-qc-bam-alt"
-virtual_pairs="$virtual_pairs dnase-density:dnase-density-alt"
 virtual_links="src resources Readme.developer.md Readme.md"
 
 applet_dest=`cat ~/.dnanexus_config/DX_PROJECT_CONTEXT_NAME`
