@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots",
-  "title": "Call hotspots (v2.0.0)",
+  "title": "Call hotspots (v1.0.2)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.0",
+  "version": "1.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -52,12 +52,6 @@
       "label": "Peaks bigBed in narrowPeak format",
       "class": "file",
       "patterns": ["*_peaks.bb"]
-    },
-    {
-      "name": "bed_allcalls",
-      "label": "All calls bed format",
-      "class": "file",
-      "patterns": ["*_all_calls.bed.gz"]
     },
     {
       "name": "bw_density",

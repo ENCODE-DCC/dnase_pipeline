@@ -34,11 +34,7 @@ Options:
     -P                    Write P-values to output file, in column 6 (not written by default)
     -f HOTSPOT_THRESHOLD  False-discovery rate to use for hotspot filtering (0.05)
     -F SITECALL_THRESHOLD False-discovery rate to use for site-call filtering (0.05)
-    -s SEED               (lowercase 's')
-                          Set this to an integer for repeatable results
-    -S SMOOTHING_PARAM    (uppercase 'S')
-                          Advanced option, to influence curve fitting (5).
-                          Should be a small odd integer >=5; for noisy data, try 17.
+    -s SEED               Set this to an integer for repeatable results
 
     Neighborhood and window sizes are specified as the distance from the edge
     to the center - i.e, a 100bp neighborhood size is a 201bp window.
@@ -78,11 +74,10 @@ HOTSPOT_FDR_THRESHOLD="0.05"
 CALL_THRESHOLD="$HOTSPOT_FDR_THRESHOLD"
 SEED=$RANDOM
 WRITE_PVALS=""
-SMOOTHING_PARAM=""
 
 # Note: Options in the string that are not immediately followed by ':'
 # will not get a value read for them.  Examples are h and P.
-while getopts 'hc:C:M:e:f:F:m:n:p:s:S:w:P' opt; do
+while getopts 'hc:C:M:e:f:F:m:n:p:s:w:P' opt; do
   case "$opt" in
     h)
       usage
@@ -116,9 +111,6 @@ while getopts 'hc:C:M:e:f:F:m:n:p:s:S:w:P' opt; do
       ;;
     s)
       SEED=$OPTARG
-      ;;
-    S)
-      SMOOTHING_PARAM="--smoothing_parameter=$OPTARG"
       ;;
     w)
       BACKGROUND_WINDOW_SIZE=$((2 * OPTARG + 1))
@@ -221,7 +213,7 @@ bedmap --faster --range "$SITE_NEIGHBORHOOD_HALF_WINDOW_SIZE" --delim "\t" --pre
             prev3=$3
           }
           END { print prev1,prev2,prev3,"i",prev4 }' \
-  | "$HOTSPOT_EXE" --fdr_threshold="$CALL_THRESHOLD" --background_size="$BACKGROUND_WINDOW_SIZE" --num_pvals="$PVAL_DISTN_SIZE" --seed="$SEED" $WRITE_PVALS $SMOOTHING_PARAM \
+  | "$HOTSPOT_EXE" --fdr_threshold="$CALL_THRESHOLD" --background_size="$BACKGROUND_WINDOW_SIZE" --num_pvals="$PVAL_DISTN_SIZE" --seed="$SEED" $WRITE_PVALS \
   | starch - \
     >"$OUTFILE"
 
