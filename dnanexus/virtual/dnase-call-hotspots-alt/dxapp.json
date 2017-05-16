@@ -60,12 +60,6 @@
       "patterns": ["*_all_calls.bed.gz"]
     },
     {
-      "name": "bw_density",
-      "label": "Density in bigWig format",
-      "class": "file",
-      "patterns": ["*_density.bw"]
-    },
-    {
       "name": "starch_density",
       "label": "Density bed in starch format",
       "class": "file",

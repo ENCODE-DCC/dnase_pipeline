@@ -19,7 +19,8 @@ main() {
     gsl-config --libs > install.log 2>&1
     export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
     cd ..
-    wget https://github.com/rthurman/hotspot/archive/v4.1.0.tar.gz -O hotspot.tgz >> install.log 2>&1
+    #wget https://github.com/rthurman/hotspot/archive/v4.1.0.tar.gz -O hotspot.tgz >> install.log 2>&1
+    wget https://github.com/StamLab/hotspot/archive/v4.1.1.tar.gz -O hotspot.tgz >> install.log 2>&1
     mkdir hotspot
     tar -xzf hotspot.tgz -C hotspot --strip-components=1
     cd hotspot/hotspot-distr/hotspot-deploy

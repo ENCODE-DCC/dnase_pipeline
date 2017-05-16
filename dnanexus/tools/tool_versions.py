@@ -108,7 +108,7 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              "gawk":                     "gawk --version | grep Awk | awk '{print $3}'",
              "idr":                      "idr/bin/idr --version 2>&1 | grep IDR | awk '{print $2}'",
              "mawk":                     "mawk -W version 2>&1 | grep mawk | awk '{print $2}'",
-             "hotspot1":                 "hotspot 2>&1 | grep HotSpot | awk '{print $1}'",
+             "hotspot1":                 "hotspot 2>&1 | grep HotSpot | awk '{printf \"%s-%s\",$1,$2}'",
              "hotspot.py":               "hotspot.py -h | grep Version | awk '{print $8}'",
              "java":                     "java -version 2>&1 | head -1 | awk '{print $3}' | tr -d '\"'",
              "phantompeakqualtools":     "grep Version phantompeakqualtools/README.txt | awk '{print $2}'",

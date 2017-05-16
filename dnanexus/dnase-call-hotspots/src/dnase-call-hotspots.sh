@@ -69,7 +69,7 @@ main() {
     bed_peaks=$(dx upload ${peaks_root}.bed.gz        --details "{ $qc_hotspot }" --property SW="$versions" --property peaks_count="$peaks_count" --brief)
     bb_peaks=$(dx upload ${peaks_root}.bb             --details "{ $qc_hotspot }" --property SW="$versions" --property peaks_count="$peaks_count" --brief)
     bed_allcalls=$(dx upload ${allcalls_root}.bed.gz  --details "{ $qc_hotspot }" --property SW="$versions" --property allcalls_count="$allcalls_count" --brief)
-    bw_density=$(dx upload ${density_root}.bw         --details "{ $qc_hotspot }" --property SW="$versions" --brief)
+    #bw_density=$(dx upload ${density_root}.bw         --details "{ $qc_hotspot }" --property SW="$versions" --brief)
     starch_density=$(dx upload ${density_root}.starch --details "{ $qc_hotspot }" --property SW="$versions" --brief)
     hotspots_qc=$(dx upload ${hotspot_root}_qc.txt    --details "{ $qc_hotspot }" --property SW="$versions" --brief)
 
@@ -78,7 +78,7 @@ main() {
     dx-jobutil-add-output bed_peaks "$bed_peaks" --class=file
     dx-jobutil-add-output bb_peaks "$bb_peaks" --class=file
     dx-jobutil-add-output bed_allcalls "$bed_allcalls" --class=file
-    dx-jobutil-add-output bw_density "$bw_density" --class=file
+    #dx-jobutil-add-output bw_density "$bw_density" --class=file  # NOTE: this is not the density file desired.
     dx-jobutil-add-output starch_density "$starch_density" --class=file
     dx-jobutil-add-output hotspots_qc "$hotspots_qc" --class=file
     dx-jobutil-add-output metadata "{ $qc_hotspot }" --class=string
