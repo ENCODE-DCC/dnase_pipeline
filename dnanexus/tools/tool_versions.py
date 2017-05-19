@@ -20,11 +20,6 @@ APP_TOOLS = {
     "dnase-filter-pe":    ["dnase_filter_pe.sh", "samtools", "filter_reads.py (stampipes)",
                            "java", "picard"],
     "dnase-filter-se":    ["dnase_filter_se.sh", "samtools", "java", "picard"],
-    "dnase-eval-bam":     ["dnase_eval_bam.sh", "samtools", "edwBamFilter", "edwBamStats",  # "R",
-                           "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
-                           "bedtools"],
-    "dnase-qc-hotspot1":  ["dnase_qc_hotspot1.sh", "edwBamStats", "hotspot1", "hotspot.py",
-                           "samtools", "bedops","bedtools"],
     "dnase-qc-bam":       ["dnase_qc_bam.sh", "samtools", "edwBamFilter", "edwBamStats",  # "R",
                            "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
                            "hotspot1", "hotspot.py", "bedops", "bedtools"],
@@ -34,43 +29,15 @@ APP_TOOLS = {
     "dnase-rep-corr":      ["dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops"],
     # special for optional output
     "dnase-index-bwa(hotspot2)": ["dnase_index_bwa.sh", "hotspot2", "bedops"],
-    # "extractCenterSites.sh (hotspot2)","sort-bed (bedops)","starch (bedops)","unstarch (bedops)"
-    # Obsolete:
-    # "dnase-merge-bams":   ["samtools"],
-    # "bam-filter-pe":      ["samtools", "edwBamFilter", "edwBamStats", #"R",
-    #                        "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
-    #                        "bedtools"],
-    # "bam-filter-se":      ["samtools", "edwBamFilter", "edwBamStats", #"R",
-    #                        "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
-    #                        "bedtools"],
-    # "fastq-stats":        ["fastqStatsAndSubsample"],
-    # "dnase-call-hotspots5": ["dnase_hotspot.sh", "hotspot", "hotspot.py", "samtools",
-    #                          "bedops", "bedtools", "bedToBigBed", "bedGraphToBigWig",
-    #                          "bedGraphPack","edwBamStats"],
-    # "dnase-pool-bioreps": ["dnase_pool_reps.sh", "samtools", "bedtools", "bigBedToBed",
-    #                        "bedToBigBed","bigWigCorrelate", "edwComparePeaks", "edwBamStats"],
-    # "dnase-size-bam":     ["edwBamStats"],
-    # "dnase-eval-bam-se":  ["dnase_eval_bam_se.sh", "samtools", "edwBamFilter", "edwBamStats",#"R",
-    #                        "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
-    #                        "bedtools"],
-    # "dnase-idr":          ["dnase_idr.sh", "Anaconda3", "idr", "bedToBigBed", "pigz" ],
     }
 
 # Virtual apps only differ from their parent by name/version. 
 VIRTUAL_APPS = {
-    "dnase-eval-bam-alt":        "dnase-eval-bam",
-    "dnase-qc-hotspot1-alt":     "dnase-qc-hotspot1",
     "dnase-qc-bam-alt":          "dnase-qc-bam",
     "dnase-density-alt":         "dnase-density",
     "dnase-call-hotspots-alt":   "dnase-call-hotspots",
     "dnase-idr-alt":             "dnase-idr",
     "dnase-rep-corr-alt":        "dnase-rep-corr",
-    # "dnase-merge-bams-alt":      "dnase-merge-bams",
-    # "dnase-size-bam-alt":        "dnase-size-bam",
-    # "dnase-qc-hotspot1-alt":      "dnase-qc-hotspot1",
-    # "dnase-pool-bioreps-alt":    "dnase-pool-bioreps",
-    # "dnase-final-hotspots":      "dnase-call-hotspots",
-    # "dnase-final-hotspots-alt":  "dnase-call-hotspots",
     }
 
 # ALL_TOOLS contains printable tool name (key) and the command that is used to determine version.
@@ -92,7 +59,6 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              # "shuffleBed (bedtools)":    "shuffleBed -h 2>&1 | grep Version | awk '{print $2}'",
              "bigBedToBed":              "bigBedToBed 2>&1 | grep 'bigBedToBed v' | awk '{print $2}'",
              "bigWigCorrelate":          "md5sum /usr/bin/bigWigCorrelate | awk '{printf \"unversioned %-8.8s\",$1}'",
-             # "bigWigCorrelate 2>&1 | grep 'bigWigCorrelate -' | awk '{print $3,$4,$5}'",
              "bwa":                      "bwa 2>&1 | grep Version | awk '{print $2}'",
              "caTools":                  "grep caTools_ phantompeakqualtools/install.log | head -1 | sed 's/_/ /' | awk '{print $4}' | sed 's/\.tar\.gz.*//'",
              "edwBamFilter":             "edwBamFilter 2>&1 | grep 'edwBamFilter v' | awk '{print $2}'",
@@ -119,33 +85,21 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              "spp":                      "grep spp_ phantompeakqualtools/installPkgs.R | sed 's/_/ /' | awk '{print $2}' | sed 's/\.tar\.gz.*//'",
              #"hotspot2":                 "hotspot2 --version | awk '{print $3}'",
              "hotspot2":                 "[ -e /usr/bin/hotspot2.version ] && cat /usr/bin/hotspot2.version || hotspot2 --version | awk '{print $3}'",
-             # "hotspot2.sh (hotspot2)":              "hotspot2 --version | awk '{print $3}'",
-             # "cutcounts.bash (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
-             # "density-peaks.bash (hotspot2)":       "hotspot2 --version | awk '{print $3}'",
-             # "bed_exclude.py (hotspot2)":           "hotspot2 --version | awk '{print $3}'",
-             # "extractCenterSites.sh (hotspot2)":    "hotspot2 --version | awk '{print $3}'",
              "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/modwt/tree/1.0
-             # "picard":                   "echo tag 1.92", # From https://github.com/broadinstitute/picard.git
              "picard":                   "java -jar ./picard.jar MarkDuplicates --version", # From https://github.com/broadinstitute/picard.git
              "pigz":                     "pigz --version 2>&1 | awk '{print $2}'",
              "trim-adapters-illumina":   "trim-adapters-illumina --version 2>&1 | awk '{print $3}'", # https://bitbucket.org/jvierstra/bio-tools/get/master.tar.gz https://bitbucket.org/jvierstra/bio-tools/src/6fe54fa5a3d9b5c930ee77e8ccd757b347c86ac1/apps/trim-adapters-illumina/?at=master
              "chromCor.Rscript":         "md5sum /usr/bin/chromCor.Rscript | awk '{printf \"unversioned %-8.8s\",$1}'", # emailed from Richard Sandstrom  Will reside in our github
              "bigWigToWig":              "md5sum /usr/bin/bigWigToWig | awk '{printf \"unversioned %-8.8s\",$1}'",
-             "wigToBigWig":              "wigToBigWig 2>&1 | grep 'wigToBigWig v' | awk '{print $2$3}'",
              "dnase_index_bwa.sh":       "dnase_index_bwa.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_align_bwa_pe.sh":    "dnase_align_bwa_pe.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_align_bwa_se.sh":    "dnase_align_bwa_se.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_filter_pe.sh":       "dnase_filter_pe.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_filter_se.sh":       "dnase_filter_se.sh | grep usage | awk '{print $2}' | tr -d :",
-             "dnase_eval_bam.sh":        "dnase_eval_bam.sh | grep usage | awk '{print $2}' | tr -d :",
-             "dnase_qc_hotspot1.sh":     "dnase_qc_hotspot1.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_qc_bam.sh":          "dnase_qc_bam.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_density.sh":         "dnase_density.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_hotspot.sh":         "dnase_hotspot.sh | grep usage | awk '{print $2}' | tr -d :",
              "dnase_rep_corr.sh":        "dnase_rep_corr.sh | grep usage | awk '{print $2}' | tr -d :",
-             # "dnase_idr.sh":         "dnase_idr.sh | grep usage | awk '{print $2}' | tr -d :",
-             # "dnase_eval_bam_se.sh": "dnase_eval_bam_se.sh | grep usage | awk '{print $2}' | tr -d :",
-             # "dnase_pool_reps.sh":   "dnase_pool_reps.sh | grep usage | awk '{print $2}' | tr -d :",
              "cutadapt":                     "cutadapt --version",
             }
 

@@ -61,7 +61,6 @@ class DnaseLaunch(Launch):
                                 "params": { "map_thresh": "map_thresh", "umi": "umi" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
-                                    "bam_filtered_qc":      "bam_filtered_qc", 
                                 },
                             },
                             "dnase-filter-se": {
@@ -69,7 +68,6 @@ class DnaseLaunch(Launch):
                                 "params": { "map_thresh": "map_thresh" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
-                                    "bam_filtered_qc":      "bam_filtered_qc", 
                                 },
                             }, 
                             "dnase-qc-bam": {
@@ -116,7 +114,6 @@ class DnaseLaunch(Launch):
                                     "bed_peaks":     "bed_peaks", 
                                      "bb_peaks":      "bb_peaks",
                                     "bed_allcalls":  "bed_allcalls",
-                                     "hotspots_qc":    "hotspots_qc"
                                 },
                             }, 
                             "dnase-call-hotspots-alt": {
@@ -129,7 +126,6 @@ class DnaseLaunch(Launch):
                                     "bed_peaks":     "bed_peaks", 
                                      "bb_peaks":      "bb_peaks",
                                     "bed_allcalls":  "bed_allcalls",
-                                    "hotspots_qc":   "hotspots_qc"
                                 },
                             }, 
                 }
@@ -150,9 +146,6 @@ class DnaseLaunch(Launch):
         }
     }
 
-    PRUNE_STEPS = ["dnase-call-hotspots","dnase-call-hotspots-alt","dnase-rep-corr","dnase-rep-corr-alt"]
-    '''If --no-hotspot is requested, these steps are pruned from the pipeline before launching.'''
-
     FILE_GLOBS = {
         #"reads":                    "/*.fq.gz",
         #"reads1":                   "/*.fq.gz",
@@ -164,21 +157,19 @@ class DnaseLaunch(Launch):
         "bam_ABC":                  "/*_bwa_techrep.bam", 
         "bam_filtered":             "/*_filtered.bam", 
         "bam_filtered_qc":          "/*_filtered_qc.txt", 
-        # dnase-eval-bam-pe/se results:
+        # dnase-qc-bam results:
         "bam_sample":               "/*_sample.bam", 
         "bam_sample_qc":            "/*_sample_qc.txt",
+        "hotspot1_qc":              "_hotspot1_qc.txt",
         # dnase-density results:
         "normalized_bw":            "/*_normalized_density.bw",
-        # dnase-qc_hostpot1 results:
-        "hotspot1_qc":              "_hotspot1_qc.txt",
         # biorep-call-hotspots results:
         "bed_hotspots":             "/*_hotspots.bed.gz", 
         "bb_hotspots":              "/*_hotspots.bb", 
         "bed_peaks":                "/*_peaks.bed.gz", 
         "bb_peaks":                 "/*_peaks.bb",
-        "hotspots_qc":              "/*_hotspots_qc.txt", 
-        "hotspot1_qc":              "/*_hotspot1_qc.txt", 
         "bed_allcalls":             "/*_all_calls.bed.gz",
+        "hotspots_qc":              "/*_hotspots_qc.txt", 
         # dnase-rep-corr input/results:
         "density_a":                "/*_normalized_density.bw",
         "density_b":                "/*_normalized_density.bw",
@@ -225,11 +216,6 @@ class DnaseLaunch(Launch):
                         action='store_true',
                         required=False)
 
-        ap.add_argument('--no_hotspot',
-                        help='Stop before calling hotspots (default: include all steps).',
-                        action='store_true',
-                        required=False)
-
         # NOTE: Could override get_args() to have this non-generic control message
         #ap.add_argument('-c', '--control',
         #                help='The control bam for peak calling.',
@@ -264,10 +250,6 @@ class DnaseLaunch(Launch):
         self.multi_rep = True      # For DNase, a single tech_rep moves on to merge/filter.
         self.combined_reps = True
         
-        self.no_hotspot = args.no_hotspot
-        if not self.no_hotspot:
-            self.PRUNE_STEPS = []
-
         if verbose:
             print "Pipeline Specific Vars:"
             print json.dumps(psv,indent=4)
@@ -286,13 +268,12 @@ class DnaseLaunch(Launch):
         else:
             priors['bwa_index'] = bwa_fid
 
-        if not self.no_hotspot:
-            hot_map = self.psv['refLoc']+"dnase/"+self.REFERENCE_FILES['hotspot_mappable'][self.psv['genome']]
-            hot_map_fid = self.find_file(hot_map,self.REF_PROJECT_DEFAULT)
-            if hot_map_fid == None:
-                sys.exit("ERROR: Unable to locate hotspot_mappable file '" + hot_map + "'")
-            else:
-                priors['hotspot_mappable'] = hot_map_fid
+        hot_map = self.psv['refLoc']+"dnase/"+self.REFERENCE_FILES['hotspot_mappable'][self.psv['genome']]
+        hot_map_fid = self.find_file(hot_map,self.REF_PROJECT_DEFAULT)
+        if hot_map_fid == None:
+            sys.exit("ERROR: Unable to locate hotspot_mappable file '" + hot_map + "'")
+        else:
+            priors['hotspot_mappable'] = hot_map_fid
 
         chrom_sizes = self.psv['refLoc']+self.REFERENCE_FILES['chrom_sizes'][self.psv['genome']]
         chrom_sizes_fid = self.find_file(chrom_sizes,self.REF_PROJECT_DEFAULT)
@@ -302,8 +283,6 @@ class DnaseLaunch(Launch):
             priors['chrom_sizes'] = chrom_sizes_fid
 
         self.psv['ref_files'] = self.REFERENCE_FILES.keys()
-        if self.no_hotspot:
-            self.psv['ref_files'].remove('hotspot_mappable')
         return priors
     
 
