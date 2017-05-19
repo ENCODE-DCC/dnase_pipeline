@@ -371,9 +371,9 @@ def read_flagstats(filePath,verbose=False):
     fh.close()
     return pairs
     
-def read_hotspot(filePath,verbose=False):
+def read_hotspot1(filePath,verbose=False):
     '''
-    SPECIAL CASE of read_horizontal that is customized for 'hotspot' output. 
+    SPECIAL CASE of read_horizontal that is customized for 'hotspot1' output. 
     '''
     pairs = {}
     keys = None
@@ -389,8 +389,10 @@ def read_hotspot(filePath,verbose=False):
         line = strip_comments(line,True)
         if line == '':
             continue
+        # HotSpot1:
         #  total tags  hotspot tags    SPOT
         #    2255195       1083552   0.4804
+        # HotSpot2: is created from 3 separate files
         if keys == None:
             keys = parse_line(line,columns="1:2,3:4,5",delimit=None,verbose=verbose)
             if verbose:
@@ -834,8 +836,8 @@ def main():
         metrics = read_fastqstats(args.file,args.verbose)
     elif parsing["type"] == 'flagstats':
         metrics = read_flagstats(args.file,args.verbose)
-    elif parsing["type"] == 'hotspot':
-        metrics = read_hotspot(args.file,args.verbose)
+    elif parsing["type"] == 'hotspot1':
+        metrics = read_hotspot1(args.file,args.verbose)
     elif parsing["type"] == 'idr':
         metrics = read_idr(args.file,args.verbose)
     elif parsing["type"] == 'rep_corr':
