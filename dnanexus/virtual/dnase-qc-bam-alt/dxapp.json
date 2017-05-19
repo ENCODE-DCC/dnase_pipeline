@@ -78,7 +78,7 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-qc-bam.sh",
-    "systemRequirements": { "main": { "instanceType": "mem2_ssd1_x4" } },
+    "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x4" } },
     "execDepends": [
         { "name": "gawk" }
     ]

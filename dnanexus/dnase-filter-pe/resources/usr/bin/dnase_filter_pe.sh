@@ -51,12 +51,8 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
         INPUT=cigar.bam OUTPUT=marked.bam METRICS_FILE=${filtered_bam_root}_dup_qc.txt \
         UMI_TAG_NAME=XD ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
         READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'    
-	set +x
-		
-	echo "-- ------------- umi_dups"
-	cat ${filtered_bam_root}_umi_dups.txt
-	echo "-- -------------"
-    ls -l
+	set +x		
+    
     # Richard Sandstrom: UMI flags: 512 + 1024 = 1536 (both 8 and 4 are incorporated into 512 by the script. 1024 is set unambiguously by the UMI eval portion of the script)
     echo "-- UMI filtering will be performed."
     filter_flags=`expr 512 + 1024`
@@ -76,6 +72,7 @@ else
     filter_flags=512
 fi
 
+ls -l
 if [ -e ${filtered_bam_root}_dup_qc.txt ]; then
 	echo "-- ------------- picard MarkDuplicates"
 	cat ${filtered_bam_root}_dup_qc.txt

@@ -33,7 +33,6 @@ class DnaseLaunch(Launch):
                                 "params": { "barcode": "barcode", "trim_len": "trim_len" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
-                                    "bam_techrep_qc":   "bam_bwa_qc",
                                 },
                             },
                             "dnase-align-bwa-pe": {
@@ -41,7 +40,6 @@ class DnaseLaunch(Launch):
                                 "params": { "barcode": "barcode", "umi": "umi" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
-                                    "bam_techrep_qc":   "bam_bwa_qc",
                                 },
                             }, 
                 }
