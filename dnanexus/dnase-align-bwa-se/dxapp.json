@@ -1,9 +1,9 @@
 {
   "name": "dnase-align-bwa-se",
-  "title": "Align with bwa - se (v1.0.1)",
+  "title": "Align with bwa - se (v1.0.2)",
   "summary": "Alignment by bwa of single-end fastq for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -28,11 +28,18 @@
       "optional": true
     },
     {
+      "name": "trim_len",
+      "label": "Trim reads to length (default: 0 means no trimming)",
+      "class": "int",
+      "optional": true,
+      "default": 0
+    },
+    {
       "name": "nthreads",
       "label": "Number of threads to use",
       "class": "int",
       "optional": true,
-      "default": 8
+      "default": 4
     }
   ],
   "outputSpec": [
@@ -56,7 +63,7 @@
     },
     {
       "name": "mapped_reads",
-      "label": "Count of mapped reads in the filtered bam",
+      "label": "Count of mapped reads in the bam",
       "optional": true,
       "class": "string"
     },
@@ -69,14 +76,12 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-align-bwa-se.sh",
-    "systemRequirements": {
-      "main": {
-        "instanceType": "mem3_hdd2_x8"
-      },
-      "myEntryPoint": {
-        "instanceType": "mem3_hdd2_x8"
-      }
-    }
+    "execDepends": [
+        {"name": "cutadapt",
+         "package_manager": "pip",
+         "version": "1.12"}
+    ],
+    "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x4" } }
   },
   "access": {
     "network": [

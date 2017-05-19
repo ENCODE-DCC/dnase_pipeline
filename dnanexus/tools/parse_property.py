@@ -43,7 +43,7 @@ def get_dxfile(filePath,project=None):
                     proj_id = env_get_current_project_id()
                     dxfile = dxpy.DXFile(filePath,project=proj_id)
                 except:
-                    sys.stderr.write('ERROR: unable to find file "' + filePath + '": \n')
+                    sys.stderr.write('WARNING: unable to find file "' + filePath + '": \n')
                     sys.exit(0)  # Do not error on tool run in dx script 
     
     else:
@@ -62,11 +62,11 @@ def get_dxfile(filePath,project=None):
                     proj_id = env_get_current_project_id()
                     dxfile = dxpy.DXFile(filePath,project=proj_id)
                 except:
-                    sys.stderr.write('ERROR: unable to find file "' + filePath + '": \n')
+                    sys.stderr.write('WARNING: unable to find file "' + filePath + '": \n')
                     sys.exit(0)  # Do not error on tool run in dx script 
 
     if dxfile == None:
-        sys.stderr.write('ERROR: unable to find file "' + filePath + '": \n')
+        sys.stderr.write('WARNING: unable to find file "' + filePath + '": \n')
         sys.exit(0)  # Do not error on tool run in dx script 
     
     return dxfile
@@ -79,11 +79,11 @@ def file_get_property(filePath,key,subkey,return_json=False,project=None,verbose
     
     props = dxfile.get_properties()
     if not props:
-        sys.stderr.write('ERROR: unable to find properties for file "' + filePath + '": \n') 
+        sys.stderr.write('WARNING: unable to find properties for file "' + filePath + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script 
     
     if key not in props:
-        sys.stderr.write('ERROR: unable to find "'+key+'" in properties for file "' + filePath + '": \n') 
+        sys.stderr.write('WARNING: unable to find "'+key+'" in properties for file "' + filePath + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script
     props = props[key]
          
@@ -99,7 +99,7 @@ def file_get_property(filePath,key,subkey,return_json=False,project=None,verbose
 
     if subkey != None:
         if subkey not in props:
-            sys.stderr.write('ERROR: unable to find "'+subkey+'" in properties for file "' + filePath + '": \n') 
+            sys.stderr.write('WARNING: unable to find "'+subkey+'" in properties for file "' + filePath + '": \n') 
             sys.exit(0)  # Do not error on tool run in dx script
         props = props[subkey]
         
@@ -115,7 +115,7 @@ def file_describe(filePath,key=None,project=None,verbose=False):
     
     desciption = dxfile.describe()
     if not desciption:
-        sys.stderr.write('ERROR: unable to find description of file "' + filePath + '": \n') 
+        sys.stderr.write('WARNING: unable to find description of file "' + filePath + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script 
     
     if key == None:
@@ -124,7 +124,7 @@ def file_describe(filePath,key=None,project=None,verbose=False):
         return desciption
     
     if key not in desciption:
-        sys.stderr.write('ERROR: unable to find "'+key+'" in description of file "' + filePath + '": \n') 
+        sys.stderr.write('WARNING: unable to find "'+key+'" in description of file "' + filePath + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script
     value = desciption[key]
          
@@ -140,7 +140,7 @@ def file_details(filePath,key=None,project=None,verbose=False):
     
     details = dxfile.describe(incl_details=True).get('details')
     if not details:
-        sys.stderr.write('ERROR: unable to find details of file "' + filePath + '": \n') 
+        sys.stderr.write('WARNING: unable to find details of file "' + filePath + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script 
     
     if key == None:
@@ -149,7 +149,7 @@ def file_details(filePath,key=None,project=None,verbose=False):
         return details
     
     if key not in details:
-        sys.stderr.write('ERROR: unable to find "'+key+'" in details of file "' + filePath + '": \n') 
+        sys.stderr.write('WARNING: unable to find "'+key+'" in details of file "' + filePath + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script
     value = details[key]
          
@@ -263,13 +263,13 @@ def job_describe(job_id,key=None,verbose=False):
     try:
         dxjob = dxpy.get_handler(job_id)
     except:
-        sys.stderr.write('ERROR: unable to find job: "' + job_id + '": \n')
+        sys.stderr.write('WARNING: unable to find job: "' + job_id + '": \n')
         sys.exit(0)  # Do not error on tool run in dx script 
     
     desciption = dxjob.describe()
         
     if not desciption:
-        sys.stderr.write('ERROR: unable to find description of job "' + job_id + '": \n') 
+        sys.stderr.write('WARNING: unable to find description of job "' + job_id + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script 
     
     if key == None:
@@ -278,7 +278,7 @@ def job_describe(job_id,key=None,verbose=False):
         return desciption
     
     if key not in desciption:
-        sys.stderr.write('ERROR: unable to find "'+key+'" in description of job "' + job_id + '": \n') 
+        sys.stderr.write('WARNING: unable to find "'+key+'" in description of job "' + job_id + '": \n') 
         sys.exit(0)  # Do not error on tool run in dx script
     value = desciption[key]
          

@@ -14,6 +14,7 @@ main() {
     echo "* Value of bwa_index: '$bwa_index'"
     echo "* Value of barcode:   '$barcode'"
     #echo "* Value of UMI:       '$umi'"   # No UMI handling of single-end fastqs... no UMI single-end fastqs expected
+    echo "* Value of trim_len:  '$trim_len'"
     echo "* Value of nthreads:  '$nthreads'"
 
     umi="no"
@@ -22,6 +23,13 @@ main() {
     fi
 
     #echo "* Download files..."
+    exp_rep_root=""
+    if [ -f /usr/bin/parse_property.py ]; then
+        new_root=`parse_property.py -f "'${reads[0]}'" --project "${DX_PROJECT_CONTEXT_ID}" --root_name --quiet`
+        if [ "$new_root" != "" ]; then
+            exp_rep_root="${new_root}"
+        fi
+    fi
     outfile_name=""
     concat=""
     rm -f concat.fq
@@ -42,17 +50,27 @@ main() {
         echo "* Downloading and concatenating ${file_root}.fq.gz file..."
         dx download "${reads[$ix]}" -o - | gunzip >> concat.fq
     done
-    mv concat.fq ${outfile_name}.fq
+    if [ "${concat}" != "" ]; then
+        if [ "${exp_rep_root}" != "" ]; then
+            outfile_name="${exp_rep_root}"
+        elif [ ${#outfile_name} -gt 200 ]; then
+            outfile_name="concatenated_reads"
+        fi
+    fi
+    if [ $trim_len -gt 0 ]; then
+        echo "* Trimming fastq reads to ${trim_len} bases..."
+        outfile_name="${outfile_name}_${trim_len}b" 
+        cutadapt -l $trim_len concat.fq > ${outfile_name}.fq
+    else
+        mv concat.fq ${outfile_name}.fq
+    fi
     echo "* Gzipping file..."
     gzip ${outfile_name}.fq
     echo "* Fastq${concat} file: '${outfile_name}.fq.gz'"
     reads_root=${outfile_name}
     bam_root="${reads_root}"
-    if [ -f /usr/bin/parse_property.py ]; then
-        new_root=`parse_property.py --job "${DX_JOB_ID}" --root_name --quiet`
-        if [ "$new_root" != "" ]; then
-            bam_root="${new_root}"
-        fi
+    if [ "${exp_rep_root}" != "" ]; then
+        bam_root="${exp_rep_root}"
     fi
 
     bwa_ix_root=`dx describe "$bwa_index" --name`

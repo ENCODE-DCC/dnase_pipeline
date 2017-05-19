@@ -30,10 +30,9 @@ class DnaseLaunch(Launch):
                 "STEPS": {
                             "dnase-align-bwa-se": {
                                 "inputs": { "reads": "reads", "bwa_index": "bwa_index" },
-                                "params": { "barcode": "barcode" }, 
+                                "params": { "barcode": "barcode", "trim_len": "trim_len" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
-                                    "bam_techrep_qc":   "bam_bwa_qc",
                                 },
                             },
                             "dnase-align-bwa-pe": {
@@ -41,7 +40,6 @@ class DnaseLaunch(Launch):
                                 "params": { "barcode": "barcode", "umi": "umi" }, 
                                 "results": {
                                     "bam_techrep":      "bam_bwa", 
-                                    "bam_techrep_qc":   "bam_bwa_qc",
                                 },
                             }, 
                 }
@@ -49,10 +47,14 @@ class DnaseLaunch(Launch):
         "BIO_REP":  {
                 "ORDER": { "se": [  "dnase-filter-se", 
                                     "dnase-eval-bam-alt", 
+                                    "dnase-qc-hotspot1-alt", 
+                                    "dnase-density-alt",
                                     "dnase-call-hotspots-alt", 
                                  ],
                            "pe": [  "dnase-filter-pe", 
                                     "dnase-eval-bam", 
+                                    "dnase-qc-hotspot1", 
+                                    "dnase-density",
                                     "dnase-call-hotspots", 
                                  ] },
                 "STEPS": {
@@ -61,15 +63,13 @@ class DnaseLaunch(Launch):
                                 "params": { "map_thresh": "map_thresh", "umi": "umi" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
-                                    "bam_filtered_qc":      "bam_filtered_qc", 
                                 },
                             },
                             "dnase-filter-se": {
                                 "inputs": { "bam_ABC":    "bam_set" },
-                                "params": { "map_thresh": "map_thresh", }, 
+                                "params": { "map_thresh": "map_thresh" }, 
                                 "results": {
                                     "bam_filtered":         "bam_filtered", 
-                                    "bam_filtered_qc":      "bam_filtered_qc", 
                                 },
                             }, 
                             "dnase-eval-bam": {
@@ -88,6 +88,36 @@ class DnaseLaunch(Launch):
                                     "bam_sample_qc":        "bam_sample_qc", 
                                 },
                             }, 
+                            "dnase-qc-hotspot1": {
+                                "inputs": { "bam_sample":   "bam_file",
+                                            "hotspot_mappable": "hotspot_mappable" }, 
+                                "params": { "genome": "genome" }, 
+                                "results": {
+                                    "hotspot1_qc":    "bam_hotspot1_qc", 
+                                },
+                            }, 
+                            "dnase-qc-hotspot1-alt": {
+                                "inputs": { "bam_sample":   "bam_file",
+                                            "hotspot_mappable": "hotspot_mappable" }, 
+                                "params": { "genome": "genome" }, 
+                                "results": {
+                                    "hotspot1_qc":    "bam_hotspot1_qc", 
+                                },
+                            }, 
+                            "dnase-density": {
+                                "inputs": { "bam_filtered": "bam_filtered", 
+                                            "chrom_sizes": "chrom_sizes" }, 
+                                "results": {
+                                    "normalized_bw":    "normalized_bw", 
+                                },
+                            }, 
+                            "dnase-density-alt": {
+                                "inputs": { "bam_filtered": "bam_filtered", 
+                                            "chrom_sizes": "chrom_sizes" }, 
+                                "results": {
+                                    "normalized_bw":    "normalized_bw", 
+                                },
+                            }, 
                             "dnase-call-hotspots": {
                                 "inputs": { "bam_filtered": "bam_to_call", 
                                             "chrom_sizes": "chrom_sizes", 
@@ -97,8 +127,6 @@ class DnaseLaunch(Launch):
                                      "bb_hotspots":   "bb_hotspots", 
                                     "bed_peaks":     "bed_peaks", 
                                      "bb_peaks":      "bb_peaks",
-                                     "bw_density":     "bw_density", 
-                                    "hotspots_qc":    "hotspots_qc"
                                 },
                             }, 
                             "dnase-call-hotspots-alt": {
@@ -110,8 +138,6 @@ class DnaseLaunch(Launch):
                                      "bb_hotspots":   "bb_hotspots", 
                                     "bed_peaks":     "bed_peaks", 
                                      "bb_peaks":      "bb_peaks",
-                                     "bw_density":    "bw_density", 
-                                    "hotspots_qc":   "hotspots_qc"
                                 },
                             }, 
                 }
@@ -146,35 +172,32 @@ class DnaseLaunch(Launch):
         # dnase-eval-bam-pe/se input/results:
         "bam_sample":               "/*_sample.bam", 
         "bam_sample_qc":            "/*_sample_qc.txt",
-        # biorep-call-hotspots input/results:
+        # dnase-qc-hostpot1 results:
+        "hotspot1_qc":              "_hotspot1_qc.txt",
+        # dnase-density results:
+        "normalized_bw":            "/*_normalized_density.bw",
+        # biorep-call-hotspots results:
         "bed_hotspots":             "/*_hotspots.bed.gz", 
         "bb_hotspots":              "/*_hotspots.bb", 
         "bed_peaks":                "/*_peaks.bed.gz", 
         "bb_peaks":                 "/*_peaks.bb",
-        "bw_density":               "/*_density.bw", 
         "hotspots_qc":              "/*_hotspots_qc.txt", 
         # dnase-rep-corr input/results:
-        "density_a":                "/*_density.bw",
-        "density_b":                "/*_density.bw",
-        "corr_txt":                 "/*_corr.txt",
+        "density_a":                "/*_normalized_density.bw",
+        "density_b":                "/*_normalized_density.bw",
+        "corr_txt":                 "/*_normalized_density_corr.txt",
     }
 
     REFERENCE_FILES = {
         # For looking up reference file names.
         "bwa_index":   {
-                        "GRCh38": "GRCh38_bwa_index.tgz",
                         "hg19":   "hg19_bwa_index.tgz",
-                        "mm10":   "mm10_bwa_index.tgz",
                         },
         "hotspot_mappable":   {
-                        "GRCh38": "GRCh38_hotspot_mappable.tgz",
                         "hg19":   "hg19_hotspot_mappable.tgz",
-                        "mm10":   "mm10_hotspot_mappable.tgz",
                         },
         "chrom_sizes":   {
-                        "GRCh38": "GRCh38_EBV.chrom.sizes",
                         "hg19":   "male.hg19.chrom.sizes",
-                        "mm10":   "male.mm10.chrom.sizes",
                         }
         }
 
@@ -210,6 +233,9 @@ class DnaseLaunch(Launch):
         '''Adds pipeline specific variables to a dict, for use building the workflow.'''
         psv = Launch.pipeline_specific_vars(self,args)
         
+        # This branch of the DNASE pipeline only supports hg19 !!!
+        if self.psv['genome'] != 'hg19':
+            sys.exit("ERROR: This branch of the DNASE pipeline only supports assembly 'hg19'!")
         # Some specific settings
         psv['nthreads']    = 8
         psv['map_thresh']  = 3
@@ -225,6 +251,11 @@ class DnaseLaunch(Launch):
         if args.umi:
             psv['umi'] = "yes"
         psv['upper_limit'] = 0
+        # Crawford fastqs require trimming
+        psv["trim_len"] = 0
+        if not self.template and not psv['paired_end'] and "crawford" in psv['lab']:
+            print "Detected that fastqs will be trimmed to 20"
+            psv["trim_len"] = 20
         self.multi_rep = True      # For DNase, a single tech_rep moves on to merge/filter.
         self.combined_reps = True
         
