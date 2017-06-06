@@ -184,9 +184,9 @@ class DnaseLaunch(Launch):
                         "mm10":   "mm10_bwa_index.tgz",
                         },
         "hotspot_mappable":   {
-                        "GRCh38": "GRCh38_hotspot_mappable.tgz",
-                        "hg19":   "hg19_hotspot_mappable.tgz",
-                        "mm10":   "mm10_hotspot_mappable.tgz",
+                        "GRCh38": "GRCh38_hotspot2_v2.0_mappable.tgz",
+                        "hg19":   "hg19_hotspot2_v2.0_mappable.tgz",
+                        "mm10":   "mm10_hotspot2_v2.0_mappable.tgz",
                         },
         "chrom_sizes":   {
                         "GRCh38": "GRCh38_EBV.chrom.sizes",

@@ -12,7 +12,7 @@ import commands
 
 # APP_TOOLS is a dict keyed by applet script name with a list of tools that it uses.
 APP_TOOLS = {
-    "dnase-index-bwa":    ["dnase_index_bwa.sh", "bwa"],
+    "dnase-index-bwa":    ["dnase_index_bwa.sh", "bwa", "hotspot2", "bedops"],
     "dnase-align-bwa-pe": ["dnase_align_bwa_pe.sh", "bwa", "samtools", "edwBamStats",
                            "trim-adapters-illumina", "fastq_umi_add.py (stampipes)"],
     "dnase-align-bwa-se": ["dnase_align_bwa_se.sh", "bwa", "samtools", "edwBamStats",
@@ -84,7 +84,8 @@ ALL_TOOLS = {"Anaconda3":                "ls Anaconda3*.sh | head -1 | cut -d - 
              "snow":                     "grep snow_ phantompeakqualtools/install.log | head -1 | sed 's/_/ /' | awk '{print $4}' | sed 's/\.tar\.gz.*//'",
              "spp":                      "grep spp_ phantompeakqualtools/installPkgs.R | sed 's/_/ /' | awk '{print $2}' | sed 's/\.tar\.gz.*//'",
              #"hotspot2":                 "hotspot2 --version | awk '{print $3}'",
-             "hotspot2":                 "[ -e /usr/bin/hotspot2.version ] && cat /usr/bin/hotspot2.version || hotspot2 --version | awk '{print $3}'",
+             #"hotspot2":                 "[ -e /usr/bin/hotspot2.version ] && cat /usr/bin/hotspot2.version || hotspot2 --version | awk '{print $3}'",
+             "hotspot2":                 "hotspot2_part1 --version | awk '{print $3}'",
              "modwt":                    "md5sum /usr/bin/modwt | awk '{printf \"unversioned %-8.8s\",$1}'", # From https://github.com/StamLab/modwt/tree/1.0
              "picard":                   "java -jar ./picard.jar MarkDuplicates --version", # From https://github.com/broadinstitute/picard.git
              "pigz":                     "pigz --version 2>&1 | awk '{print $2}'",

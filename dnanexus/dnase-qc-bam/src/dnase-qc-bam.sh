@@ -47,9 +47,6 @@ main() {
     set +x; 
     # additional executables in resources/usr/bin
     
-    # additional executables in resources/usr/bin
-    set +x
-    
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
     if [ -f /usr/bin/tool_versions.py ]; then 
