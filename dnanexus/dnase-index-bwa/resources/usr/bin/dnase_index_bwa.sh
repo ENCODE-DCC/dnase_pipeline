@@ -3,7 +3,8 @@
 if [ $# -lt 2 ] || [ $# -gt 5 ]; then
     echo "usage v1: dnase_index_bwa.sh <genome> <reference.fasta.gz> [<skip_indexing> <mappable_only.starch> [<blacklist.bed.gz>]]"
     echo "Indexes reference for bwa alignment.  Optionally creates hotspot mappable regions. Is independent of DX and encodeD."
-    echo "Requires bwa on path.  Making mappable regions needs: faSize, sort-bed bedops starch unstarch extractCenterSites.sh"
+    echo "Requires bwa on path.  Making mappable regions needs: faSize, extractCenterSites.sh,"
+    echo "bedops (bedmap,sort-bed,starch,starchcat,unstarch) on path."
     exit -1; 
 fi
 genome=$1               # Genome assembly (e.g. "GRCh38").
@@ -38,7 +39,7 @@ fi
 # Optionally create a mappable regions tar: faSize, sort-bed bedops starch unstarch extractCenterSites.sh
 mappable_tar=""
 if [ -f $mappable_only_starch ]; then
-    mappable_tar="${genome}_hotspot_mappable.tgz"
+    mappable_tar="${genome}_hotspot2_v2.0_mappable.tgz"
     echo "-- Create hotspot2 mappable regions archive: ${mappable_tar}"
     echo "-- Generating chrom_sizes.bed from fasta file..."
     set -x

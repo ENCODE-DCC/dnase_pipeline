@@ -2,7 +2,9 @@
 # dnase-index-bwa.sh
 
 main() {
-    # Executable in resources/usr/bin
+    # installed gawk in dxapp.json
+    alias awk='gawk'
+    # Additional executables in resources/usr/bin
 
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
@@ -69,7 +71,7 @@ main() {
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
     index_file="${genome}_bwa_index.tgz"
-    mappable_file="${genome}_hotspot_mappable.tgz"
+    mappable_file="${genome}_hotspot2_v2.0_mappable.tgz"
 
     echo "* Upload Results..."
     if [ -f $index_file ]; then

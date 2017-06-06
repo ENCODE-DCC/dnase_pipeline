@@ -68,20 +68,42 @@ if [ "$HALFWINSIZE_IS_POSITIVE_INTEGER" != "1" ]; then
   usage
 fi
 
+MIN_NUM_SITES=`echo $HALF_WINDOW_SIZE | awk '{print $1 + 1}'`
+
+TMPDIR=$(mktemp -d)
+PID=$$
+
 # Get all sites (1bp each) that can be viable centers of windows in which we'll want to tally cut counts.
-# This means all mappable sites that are not within a half-window's width
-# of any unmappable region whose width is >= the half-window width.
-if [ "$MAPPABLE_REGIONS" != "" ]; then
-  bedops --range "${HALF_WINDOW_SIZE}:-${HALF_WINDOW_SIZE}" -u "$CHROM_SIZES" \
-    | bedops -d - "$MAPPABLE_REGIONS" \
-    | awk -v "t=$HALF_WINDOW_SIZE" '{if($3-$2>=t){beg=$2-t;if(beg<0){beg=0}print $1"\t"beg"\t"$3+t}}' \
-    | bedops -d "$MAPPABLE_REGIONS" - \
-    | bedops -w - \
-    | starch - \
-      >"$OUTFILE"
-else
-  bedops --range "${HALF_WINDOW_SIZE}:-${HALF_WINDOW_SIZE}" -u "$CHROM_SIZES" \
-    | bedops -w - \
-    | starch - \
-      >"$OUTFILE"
-fi
+# We define this to be sites for which data can be observed at at least half of the sites (1bp each) in its window
+# (i.e., for which at least half of its window is mappable;
+# the site itself needn't be mappable so long as enough sites in its neighborhood are mappable).
+
+while read line
+do
+    chr=`echo $line | cut -f1 -d ' '`
+    begPos=$HALF_WINDOW_SIZE
+    endPos=`echo $line | cut -f3 -d ' ' | awk -v winSize=$HALF_WINDOW_SIZE '{print $1 - winSize}'`
+    TEMP1=${TMPDIR}/temp1_${PID}_${chr}.bed
+    TEMP2=${TMPDIR}/temp2_${PID}_${chr}.starch
+    
+    if [ "$MAPPABLE_REGIONS" != "" ]; then
+	bedops --chrom $chr --chop $MAPPABLE_REGIONS > $TEMP1
+	echo -e ${chr}"\t"${begPos}"\t"${endPos} \
+	    | bedops --chop - \
+	    | bedmap --faster --range $HALF_WINDOW_SIZE --echo --count - $TEMP1 \
+	    | awk -v minNum=$MIN_NUM_SITES -F "|" '{if($2 >= minNum){print $1}}' \
+	    | starch - \
+		     > $TEMP2
+    else
+	echo -e ${chr}"\t"${begPos}"\t"${endPos} \
+	    | bedops --chop - \
+	    | starch - \
+		     > $TEMP2
+    fi
+    rm -f $TEMP1
+
+done <<< "$(cat $CHROM_SIZES)"
+
+starchcat ${TMPDIR}/temp2_${PID}_*.starch > $OUTFILE
+
+rm -rf $TMPDIR
