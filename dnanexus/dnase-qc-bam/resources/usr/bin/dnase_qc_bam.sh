@@ -4,7 +4,7 @@ if [ $# -ne 8 ]; then
     echo "usage v1: dnase_qc_bam.sh <filtered.bam> <sample_size> <ncpus> <pe_or_se> <assembly> <mappable.tgz> <read_length> <hotspot_dir>"
     echo "Evaluates filtered aligned reads for DNase using HotSpot1 and other tools.  Is independent of DX and encodeD."
     echo "Requires edwBamFilter, edwBamStats, samtools, Rscript, phantompeakqualtools, caTools, snow, spp, gawk,"
-    echo "         hotspot, hotspot.py (GCAP), bedops and bedtools on path."
+    echo "         hotspot, hotspot.py, bedops and bedtools on path."
     exit -1; 
 fi
 filtered_bam=$1 # filtered bam file.

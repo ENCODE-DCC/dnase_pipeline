@@ -12,6 +12,7 @@ ncpus=$3           # Number of cpus available
 filtered_bam_root=$4 # root name for output bam (e.g. "out" will create "out.bam" and "out_flagstat.txt") 
 
 unfiltered_bam_root=${unfiltered_bam%.bam}
+marked_bam_root="${unfiltered_bam_root}_marked"
 echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
 echo "-- Sort bam by location."
@@ -24,7 +25,7 @@ echo "-- Running picard mark duplicates on non-UMI..."
 # stampipes/makefiles/picard/dups.mk
 set -x
 time java -jar ./picard.jar MarkDuplicates \
-    INPUT=sorted.bam OUTPUT=marked.bam METRICS_FILE=${filtered_bam_root}_dup_qc.txt \
+    INPUT=sorted.bam OUTPUT=${marked_bam_root}.bam METRICS_FILE=${filtered_bam_root}_dup_qc.txt \
     ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
     READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'
 set +x
@@ -49,7 +50,7 @@ echo "-- Filter on flags and threashold..."
 # 1024 read is PCR or optical duplicate
 # 2048 supplementary alignment
 set -x
-samtools view -F $filter_flags -q ${map_thresh} -b marked.bam > ${filtered_bam_root}.bam
+samtools view -F $filter_flags -q ${map_thresh} -b ${marked_bam_root}.bam > ${filtered_bam_root}.bam
 set +x
 
 echo "-- Collect bam stats..."
@@ -62,6 +63,6 @@ grep ^SN ${filtered_bam_root}_samstats.txt | cut -f 2- > ${filtered_bam_root}_sa
 set +x
 
 echo "-- The results..."
-ls -l ${filtered_bam_root}* ${unfiltered_bam_root}_flagstat.txt
+ls -l ${filtered_bam_root}* ${unfiltered_bam_root}_flagstat.txt ${marked_bam_root}.bam 
 df -k .
 

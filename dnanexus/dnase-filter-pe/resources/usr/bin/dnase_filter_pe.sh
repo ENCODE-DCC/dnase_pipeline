@@ -13,6 +13,7 @@ umi=$4             # Whether reads in bam contain UMI ids (only 'yes' means yes)
 filtered_bam_root=$5 # root name for output bam (e.g. "out" will create "out.bam" and "out_flagstat.txt") 
 
 unfiltered_bam_root=${unfiltered_bam%.bam}
+marked_bam_root="${unfiltered_bam_root}_marked"
 echo "-- Filtered alignments file will be: '${filtered_bam_root}.bam'"
 
 echo "-- Sort bam by name."
@@ -21,7 +22,6 @@ samtools sort -@ $ncpus -m 4G -n -O sam -T sorted $unfiltered_bam > sorted.sam
 set +x
 echo "-- Handle UMI flagging and errors with 'filter_reads.py'."
 # NOTE script written for python3 works just as well for python2.7 as long as pysam works
-marked_root="${unfiltered_bam_root}_marked"
 set -x
 python2.7 ./filter_reads.py --min_mapq $map_thresh sorted.sam flagged_presorted.sam
 set +x
@@ -48,7 +48,7 @@ if [ "$umi" == "yes" ] || [ "$umi" == "y" ] || [ "$umi" == "true" ] || [ "$umi" 
 	# stampipes/makefiles/picard/dups_cigarumi.mk
     set -x
     time java -jar ./picard.jar UmiAwareMarkDuplicatesWithMateCigar \
-        INPUT=cigar.bam OUTPUT=marked.bam METRICS_FILE=${filtered_bam_root}_dup_qc.txt \
+        INPUT=cigar.bam OUTPUT=${marked_bam_root}.bam METRICS_FILE=${filtered_bam_root}_dup_qc.txt \
         UMI_TAG_NAME=XD ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
         READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'    
 	set +x		
@@ -63,7 +63,7 @@ else
 	# stampipes/makefiles/picard/dups_cigar.mk
     set -x
     time java -jar ./picard.jar MarkDuplicatesWithMateCigar \
-        INPUT=cigar.bam OUTPUT=marked.bam METRICS_FILE=${filtered_bam_root}_dup_qc.txt \
+        INPUT=cigar.bam OUTPUT=${marked_bam_root}.bam METRICS_FILE=${filtered_bam_root}_dup_qc.txt \
 	    ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
         READ_NAME_REGEX='[a-zA-Z0-9]+:[0-9]+:[a-zA-Z0-9]+:[0-9]+:([0-9]+):([0-9]+):([0-9]+).*'
     set +x
@@ -93,7 +93,7 @@ echo "-- Filter bam and threshold..."
 # 1024 read is PCR or optical duplicate
 # 2048 supplementary alignment
 set -x
-samtools view -F $filter_flags -q ${map_thresh} -b marked.bam > ${filtered_bam_root}.bam
+samtools view -F $filter_flags -q ${map_thresh} -b ${marked_bam_root}.bam > ${filtered_bam_root}.bam
 set +x
 
 echo "-- Collect bam stats..."
@@ -106,6 +106,6 @@ grep ^SN ${filtered_bam_root}_samstats.txt | cut -f 2- > ${filtered_bam_root}_sa
 set +x
 
 echo "-- The results..."
-ls -l ${filtered_bam_root}* ${unfiltered_bam_root}_flagstat.txt
+ls -l ${filtered_bam_root}* ${unfiltered_bam_root}_flagstat.txt ${marked_bam_root}.bam
 df -k .
 
