@@ -119,6 +119,9 @@ main() {
     
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     filtered_bam_root="${merged_bam_root}_filtered"
+    # TEMPORARY
+    marked_bam_root="${merged_bam_root}_marked"
+    # TEMPORARY
     set -x
     dnase_filter_pe.sh ${merged_bam_root}.bam $map_thresh $nthreads $umi "$filtered_bam_root"
     set +x
@@ -169,9 +172,16 @@ main() {
                                       --property filtered_mapped_reads="$filtered_mapped_reads" \
                                       --property read_length="$read_len" --property from_UMI="$umi" --brief)
     bam_filtered_qc=$(dx upload ${filtered_bam_root}_qc.txt --details "{ $qc_filtered }" --property from_UMI="$umi" --property SW="$versions" --brief)
+    # TEMPORARY
+    bam_marked=$(dx upload ${marked_bam_root}.bam --details "{ $qc_filtered }" --property SW="$versions" --brief)
+    # TEMPORARY
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file
     dx-jobutil-add-output bam_filtered_qc "$bam_filtered_qc" --class=file
+
+    # TEMPORARY
+    dx-jobutil-add-output bam_marked "$bam_marked" --class=file
+    # TEMPORARY
 
     dx-jobutil-add-output prefiltered_all_reads "$prefiltered_all_reads" --class=string
     dx-jobutil-add-output prefiltered_mapped_reads "$prefiltered_mapped_reads" --class=string

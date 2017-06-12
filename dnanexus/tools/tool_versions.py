@@ -24,7 +24,7 @@ APP_TOOLS = {
                            "Rscript", "phantompeakqualtools", "caTools", "snow", "spp", "gawk",
                            "hotspot1", "hotspot.py", "bedops", "bedtools"],
     "dnase-density":      ["dnase_density.sh", "samtools", "bedops", "bedGraphToBigWig", "gawk"],
-    "dnase-call-hotspots": ["dnase_hotspot.sh", "samtools", "hotspot2", "bedops", "modwt", "mawk",
+    "dnase-call-hotspots": ["dnase_hotspot.sh", "samtools", "hotspot2", "bedops", "modwt", "gawk", "mawk",
                             "bedToBigBed", "bedGraphToBigWig"],
     "dnase-rep-corr":      ["dnase_rep_corr.sh", "chromCor.Rscript", "bigWigToWig", "bedops"],
     # special for optional output
