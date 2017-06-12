@@ -4,7 +4,8 @@
 main() {
     # installed pigz and gawk in dxapp.json
     alias awk='gawk'
-    # hotspot and beops executables in resources/usr/bin
+    #alias mawk='gawk'
+    # hotspot and bedops executables in resources/usr/bin
     
     # If available, will print tool versions to stderr and json string to stdout
     versions=''

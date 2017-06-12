@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots",
-  "title": "Call hotspots (v2.0.0)",
+  "title": "Call hotspots (v2.0.2)",
   "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -25,7 +25,7 @@
       "label": "Hotspot mappable regions archive",
       "class": "file",
       "optional": false,
-      "patterns": ["*_hotspot_mappable.tgz"]
+      "patterns": ["*_hotspot2_v2.0_mappable.tgz"]
     }
   ],
   "outputSpec": [
@@ -81,8 +81,7 @@
     "interpreter": "bash",
     "file": "src/dnase-call-hotspots.sh",
     "systemRequirements": {  "main": { "instanceType": "mem2_ssd1_x4" } },
-    "execDepends": [ { "name": "gawk" },
-                     { "name": "pigz" } ]
+    "execDepends": [ { "name": "pigz" } ]
   },
   "access": {
     "network": [

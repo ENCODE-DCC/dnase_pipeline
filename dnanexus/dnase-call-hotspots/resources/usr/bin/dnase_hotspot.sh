@@ -3,9 +3,9 @@
 if [ $# -lt 6 ] || [ $# -gt 7 ]; then
     echo "usage v1: dnase_hotspot.sh <aligned.bam> <chrom.sizes> <mappable.tgz> <hotspot_root> <peaks_root> <density_root> [<allcalls_root>]"
     echo "Calls peaks hotspot2.  Is independent of DX and encodeD."
-    echo "Requires hotspot2 (hotspot2,hotspot2.sh,cutcounts.bash,density-peaks.bash,bed_exclude.py),"
-    echo "         bedops (bam2bed,bedmap,sort-bed,starch,unstarch), modwt, mawk, samtools, bedToBigBed, bedGraphToBigWig,"
-    echo "         and pigz on path."
+    echo "Requires hotspot2 (hotspot2,hotspot2.sh,cutcounts.bash,density-peaks.bash,hsmerge.sh),"
+    echo "         bedops (bam2bed,bedmap,sort-bed,starch,unstarch), modwt, mawk, samtools, bedToBigBed,"
+    echo "         bedGraphToBigWig, and pigz on path."
     exit -1; 
 fi
 bam_file=$1      # Bam file on which hotspot will be run.

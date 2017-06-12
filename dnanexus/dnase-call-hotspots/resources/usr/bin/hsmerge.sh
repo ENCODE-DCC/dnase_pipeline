@@ -100,15 +100,10 @@ merge() {
 }
 
 # We report the largest -log10(FDR) observed at any bp of a hotspot
-
 # as the "score" of that hotspot, where FDR is the site-specific FDR estimate.
-
 # FDR values of 0 will be encountered, and we don't want to do log(0).
-
 # Nonzero FDR values as low as 1e-308 have been seen during testing.
-
 # We choose to cap all FDR estimates at 1e-100, i.e. -log10(FDR) = 100.
-
 # The constant c below converts from natural logarithm to log10.
 
 annotate() {
@@ -128,7 +123,7 @@ annotate() {
           print $1, $2, $3, "id-"NR, max_col5, ".","-1","-1", max
         } else {
           col9 = c*log($4)
-          print $1, $2, $3, "id-"NR, 10*int(col9 + 0.5), ".","-1","-1", col9
+          print $1, $2, $3, "id-"NR, int(10*col9 + 0.5), ".","-1","-1", col9
         }
       }
     }'
@@ -140,7 +135,7 @@ annotate() {
 unstarch "$infile" \
   | filter \
   | merge \
-  | bedmap --faster --sweep-all --delim "\t" --echo --min - "$infile" \
+  | bedmap --faster --sweep-all --sci --delim "\t" --echo --min - "$infile" \
   | annotate \
   | starch - \
     >"$outfile"

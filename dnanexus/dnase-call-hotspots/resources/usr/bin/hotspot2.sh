@@ -30,12 +30,9 @@ Options:
     -n NEIGHBORHOOD_SIZE  Local neighborhood size (100)
     -w WINDOW_SIZE        Background region size  (25000)
     -m MIN_HOTSPOT_WIDTH  Minimum hotspot width allowed (50)
-    -p PVAL_FDR           Number of P-values to use for FDR (1000000)
     -P                    Write P-values to output file, in column 6 (not written by default)
     -f HOTSPOT_THRESHOLD  False-discovery rate to use for hotspot filtering (0.05)
     -F SITECALL_THRESHOLD False-discovery rate to use for site-call filtering (0.05)
-    -s SEED               (lowercase 's')
-                          Set this to an integer for repeatable results
     -S SMOOTHING_PARAM    (uppercase 'S')
                           Advanced option, to influence curve fitting (5).
                           Should be a small odd integer >=5; for noisy data, try 17.
@@ -49,6 +46,7 @@ Options:
     HOTSPOT_THRESHOLD < x <= SITECALL_THRESHOLD without re-running $0,
     via the script hsmerge.sh. It is generally recommended to set SITECALL_THRESHOLD
     to the lowest value at which you might to investigate hotspots, e.g. 0.05 or 0.10.
+    Higher values are generally only useful for debugging.
 
 __EOF__
   exit 2
@@ -73,7 +71,6 @@ MAPPABLE_REGIONS=""
 SITE_NEIGHBORHOOD_HALF_WINDOW_SIZE=100 # i.e., 201bp regions
 BACKGROUND_WINDOW_SIZE=50001           # i.e., +/-25kb around each position
 MIN_HOTSPOT_WIDTH=50
-PVAL_DISTN_SIZE=1000000
 HOTSPOT_FDR_THRESHOLD="0.05"
 CALL_THRESHOLD="$HOTSPOT_FDR_THRESHOLD"
 SEED=$RANDOM
@@ -107,9 +104,6 @@ while getopts 'hc:C:M:e:f:F:m:n:p:s:S:w:P' opt; do
       ;;
     n)
       SITE_NEIGHBORHOOD_HALF_WINDOW_SIZE=$OPTARG
-      ;;
-    p)
-      PVAL_DISTN_SIZE=$OPTARG
       ;;
     P)
       WRITE_PVALS="--write_pvals"
@@ -167,13 +161,14 @@ BAM=$1
 OUTDIR=$2
 
 log "Checking system for required executables..."
-require_exes modwt bedGraphToBigWig bedmap samtools hotspot2
+require_exes modwt bedGraphToBigWig bedmap samtools hotspot2_part1 hotspot2_part2
 
 WAVELETS_EXE=$(which modwt)
 CUTCOUNT_EXE="$(dirname "$0")/cutcounts.bash"
 DENSPK_EXE="$(dirname "$0")/density-peaks.bash"
 MERGE_EXE="$(dirname "$0")/hsmerge.sh"
-HOTSPOT_EXE=hotspot2
+HOTSPOT_EXE1=hotspot2_part1
+HOTSPOT_EXE2=hotspot2_part2
 
 # Prefer mawk, if installed
 AWK_EXE=$(which mawk 2>/dev/null || which awk)
@@ -198,31 +193,29 @@ if [[ -z "$TMPDIR" ]]; then
   clean=1
 fi
 
+# temporary files
+TEMP_CHROM_MAPPING_HOTSPOT2PART1=${TMPDIR}/temp_chrom_mapping_hotspot2part1.txt
+TEMP_PVALS=${TMPDIR}/temp_pvals.txt
+TEMP_INTERMEDIATE_FILE_HOTSPOT2PART1=${TMPDIR}/temp_intermediateFile_hotspot2part1.txt
+
 log "Generating cut counts..."
 bash "$CUTCOUNT_EXE" "$BAM" "$CUTCOUNTS" "$FRAGMENTS_OUTFILE" "$TOTALCUTS_OUTFILE" "$CHROM_SIZES" "$MAPPABLE_REGIONS"
 
-log "Running hotspot2..."
+log "Tallying filtered cut counts in small windows and running part 1 of hotspot2..."
 bedmap --faster --range "$SITE_NEIGHBORHOOD_HALF_WINDOW_SIZE" --delim "\t" --prec 0 --echo --sum "$CENTER_SITES" "$CUTCOUNTS" \
-  | awk 'BEGIN{OFS="\t"}
-          {
-            if("NAN"==$4){$4=0}
-            if(NR>1){
-              if($1!=prev1 || $2!=prev3 || $4!=prev4){
-                print prev1,prev2,prev3,"i",prev4;
-                prev1=$1;
-                prev2=$2;
-                prev4=$4
-              }
-            } else {
-              prev1=$1;
-              prev2=$2;
-              prev4=$4
-            }
-            prev3=$3
-          }
-          END { print prev1,prev2,prev3,"i",prev4 }' \
-  | "$HOTSPOT_EXE" --fdr_threshold="$CALL_THRESHOLD" --background_size="$BACKGROUND_WINDOW_SIZE" --num_pvals="$PVAL_DISTN_SIZE" --seed="$SEED" $WRITE_PVALS $SMOOTHING_PARAM \
-  | starch - \
+  | "$AWK_EXE" 'BEGIN{OFS="\t"}{if("NAN"==$4){$4=0} print $1, $2, $3, "i", $4}' \
+  | "$HOTSPOT_EXE1" --background_size="$BACKGROUND_WINDOW_SIZE" -c $TEMP_CHROM_MAPPING_HOTSPOT2PART1 -p $TEMP_PVALS -o $TEMP_INTERMEDIATE_FILE_HOTSPOT2PART1
+if [ "$?" != "0" ]; then
+    echo -e "An error occurred when calling bedmap on the \"center sites\" and filtered cut counts file, or while running part 1 of hotspot2."
+    exit 2
+fi
+
+numEntries=`wc -l < $TEMP_PVALS` # used to aid memory allocation
+
+log "Running part 2 of hotspot2..."
+"$HOTSPOT_EXE2" --fdr_threshold="$CALL_THRESHOLD" $WRITE_PVALS $SMOOTHING_PARAM \
+		-i $TEMP_INTERMEDIATE_FILE_HOTSPOT2PART1 -n $numEntries -c $TEMP_CHROM_MAPPING_HOTSPOT2PART1 -p $TEMP_PVALS \
+    | starch - \
     >"$OUTFILE"
 
 # We report the largest -log10(FDR) observed at any bp of a hotspot
