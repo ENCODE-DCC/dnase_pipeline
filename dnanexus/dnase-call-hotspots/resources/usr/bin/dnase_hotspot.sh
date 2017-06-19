@@ -30,24 +30,26 @@ set -x
 hotspot2.sh -c chrom_sizes.bed -C center_sites.starch -M mappable_target.starch $bam_file out/
 set +x
 
-echo "-- houtspot2.sh out/..."
+echo "-- hotspot2.sh out/..."
 ls -l out
 
 echo "-- Converting hotspots to bed.gz and bigBed..."
 set -x
 mv out/*.hotspots.fdr*.starch ${hotspot_root}.starch
+unstarch --elements ${hotspot_root}.starch > ${hotspot_root}_count.txt
 unstarch ${hotspot_root}.starch > ${hotspot_root}.bed
 bedToBigBed -as=/usr/bin/broadPeak.as -type=bed6+3 ${hotspot_root}.bed $chrom_sizes ${hotspot_root}.bb
-grep "^chr" ${hotspot_root}.bed | wc -l > ${hotspot_root}_count.txt
+#grep "^chr" ${hotspot_root}.bed | wc -l > ${hotspot_root}_count.txt
 pigz ${hotspot_root}.bed
 set +x
 
 echo "-- Converting narrowpeaks to bed.gz and bigBed..."
 set -x
 mv out/*.peaks.narrowpeaks.starch ${peaks_root}.starch
+unstarch --elements ${peaks_root}.starch > ${peaks_root}_count.txt
 unstarch ${peaks_root}.starch > ${peaks_root}.bed
 bedToBigBed -as=/usr/bin/narrowPeak.as -type=bed6+4 ${peaks_root}.bed $chrom_sizes ${peaks_root}.bb
-grep "^chr" ${peaks_root}.bed | wc -l > ${peaks_root}_count.txt
+#grep "^chr" ${peaks_root}.bed | wc -l > ${peaks_root}_count.txt
 pigz ${peaks_root}.bed
 set +x
 
@@ -68,8 +70,9 @@ if [ $# -eq 7 ]; then
     echo "-- Counting allcalls..."
     set -x
     mv out/*.allcalls.starch ${allcalls_root}.starch
+    unstarch --elements ${allcalls_root}.starch > ${allcalls_root}_count.txt
     unstarch ${allcalls_root}.starch > ${allcalls_root}.bed
-    grep "^chr" ${allcalls_root}.bed | wc -l > ${allcalls_root}_count.txt
+    #grep "^chr" ${allcalls_root}.bed | wc -l > ${allcalls_root}_count.txt
     pigz ${allcalls_root}.bed
     set +x
 fi

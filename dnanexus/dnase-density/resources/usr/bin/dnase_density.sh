@@ -23,6 +23,10 @@ BINI=20
 WIN=75
 SCALE=1000000
 
+echo "-- Make sure no alts are in chrom_sizes.bw'"
+grep -v _alt ${chrom_sizes} > no_alt_${chrom_sizes}
+chrom_sizes=no_alt_${chrom_sizes}
+
 if [ "$chrom_buckets" != "" ]; then
     chrom_buckets_root=${chrom_buckets%.bed.gz}
     if [ "$chrom_buckets_root" != "$chrom_buckets" ]; then

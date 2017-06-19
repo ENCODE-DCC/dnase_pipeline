@@ -53,7 +53,7 @@ if [ -f $mappable_only_starch ]; then
         if [ "$blacklist_bed" != "$blacklist_bed_gz" ]; then
             echo "-- Uncompressing blacklist..."
             set -x
-            gunzip $blacklist_bed_gz 
+            gunzip --stdout $blacklist_bed_gz | sort-bed - > $blacklist_bed
             set +x
         fi
         echo "-- Subtracting blacklist from mappable regions..."

@@ -1,9 +1,9 @@
 {
   "name": "dnase-density",
-  "title": "Normalize density (v1.0.0)",
+  "title": "Normalize density (v1.0.1)",
   "summary": "Creates a normalized density signal from the filtered alignmnet for the ENCODE DNase-seq pipeline.",
   "dxapi": "1.0.0",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -38,10 +38,7 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-density.sh",
-    "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x4" } },
-    "execDepends": [ 
-        { "name": "gawk" } 
-    ]
+    "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x4" } }
   },
   "access": {
     "network": [
