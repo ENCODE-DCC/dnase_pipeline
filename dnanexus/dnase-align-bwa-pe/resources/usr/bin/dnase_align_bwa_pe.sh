@@ -51,10 +51,13 @@ ref_id=${ref_fa%.fa}
 
 echo "-- Aligning with bwa to ${ref_id}..."
 set -x
-bwa aln -q 5 -l 32 -k 2 -t $ncpus $ref_id $reads1_fq_gz > tmp_1.sai
-bwa aln -q 5 -l 32 -k 2 -t $ncpus $ref_id $reads2_fq_gz > tmp_2.sai
-bwa sampe -P $ref_id tmp_1.sai tmp_2.sai $reads1_fq_gz $reads2_fq_gz > tmp_pe.sam
-samtools view -Shb tmp_se.sam > tmp.bam
+#bwa aln -q 5 -l 32 -k 2 -t $ncpus $ref_id $reads1_fq_gz > tmp_1.sai
+#bwa aln -q 5 -l 32 -k 2 -t $ncpus $ref_id $reads2_fq_gz > tmp_2.sai
+#bwa sampe -P $ref_id tmp_1.sai tmp_2.sai $reads1_fq_gz $reads2_fq_gz > tmp_pe.sam
+bwa aln -Y -l 32 -n 0.04 -t $ncpus $ref_id $reads1_fq_gz > tmp_1.sai
+bwa aln -Y -l 32 -n 0.04 -t $ncpus $ref_id $reads2_fq_gz > tmp_2.sai
+bwa sampe -n 10 -a 750 $ref_id tmp_1.sai tmp_2.sai $reads1_fq_gz $reads2_fq_gz > tmp_pe.sam
+samtools view -Shb tmp_pe.sam > tmp.bam
 samtools sort -@ $ncpus -m 4G -f tmp.bam ${bam_root}.bam 
 samtools index ${bam_root}.bam
 #samtools view -H ${bam_root}.bam
