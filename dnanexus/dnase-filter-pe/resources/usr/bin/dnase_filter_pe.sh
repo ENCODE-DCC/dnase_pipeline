@@ -3,7 +3,8 @@
 if [ $# -ne 5 ]; then
     echo "usage v1: dnase_filter_pe.sh <unfiltered.bam> <map_threshold> <ncpus> <umi> <filtered_bam_root>"
     echo "Filters paired-end aligned reads for DNase.  Is independent of DX and encodeD."
-    echo "Requires samtools, java8 on path, and (umi aware) picard.jar and filter_reads.py in working directory."
+    echo "Requires samtools, java8, python2.7 on path, pysam0.9.0 module installed and "
+    echo "(umi aware) picard.jar and filter_reads.py in working directory."
     exit -1; 
 fi
 unfiltered_bam=$1  # unfiltered bam file.
@@ -25,7 +26,6 @@ echo "-- Handle UMI flagging and errors with 'filter_reads.py'."
 set -x
 python2.7 ./filter_reads.py --min_mapq $map_thresh sorted.sam flagged_presorted.sam
 set +x
-#samtools view -bS flagged_presorted.sam > flagged.bam
 echo "-- Sort bam by location."
 set -x
 samtools sort -@ $ncpus -m 4G -O bam -T flagged flagged_presorted.sam > flagged.bam
@@ -93,7 +93,7 @@ echo "-- Filter bam and threshold..."
 # 1024 read is PCR or optical duplicate
 # 2048 supplementary alignment
 set -x
-samtools view -F $filter_flags -q ${map_thresh} -b ${marked_bam_root}.bam > ${filtered_bam_root}.bam
+samtools view -F $filter_flags -b ${marked_bam_root}.bam > ${filtered_bam_root}.bam
 set +x
 
 echo "-- Collect bam stats..."

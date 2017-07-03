@@ -229,7 +229,7 @@ class DnaseLaunch(Launch):
         
         # Some specific settings
         psv['nthreads']    = 8
-        psv['map_thresh']  = 3
+        psv['map_thresh']  = 10
         psv['sample_size'] = 15000000
         psv['read_length'] = args.read_length
         psv['pe_or_se'] = "pe"

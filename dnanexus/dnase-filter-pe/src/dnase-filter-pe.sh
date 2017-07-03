@@ -2,9 +2,11 @@
 # dnase-filter-pe.sh - Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline.
 
 main() {
-    echo "Installing picard tools..."
+    echo "Installing picard tools and pysam..."
     set -x
     wget https://github.com/broadinstitute/picard/releases/download/2.8.1/picard.jar > install.log 2>&1
+    tail -2 install.log
+    sudo pip install -I pysam==0.9.0 >> install.log 2>&1
     tail -2 install.log
     mv /usr/bin/filter_reads.py .
     set +x
@@ -71,6 +73,7 @@ main() {
             mv ${file_root}_bwa.bam sofar.bam
         else
             echo "* Merging..."
+            # cat is faster than merge and samtools sort -n is first step of actual processing
             set -x
             samtools cat sofar.bam ${file_root}_bwa.bam > merging.bam
             mv merging.bam sofar.bam
@@ -173,7 +176,7 @@ main() {
                                       --property read_length="$read_len" --property from_UMI="$umi" --brief)
     bam_filtered_qc=$(dx upload ${filtered_bam_root}_qc.txt --details "{ $qc_filtered }" --property from_UMI="$umi" --property SW="$versions" --brief)
     # TEMPORARY
-    bam_marked=$(dx upload ${marked_bam_root}.bam --details "{ $qc_filtered }" --property SW="$versions" --brief)
+    bam_marked=$(dx upload ${marked_bam_root}.bam --property SW="$versions" --brief)
     # TEMPORARY
 
     dx-jobutil-add-output bam_filtered "$bam_filtered" --class=file

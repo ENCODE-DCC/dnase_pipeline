@@ -66,7 +66,6 @@ def validate_read(read, min_mapq = 1, max_mismatches = 2):
     if read.mapping_quality < min_mapq: raise read_exception("Read MAPQ < %d" % min_mapq)
     if read.is_unmapped: raise read_exception("Read not mapped")
     if read.get_tag("NM") > max_mismatches: raise read_exception("Read mismatches > %d" % max_mismatches)
-    if "S" in read.cigarstring: raise read_exception("Read is soft-clipped")
 
     return read
 
