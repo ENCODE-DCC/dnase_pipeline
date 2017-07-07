@@ -7,7 +7,7 @@ def main():
     genomes = ['hg38', 'hg19', 'mm9', 'mm10']
     dataTypes = ['DNase-seq', 'ChIP-seq']
 
-    parser = argparse.ArgumentParser(description = 'Hotspot wrapper for Uniform Analysis Pipeline. Version 3')
+    parser = argparse.ArgumentParser(description = 'Hotspot wrapper for Uniform Analysis Pipeline. Version 3.1')
     parser.add_argument('hotspotLocation', help='The directory to the hotspot installation, for instance "/tools/hotspot/dir"')
     parser.add_argument('inputBam', help='Alignment file (in BAM format) to run hotspot on')
     parser.add_argument('genome', help='Which genome to use, the following are supported: ' + ','.join(genomes))
@@ -16,7 +16,7 @@ def main():
     parser.add_argument('tmpDir', help='Path to a temporary directory that will be created by this tool and cleaned up afterwards')
     parser.add_argument('outputDir', help='Path to a directory to which the output files will be copied')
     parser.add_argument('-s', '--seed', type=int, default=101)
-    parser.add_argument('-o', '--onlyspot', action="store_false", default=True)
+    parser.add_argument('-o', '--onlyspot', action="store_true", default=False)
     parser.add_argument('-i', '--inputControl', default=None, help='Bam file, For ChIP-seq runs, an input will be required')
     parser.add_argument('-c', '--checkChr', default=None, help='Tests a portion of the given chromosome (e.g. chrX)')
 
@@ -123,7 +123,10 @@ def main():
         else:
             tokens.write('_DUPOK_ = F\n')
             
-        tokens.write('_FDRS_ = "0.01"\n')
+        if args.onlyspot:
+            tokens.write('_FDRS_ = "N"\n')
+        else:
+            tokens.write('_FDRS_ = "0.01"\n')
         tokens.write('_DENS_:\n')  # If not provided, will be generated
         tokens.write('_OUTDIR_ = %s\n' % args.tmpDir[:-1])
         tokens.write('_RANDIR_ = %s\n' % args.tmpDir[:-1]) # Nothing overlaps
@@ -158,21 +161,26 @@ def main():
         runhotspot.write('scriptTokBin=%s\n' % tokenizerExe)
         runhotspot.write('pipeDir=%s\n' % pipeDir)
         runhotspot.write('tokenFile=%s\n' % tokensName)
-        runhotspot.write('scripts="$pipeDir/run_badspot\n')
-        runhotspot.write('    $pipeDir/run_make_lib\n')
-        runhotspot.write('    $pipeDir/run_wavelet_peak_finding\n')
-        runhotspot.write('    $pipeDir/run_10kb_counts\n')
-        runhotspot.write('    $pipeDir/run_generate_random_lib\n')
-        runhotspot.write('    $pipeDir/run_pass1_hotspot\n')
-        runhotspot.write('    $pipeDir/run_pass1_merge_and_thresh_hotspots\n')
-        runhotspot.write('    $pipeDir/run_pass2_hotspot\n')
-        runhotspot.write('    $pipeDir/run_rescore_hotspot_passes\n')
 
-        if not args.onlyspot:
-            runhotspot.write('    $pipeDir/run_spot"\n')
+        if args.onlyspot:
+            runhotspot.write('scripts="$pipeDir/run_make_lib\n')
+            runhotspot.write('    $pipeDir/run_10kb_counts\n')
+            runhotspot.write('    $pipeDir/run_pass1_hotspot\n')
+            runhotspot.write('    $pipeDir/run_pass1_merge_and_thresh_hotspots\n')
+            runhotspot.write('    $pipeDir/run_pass2_hotspot\n')
+            runhotspot.write('    $pipeDir/run_rescore_hotspot_passes\n')
+            runhotspot.write('    $pipeDir/run_spot"\n') # Indeed, no need for all reads peak call
         else:
-            runhotspot.write('    $pipeDir/run_spot\n') ## Indeed, no need for all reads peak call
-        if args.onlyspot: ## only computing SPOT score, do not call narrowpeak
+            runhotspot.write('scripts="$pipeDir/run_badspot\n')
+            runhotspot.write('    $pipeDir/run_make_lib\n')
+            runhotspot.write('    $pipeDir/run_wavelet_peak_finding\n')
+            runhotspot.write('    $pipeDir/run_10kb_counts\n')
+            runhotspot.write('    $pipeDir/run_generate_random_lib\n')
+            runhotspot.write('    $pipeDir/run_pass1_hotspot\n')
+            runhotspot.write('    $pipeDir/run_pass1_merge_and_thresh_hotspots\n')
+            runhotspot.write('    $pipeDir/run_pass2_hotspot\n')
+            runhotspot.write('    $pipeDir/run_rescore_hotspot_passes\n')
+            runhotspot.write('    $pipeDir/run_spot\n')
             runhotspot.write('    $pipeDir/run_thresh_hot.R\n')
             runhotspot.write('    $pipeDir/run_both-passes_merge_and_thresh_hotspots\n')
             runhotspot.write('    $pipeDir/run_add_peaks_per_hotspot\n')
@@ -199,7 +207,7 @@ def main():
         os.makedirs(args.outputDir)
 
     # move out all the files we want to keep
-    if args.onlyspot:
+    if not args.onlyspot:
         for hotfile, outfile in outputs.items():
             print(" cp %s %s\n" % (hotfile, outfile))
             os.rename(hotfile, outfile)

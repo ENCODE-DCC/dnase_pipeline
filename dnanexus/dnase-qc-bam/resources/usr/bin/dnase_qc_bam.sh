@@ -39,14 +39,11 @@ set -x
 edwBamFilter -sponge -chrom=chrM $filtered_bam ${bam_no_chrM_root}.bam  ## qc based on bam without chrm
 set +x
 if [ "$pe_or_se" == "pe" ]; then
-    echo "-- Sorting by name for paired-end data..."
-    # Note the sort by name which is needed for proper pe sampling
+    echo "-- Restricting paired-end data to R1 only..."
     set -x
-    samtools sort -@ $ncpus -m 6G -n -f ${bam_no_chrM_root}.bam ${bam_no_chrM_root}_byname.sam ## for pbc usage
-    samtools view -hb ${bam_no_chrM_root}_byname.sam > ${bam_no_chrM_root}_byname.bam
-    rm *.sam
+    samtools view -hbf 0x40 ${bam_no_chrM_root}.bam > ${bam_no_chrM_root}_R1.bam
     set +x
-    bam_no_chrM_root="${bam_no_chrM_root}_byname"
+    bam_no_chrM_root="${bam_no_chrM_root}_R1"
 fi
 set -x
 samtools index ${bam_no_chrM_root}.bam
@@ -89,12 +86,15 @@ set +x
 # Expect: chrom_sizes.bed, center_sites.starch, mappable_target.starch, GRCh38_no_alts.K36.mappable_only.starch, GRCh38.blacklist.bed
 
 echo "-- Creating chromInfo.bed from chrom_sizes.bed..."
-# Reducing to min chroms appears to be necessary for hotspot1
-grep -w chr[1-9] chrom_sizes.bed > min_chrom.sizes
-grep -w chr[1-2][0-9] chrom_sizes.bed >> min_chrom.sizes
-grep -w chr[X,Y] chrom_sizes.bed >> min_chrom.sizes
+# Reducing to min chroms isn't helpful for scoring, but appears to be necessary for peak calling!
+#grep -w chr[1-9] chrom_sizes.bed > min_chrom.sizes
+#grep -w chr[1-2][0-9] chrom_sizes.bed >> min_chrom.sizes
+#grep -w chr[X,Y] chrom_sizes.bed >> min_chrom.sizes
+#cat min_chrom.sizes | awk '{printf "%s\t%s\t%s\t%s\n",$1,$2,$3,$1}' | sort-bed - > ${assembly}.chromInfo.bed
 ## sort-bed is important!
-cat min_chrom.sizes | awk '{printf "%s\t%s\t%s\t%s\n",$1,$2,$3,$1}' | sort-bed - > ${assembly}.chromInfo.bed
+set -x
+grep ^chr chrom_sizes.bed | awk '{printf "%s\t%s\t%s\t%s\n",$1,$2,$3,$1}' | sort-bed - > ${assembly}.chromInfo.bed
+set +x
 
 echo "-- Moving hotspot1 mappable file to expected name and place..."
 mappable=${assembly}.K${read_length}.mappable_only
