@@ -2,16 +2,14 @@
 # dnase-filter-se.sh - Merge and filter bams (single-end) for the ENCODE DNase-seq pipeline.
 
 main() {
-    echo "Installing picard tools..."
+    echo "Installing picard tools and pysam..."
     set -x
-    git clone --branch 2.8.1 https://github.com/broadinstitute/picard.git
-    cd picard
-    ./gradlew shadowJar > install.log 2>&1
-    tail install.log
-    cd ..
-    mv ./picard/build/libs/picard.jar .
+    wget https://github.com/broadinstitute/picard/releases/download/2.8.1/picard.jar > install.log 2>&1
+    tail -2 install.log
+    sudo pip install -I pysam==0.9.0 >> install.log 2>&1
+    tail -2 install.log
+    mv /usr/bin/filter_reads.py .
     set +x
-    # executables in resources/usr/bin
 
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
