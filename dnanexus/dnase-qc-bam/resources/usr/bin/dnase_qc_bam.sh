@@ -103,9 +103,9 @@ if [ "$read_length" == "36" ]; then
     set -x
     unstarch mappable_target.starch > ${hotspot_dir}/hotspot-distr/data/${mappable}.bed
     # Note that the blacklist is already removed from mappable_targets so will be a noop but hotspot1 doesn't know that.
-    if [ -e ${assembly}.blacklist.bed ]; then
+    if [ -e *.blacklist.bed ]; then
         set -x
-        cp ${assembly}.blacklist.bed ${hotspot_dir}/hotspot-distr/data/${satellites}.bed
+        cp *.blacklist.bed ${hotspot_dir}/hotspot-distr/data/${satellites}.bed
         set +x
     else    # hg19 has wgEncodeDacMapabilityConsensusExcludable.bed instead
         set -x
@@ -114,7 +114,7 @@ if [ "$read_length" == "36" ]; then
     fi
     set +x
 else
-    # Not a good idea: probably only hg19 will work
+    # Not a good idea: probably only hg19 would work
     set -x
     wget http://www.uwencode.org/proj/hotspot/${mappable}.bed -O ${hotspot_dir}/hotspot-distr/data/${mappable}.bed
     wget http://www.uwencode.org/proj/hotspot/${satellites}.bed -O ${hotspot_dir}/hotspot-distr/data/${satellites}.bed
