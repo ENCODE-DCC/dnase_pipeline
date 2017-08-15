@@ -1,9 +1,9 @@
 {
   "name": "dnase-filter-se",
-  "title": "Merge and filter se bams (v2.0.2)",
+  "title": "Merge and filter se bams (v2.0.3)",
   "summary": "Merge and filter bams (single-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "authorizedUsers": [],
   "inputSpec": [
     {
