@@ -50,6 +50,9 @@ main() {
         fi
         if [ -f /usr/bin/parse_property.py ]; then
             bam_umi=`parse_property.py -f "'${bam_set[$ix]}'" -p "UMI" --quiet`
+            if [ "$bam_umi" == "" ]; then
+                bam_umi="no"
+            fi 
             if [ "$found_umi" != "" ] && [ "$found_umi" != "$bam_umi" ]; then
                 echo "ERROR: bams must all have the same UMI state."
                 exit 1
