@@ -49,7 +49,7 @@ main() {
         fi
         if [ -f /usr/bin/parse_property.py ]; then
             bam_umi=`parse_property.py -f "'${bam_set[$ix]}'" -p "UMI" --quiet`
-            if [ "$bam_umi" == "" ]; then
+            if [ "$bam_umi" != "yes" ]; then
                 bam_umi="no"
             fi 
             if [ "$found_umi" != "" ] && [ "$found_umi" != "$bam_umi" ]; then
