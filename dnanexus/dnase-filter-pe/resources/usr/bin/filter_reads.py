@@ -32,7 +32,7 @@ def parse_umi(read):
     except:
         pass
     else:
-        read.set_tag("XD", read.query_name[umi_loc+1:])
+        read.set_tag("XD", read.query_name[umi_loc+1:].ljust(8,'N'))
         read.query_name = read.query_name[:umi_loc]
 
     return read
