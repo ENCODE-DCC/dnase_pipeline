@@ -1,9 +1,9 @@
 {
   "name": "dnase-filter-pe",
-  "title": "Merge and filter pe bams (v2.0.5)",
+  "title": "Merge and filter pe bams (v2.0.6)",
   "summary": "Merge and filter bams (paired-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -85,9 +85,10 @@
     "file": "src/dnase-filter-pe.sh",
     "distribution": "Ubuntu", "release": "12.04",
     "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x4" } },
-    "execDepends": [ 
-        { "name": "gawk" }, 
-        { "name": "openjdk-8-jdk" }
+    "execDepends": [
+        { "name": "gawk" },
+        { "name": "openjdk-8-jdk" },
+        { "name": "pysam", "package_manager": "pip", "version": "0.9.0"}
     ]
   },
   "access": {
