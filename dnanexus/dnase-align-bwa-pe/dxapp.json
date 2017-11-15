@@ -1,9 +1,9 @@
 {
   "name": "dnase-align-bwa-pe",
-  "title": "Align with bwa - pe (v2.0.1)",
+  "title": "Align with bwa - pe (v2.0.2)",
   "summary": "Alignment by bwa of paired-end fastqs for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -80,6 +80,8 @@
     }
   ],
   "runSpec": {
+    "distribution": "Ubuntu",
+    "release": "12.04",
     "interpreter": "bash",
     "file": "src/dnase-align-bwa-pe.sh",
     "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x4" } }
