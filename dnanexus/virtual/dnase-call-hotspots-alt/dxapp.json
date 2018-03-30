@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots-alt",
-  "title": "Call hotspots (virtual-2.0.2)",
-  "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
+  "title": "Call hotspots (virtual-2.1.0)",
+  "summary": "Call peaks with 'hotspot2' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -78,6 +78,8 @@
     }
   ],
   "runSpec": {
+    "distribution": "Ubuntu",
+    "release": "12.04",
     "interpreter": "bash",
     "file": "src/dnase-call-hotspots.sh",
     "systemRequirements": {  "main": { "instanceType": "mem2_ssd1_x4" } },

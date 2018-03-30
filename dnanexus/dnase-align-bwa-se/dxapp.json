@@ -1,9 +1,9 @@
 {
   "name": "dnase-align-bwa-se",
-  "title": "Align with bwa - se (v1.2.0)",
+  "title": "Align with bwa - se (v1.2.1)",
   "summary": "Alignment by bwa of single-end fastq for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -74,6 +74,8 @@
     }
   ],
   "runSpec": {
+    "distribution": "Ubuntu",
+    "release": "12.04",
     "interpreter": "bash",
     "file": "src/dnase-align-bwa-se.sh",
     "execDepends": [

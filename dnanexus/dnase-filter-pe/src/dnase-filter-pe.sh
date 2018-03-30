@@ -6,18 +6,18 @@ main() {
     set -x
     wget https://github.com/broadinstitute/picard/releases/download/2.8.1/picard.jar > install.log 2>&1
     tail -2 install.log
-    sudo pip install -I pysam==0.9.0 >> install.log 2>&1
-    tail -2 install.log
+    #sudo pip install -I pysam==0.9.0 >> install.log 2>&1
+    #tail -2 install.log
     mv /usr/bin/filter_reads.py .
     set +x
     # executables in resources/usr/bin
 
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
-    if [ -f /usr/bin/tool_versions.py ]; then 
+    if [ -f /usr/bin/tool_versions.py ]; then
         versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
- 
+
     echo "* Value of bam_set:    '$bam_set'"
     echo "* Value of map_thresh: '$map_thresh'"
     echo "* Value of UMI:        '$umi'"
@@ -52,7 +52,7 @@ main() {
             bam_umi=`parse_property.py -f "'${bam_set[$ix]}'" -p "UMI" --quiet`
             if [ "$bam_umi" != "yes" ]; then
                 bam_umi="no"
-            fi 
+            fi
             if [ "$found_umi" != "" ] && [ "$found_umi" != "$bam_umi" ]; then
                 echo "ERROR: bams must all have the same UMI state."
                 exit 1
@@ -87,26 +87,26 @@ main() {
         merged_bam_root="${exp_id}_${tech_reps}_pe_bwa_biorep"
     fi
     echo "* Merged alignments file will be: '${merged_bam_root}.bam'"
-    
+
     # Discovering UMI state
     if [ "$found_umi" != "" ]; then
-        if [ "$umi" != "yes" ] && [ "$umi" != "no" ]; then 
+        if [ "$umi" != "yes" ] && [ "$umi" != "no" ]; then
             echo "* UMI state discovered to be '$found_umi'."
             umi=$found_umi
-        elif [ "$found_umi" == "$umi" ]; then 
+        elif [ "$found_umi" == "$umi" ]; then
             echo "* UMI state confirmed to be '$found_umi'."
-        else 
+        else
             echo "* UMI state discovered to be '$found_umi' but running as requested: UMI='$umi'."
         fi
     elif [ "$umi" == "discover" ]; then
         echo "ERROR: UMI state could not be discovered and must be set."
         exit 1
     fi
-    if [ "$umi" != "yes" ] && [ "$umi" != "no" ]; then 
+    if [ "$umi" != "yes" ] && [ "$umi" != "no" ]; then
         echo "ERROR: UMI state must be either 'yes' or 'no'."
         exit 1
     fi
-    
+
     # At this point there is a 'sofar.bam' with one or more input bams
     if [ "${merged}" == "" ]; then
         echo "* Only one input file, no merging required."
@@ -115,14 +115,14 @@ main() {
         #echo "* Sorting merged bam..."
         #set -x
         #samtools sort -@ $nthreads -m 6G -f sofar.bam sorted.bam
-        #samtools view -hb sorted.bam > sofar.bam 
+        #samtools view -hb sorted.bam > sofar.bam
         #set +x
         echo "* Files merging into '${merged_bam_root}.bam'"
-    fi 
+    fi
     set -x
     mv sofar.bam ${merged_bam_root}.bam
     set +x
-    
+
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     filtered_bam_root="${merged_bam_root}_filtered"
     # TEMPORARY
@@ -170,7 +170,7 @@ main() {
     echo " "                              >> ${filtered_bam_root}_qc.txt
     echo "===== samtools stats ====="     >> ${filtered_bam_root}_qc.txt
     cat ${filtered_bam_root}_samstats.txt >> ${filtered_bam_root}_qc.txt
-    
+
     echo "* Upload results..."
     bam_filtered=$(dx upload ${filtered_bam_root}.bam --details "{ $qc_filtered }" --property SW="$versions" \
                                       --property prefiltered_all_reads="$prefiltered_all_reads" --property pe_or_se="pe" \
