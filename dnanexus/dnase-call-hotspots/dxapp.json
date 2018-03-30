@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots",
-  "title": "Call hotspots (v2.0.2)",
-  "summary": "Call peaks with 'hotspot' for the ENCODE DNase-seq pipeline",
+  "title": "Call hotspots (v2.1.0)",
+  "summary": "Call peaks with 'hotspot2' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "authorizedUsers": [],
   "inputSpec": [
     {
