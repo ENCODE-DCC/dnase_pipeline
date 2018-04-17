@@ -6,7 +6,7 @@ if [ $# -lt 6 ] || [ $# -gt 7 ]; then
     echo "Requires hotspot2 (hotspot2,hotspot2.sh,cutcounts.bash,density-peaks.bash,hsmerge.sh),"
     echo "         bedops (bam2bed,bedmap,sort-bed,starch,unstarch), modwt, mawk, samtools, bedToBigBed,"
     echo "         bedGraphToBigWig, and pigz on path."
-    exit -1; 
+    exit -1;
 fi
 bam_file=$1      # Bam file on which hotspot will be run.
 chrom_sizes=$2   # Chrom sizes file that matches the reference genome which bam reads were aligned to.
@@ -25,9 +25,14 @@ set -x
 tar -xzf $mappable_tgz
 set +x
 
+echo "-- Filtering bam to only 22+XY..."
+set -x
+samtools -b $bam_file chr1 chr2 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chr10 chr11 chr12 chr13 chr14 chr15 chr16 chr17 chr18 chr19 chr20 chr21 chr22 chrX chrY > chrs_22_XY.bam
+set +x
+
 echo "-- Running hotspot2.sh..."
 set -x
-hotspot2.sh -c chrom_sizes.bed -C center_sites.starch -M mappable_target.starch $bam_file out/
+hotspot2.sh -c chrom_sizes.bed -C center_sites.starch -M mappable_target.starch chrs_22_XY.bam out/
 set +x
 
 echo "-- hotspot2.sh out/..."
