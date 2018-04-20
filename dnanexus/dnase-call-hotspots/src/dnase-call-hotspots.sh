@@ -6,16 +6,17 @@ main() {
     alias awk='gawk'
     #alias mawk='gawk'
     # hotspot and bedops executables in resources/usr/bin
-    
+
     # If available, will print tool versions to stderr and json string to stdout
     versions=''
-    if [ -f /usr/bin/tool_versions.py ]; then 
+    if [ -f /usr/bin/tool_versions.py ]; then
         versions=`tool_versions.py --dxjson dnanexus-executable.json`
     fi
 
     echo "* Value of bam_to_call: '$bam_to_call'"
     echo "* Value of chrom_sizes: '$chrom_sizes'"
     echo "* Value of hotspot_mappable:   '$hotspot_mappable'"
+    echo "* Include minor chromsosomes:  '$minor_chroms'"
 
     echo "* Download files..."
     bam_root=`dx describe "$bam_to_call" --name`
@@ -26,7 +27,7 @@ main() {
     dx download "$chrom_sizes" -o chrom.sizes
     mappable_archive=`dx describe "$hotspot_mappable" --name`
     dx download "$hotspot_mappable"
-    
+
     hotspot_root="${bam_root}_hotspots"  # Put hotspot results into ${hotspot_root}.bed.gz, ${hotspot_root}.bb, ${hotspot_root}_count.txt, and ${hotspot_root}_SPOT.txt
     peaks_root="${bam_root}_peaks"       # Put peak results into ${peaks_root}.bed.gz, ${peaks_root}.bb, and ${peaks_root}_count.txt
     density_root="${bam_root}_density"   # Put density results into ${density_root}.bw
@@ -34,10 +35,10 @@ main() {
 
     echo "* ===== Calling DNAnexus and ENCODE independent script... ====="
     set -x
-    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $mappable_archive $hotspot_root $peaks_root $density_root $allcalls_root
+    dnase_hotspot.sh ${bam_root}.bam chrom.sizes $mappable_archive $hotspot_root $peaks_root $density_root $minor_chroms $allcalls_root
     set +x
     echo "* ===== Returned from dnanexus and encodeD independent script ====="
-    
+
     echo "* Prepare metadata..."
     qc_hotspot=''
     if [ -f /usr/bin/qc_metrics.py ]; then
@@ -50,7 +51,7 @@ main() {
         allcalls_count=`cat ${allcalls_root}_count.txt`
         qc_hotspot=`echo \"hotspot\": { $qc_peaks }`
     fi
-    
+
     #### All qc to one file:
     echo "===== SPOT score ====="       > ${hotspot_root}_qc.txt
     cat ${hotspot_root}_SPOT.txt       >> ${hotspot_root}_qc.txt
@@ -63,7 +64,7 @@ main() {
     echo " "                           >> ${hotspot_root}_qc.txt
     echo "===== allcalls count ====="  >> ${hotspot_root}_qc.txt
     cat ${allcalls_root}_count.txt     >> ${hotspot_root}_qc.txt
-    
+
     echo "* Upload results..."
     bed_hotspots=$(dx upload ${hotspot_root}.bed.gz   --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
     bb_hotspots=$(dx upload ${hotspot_root}.bb        --details "{ $qc_hotspot }" --property SW="$versions" --property hotspot_count="$hotspot_count" --brief)
@@ -83,6 +84,6 @@ main() {
     dx-jobutil-add-output starch_density "$starch_density" --class=file
     dx-jobutil-add-output hotspots_qc "$hotspots_qc" --class=file
     dx-jobutil-add-output metadata "{ $qc_hotspot }" --class=string
-    
+
     echo "* Finished."
 }

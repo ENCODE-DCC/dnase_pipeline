@@ -1,9 +1,9 @@
 {
   "name": "dnase-call-hotspots-alt",
-  "title": "Call hotspots (virtual-2.1.2)",
+  "title": "Call hotspots (virtual-2.1.3)",
   "summary": "Call peaks with 'hotspot2' for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -26,6 +26,13 @@
       "class": "file",
       "optional": false,
       "patterns": ["*_hotspot2_v2.0_mappable.tgz"]
+    },
+    {
+      "name": "minor_chroms",
+      "label": "Call hotspots on chrM and scaffolds as well as the default 1-22+XY chromosomes.",
+      "class": "boolean",
+      "default": false,
+      "optional": true
     }
   ],
   "outputSpec": [
