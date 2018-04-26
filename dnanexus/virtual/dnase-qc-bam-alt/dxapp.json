@@ -1,9 +1,9 @@
 {
   "name": "dnase-qc-bam-alt",
-  "title": "QC with hotspot1, pbc, etc. (virtual-1.0.2)",
+  "title": "QC with hotspot1, pbc, etc. (virtual-1.0.3)",
   "summary": "Evaluates sampled bam with hotspot1, pbc, etc. for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -77,7 +77,7 @@
   ],
   "runSpec": {
     "distribution": "Ubuntu",
-    "release": "12.04",
+    "release": "14.04",
     "interpreter": "bash",
     "file": "src/dnase-qc-bam.sh",
     "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x4" } },

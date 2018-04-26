@@ -1,9 +1,9 @@
 {
   "name": "dnase-filter-se",
-  "title": "Merge and filter se bams (v2.0.4)",
+  "title": "Merge and filter se bams (v2.0.5)",
   "summary": "Merge and filter bams (single-end) for the ENCODE DNase-seq pipeline",
   "dxapi": "1.0.0",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -75,7 +75,7 @@
   "runSpec": {
     "interpreter": "bash",
     "file": "src/dnase-filter-se.sh",
-    "distribution": "Ubuntu", "release": "12.04",
+    "distribution": "Ubuntu", "release": "14.04",
     "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x4" } },
     "execDepends": [ { "name": "gawk" }, { "name": "openjdk-8-jdk" } ]
   },

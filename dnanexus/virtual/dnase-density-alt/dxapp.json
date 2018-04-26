@@ -1,9 +1,9 @@
 {
   "name": "dnase-density-alt",
-  "title": "Normalize density (virtual-1.0.2)",
+  "title": "Normalize density (virtual-1.0.3)",
   "summary": "Creates a normalized density signal from the filtered alignmnet for the ENCODE DNase-seq pipeline.",
   "dxapi": "1.0.0",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -37,7 +37,7 @@
   ],
   "runSpec": {
     "distribution": "Ubuntu",
-    "release": "12.04",
+    "release": "14.04",
     "interpreter": "bash",
     "file": "src/dnase-density.sh",
     "systemRequirements": { "main": { "instanceType": "mem3_ssd1_x4" } }

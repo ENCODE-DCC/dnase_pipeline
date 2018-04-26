@@ -1,9 +1,9 @@
 {
   "name": "dnase-rep-corr",
-  "title": "Correlation of replicate density (v2.0.1)",
+  "title": "Correlation of replicate density (v2.0.2)",
   "summary": "Compares two hotspot density files and calculates the correlation.",
   "dxapi": "1.0.0",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "authorizedUsers": [],
   "inputSpec": [
     {
@@ -36,7 +36,7 @@
   ],
   "runSpec": {
     "distribution": "Ubuntu",
-    "release": "12.04",
+    "release": "14.04",
     "interpreter": "bash",
     "file": "src/dnase-rep-corr.sh",
     "systemRequirements": { "main": { "instanceType": "mem3_hdd2_x2" } },
